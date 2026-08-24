@@ -8,6 +8,24 @@ import { BIZ, NAV } from '@/lib/content';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { Arrow } from '@/components/ui/Icon';
 
+/* =====================================================================
+   Logo-Konfiguration — die einzigen zwei Stellen, die du anfassen musst.
+
+   LOGO_SRC   Pfad ab dem public-Ordner. Datei muss unter
+              public/assets/img/logo.svg liegen.
+
+   LOGO_HAS_WORDMARK
+              true  = im Logo steht "ING GUTACHTEN" bereits drin.
+                      Der getippte Schriftzug daneben entfällt.
+              false = das Logo ist nur ein Zeichen/Signet.
+                      Der Schriftzug bleibt daneben stehen.
+
+   Brand() wird von Navigation, Fullscreen-Menü und Footer gemeinsam
+   benutzt — eine Änderung hier wirkt überall.
+   ===================================================================== */
+const LOGO_SRC = '/assets/img/logo.svg';
+const LOGO_HAS_WORDMARK = true;
+
 export function Nav() {
   const pathname = usePathname();
   const reduced = useReducedMotion();
@@ -68,7 +86,8 @@ export function Nav() {
           }`}
           style={{ paddingInline: 'var(--pad)' }}
         >
-          <Brand />
+          {/* Beim Scrollen schrumpft das Logo leicht mit der Leiste. */}
+          <Brand compact={stuck} />
 
           <nav className="ml-auto hidden gap-[.15rem] xl:flex" aria-label="Hauptnavigation">
             {NAV.map((item) => {
@@ -203,22 +222,38 @@ export function Nav() {
   );
 }
 
-export function Brand() {
+/**
+ * Wortmarke der Seite. Wird von Navigation und Footer gemeinsam genutzt.
+ *
+ * compact  – in der Navigation, sobald die Leiste beim Scrollen schrumpft
+ * large    – im Footer, dort darf das Logo etwas größer stehen
+ */
+export function Brand({ compact = false, large = false }: { compact?: boolean; large?: boolean } = {}) {
+  const height = large ? 'h-11' : compact ? 'h-7' : 'h-9';
+
   return (
-    <Link href="/" className="flex items-center gap-[.7rem] font-display text-[1.02rem] font-bold tracking-[-.02em]" aria-label="ING Gutachten – zur Startseite">
-      <span
-        className="grid h-[30px] w-[30px] flex-none place-items-center rounded-lg font-mono text-[.62rem] text-signal"
-        style={{ background: 'linear-gradient(150deg,#2a3038,#0f1318)', boxShadow: 'inset 0 0 0 1px #232b33' }}
-        aria-hidden="true"
-      >
-        ING
-      </span>
-      <span>
-        ING GUTACHTEN
-        <small className="mt-[2px] block font-mono text-[.55rem] font-normal uppercase tracking-[.24em] text-fg-mute">
-          Kfz-Sachverständige Hannover
-        </small>
-      </span>
+    <Link
+      href="/"
+      className="flex flex-none items-center gap-[.7rem] font-display text-[1.02rem] font-bold tracking-[-.02em]"
+      aria-label="ING Gutachten – zur Startseite"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={LOGO_SRC}
+        alt={LOGO_HAS_WORDMARK ? 'ING Gutachten – Kfz-Sachverständigenbüro Hannover' : ''}
+        aria-hidden={LOGO_HAS_WORDMARK ? undefined : true}
+        className={`${height} w-auto flex-none transition-[height] duration-500 ease-out`}
+      />
+
+      {/* Enthält das Logo den Schriftzug bereits, entfällt der getippte Text. */}
+      {!LOGO_HAS_WORDMARK && (
+        <span>
+          ING GUTACHTEN
+          <small className="mt-[2px] block font-mono text-[.55rem] font-normal uppercase tracking-[.24em] text-fg-mute">
+            Kfz-Sachverständige Hannover
+          </small>
+        </span>
+      )}
     </Link>
   );
 }
