@@ -54,10 +54,10 @@ export function DamageConfigurator() {
                       className={`relative grid h-[34px] w-[34px] place-items-center rounded-full transition-all duration-500 ease-out ${
                         on ? 'scale-110 bg-signal' : 'bg-signal-soft group-hover:scale-110 group-hover:bg-signal'
                       }`}
-                      style={{ boxShadow: on ? 'none' : 'inset 0 0 0 1px rgba(255,180,60,.38)' }}
+                      style={{ boxShadow: on ? 'none' : 'inset 0 0 0 1px rgba(107,168,255,.38)' }}
                     >
                       {!on && (
-                        <span className="absolute inset-0 animate-ping-slow rounded-full border border-signal" />
+                        <span className="absolute inset-0 animate-ping-slow rounded-full border border-signal-bright" />
                       )}
                       <i className={`block h-[7px] w-[7px] rounded-full ${on ? 'bg-ink-900' : 'bg-signal group-hover:bg-ink-900'}`} />
                     </span>
@@ -85,7 +85,7 @@ export function DamageConfigurator() {
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                   className="grid content-start gap-[.9rem]"
                 >
-                  <span className="font-mono text-[.68rem] tracking-[.2em] text-signal">{active.index}</span>
+                  <span className="font-mono text-[.68rem] tracking-[.2em] text-signal-bright">{active.index}</span>
                   <h3 className="font-display text-2xl font-semibold tracking-[-.02em]">{active.title}</h3>
                   <p className="text-fg-mute">{active.text}</p>
                   <ul className="mt-[.3rem] grid gap-2">
@@ -96,7 +96,7 @@ export function DamageConfigurator() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/unfallgutachten" className="tlink mt-[.4rem] text-signal">
+                  <Link href="/unfallgutachten" className="tlink mt-[.4rem] text-signal-bright">
                     Unfallgutachten anfordern <Arrow />
                   </Link>
                 </motion.div>
@@ -113,7 +113,7 @@ export function DamageConfigurator() {
                     onClick={() => setActive(zone)}
                     aria-pressed={on}
                     className={`cursor-pointer rounded-full border-0 px-4 py-2 font-mono text-[.68rem] uppercase tracking-[.12em] transition-colors ${
-                      on ? 'bg-signal text-ink-900' : 'bg-transparent text-fg-mute hover:text-fg'
+                      on ? 'bg-signal text-white' : 'bg-transparent text-fg-mute hover:text-fg'
                     }`}
                     style={{ boxShadow: on ? 'none' : 'inset 0 0 0 1px #232b33' }}
                   >
@@ -160,7 +160,7 @@ function CarTopView() {
         <path d="M70 300h34M296 300h34M70 470h34M296 470h34" />
         <path d="M104 232v224M296 232v224" />
       </g>
-      <rect x="150" y="40" width="100" height="10" rx="5" fill="#ffb43c" fillOpacity=".55" />
+      <rect x="150" y="40" width="100" height="10" rx="5" fill="#6ba8ff" fillOpacity=".55" />
       <rect x="150" y="678" width="100" height="10" rx="5" fill="#ff6a5e" fillOpacity=".35" />
       <g fill="#5ac8e8" fillOpacity=".5" fontFamily="monospace" fontSize="11" letterSpacing="1.5">
         <text x="200" y="16" textAnchor="middle">FRONT</text>

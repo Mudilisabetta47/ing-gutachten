@@ -28,7 +28,7 @@ export function TwoCol({
             <p className="eyebrow">{eyebrow}</p>
             <Tilt max={4}>
               <div className="card mt-4">
-                <span className="text-signal">
+                <span className="text-signal-bright">
                   <Icon name={icon} />
                 </span>
                 <h3 className="font-display text-h3 font-semibold">{asideTitle}</h3>

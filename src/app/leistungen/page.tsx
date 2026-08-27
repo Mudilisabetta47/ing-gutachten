@@ -52,12 +52,12 @@ export default function Page() {
             {[...SERVICES, ...EXTRA].map((s) => (
               <Tilt key={s.href} max={4}>
                 <Link href={s.href} className="card h-full">
-                  <span className="text-signal">
+                  <span className="text-signal-bright">
                     <Icon name={s.icon} />
                   </span>
                   <h2 className="font-display text-h3 font-semibold">{s.title}</h2>
                   <p className="text-fg-mute">{s.teaser}</p>
-                  <span className="tlink text-signal">
+                  <span className="tlink text-signal-bright">
                     Details <Arrow />
                   </span>
                 </Link>

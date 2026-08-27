@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <JsonLd data={localBusinessSchema()} />
         <a
           href="#main"
-          className="sr-only sr-only-focusable absolute left-0 top-0 z-[200] bg-signal px-5 py-3 text-ink-900"
+          className="sr-only sr-only-focusable absolute left-0 top-0 z-[200] bg-signal px-5 py-3 text-white"
         >
           Zum Inhalt springen
         </a>

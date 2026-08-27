@@ -340,11 +340,11 @@ export function CrashSequence() {
             <linearGradient id="rimLight" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0" stopColor="#5ac8e8" stopOpacity=".45" />
               <stop offset="0.5" stopColor="#ffffff" stopOpacity=".22" />
-              <stop offset="1" stopColor="#ffb43c" stopOpacity=".8" />
+              <stop offset="1" stopColor="#6ba8ff" stopOpacity=".8" />
             </linearGradient>
             <radialGradient id="lampGlow">
-              <stop offset="0" stopColor="#fff3d8" stopOpacity=".9" />
-              <stop offset="1" stopColor="#ffb43c" stopOpacity="0" />
+              <stop offset="0" stopColor="#eaf3ff" stopOpacity=".9" />
+              <stop offset="1" stopColor="#6ba8ff" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="dustGrad">
               <stop offset="0" stopColor="#c9d3dd" stopOpacity=".55" />
@@ -397,7 +397,7 @@ export function CrashSequence() {
             <g id="carB" style={{ transformBox: 'fill-box', transformOrigin: '20% 100%', willChange: 'transform' }}>
               <CarBody paint="url(#carPaintB)" idPrefix="carB" />
               <path id="carB-rear" d={rearPath(0)} fill="#0e1319" stroke="url(#rimLight)" strokeWidth="1.6" />
-              <g id="carB-folds" opacity="0" stroke="#ffb43c" strokeOpacity=".55" strokeWidth="1.2" fill="none">
+              <g id="carB-folds" opacity="0" stroke="#6ba8ff" strokeOpacity=".55" strokeWidth="1.2" fill="none">
                 <path d="M 40 -104 L 62 -78 L 44 -56" />
                 <path d="M 58 -112 L 78 -86" />
                 <path d="M 30 -70 L 54 -48" />
@@ -414,19 +414,19 @@ export function CrashSequence() {
               <CarBody paint="url(#carPaintA)" idPrefix="carA" />
               <path id="carA-front" d={frontPath(0)} fill="#0e1319" stroke="url(#rimLight)" strokeWidth="1.6" />
               <ellipse id="carA-crushshadow" cx="500" cy="-52" rx="40" ry="46" fill="#05070a" opacity="0" />
-              <g id="carA-hood" opacity="0" stroke="#ffb43c" strokeOpacity=".5" strokeWidth="1.2" fill="none">
+              <g id="carA-hood" opacity="0" stroke="#6ba8ff" strokeOpacity=".5" strokeWidth="1.2" fill="none">
                 <path d="M 470 -96 L 494 -74 L 470 -58" />
                 <path d="M 440 -104 L 462 -84" />
               </g>
             </g>
 
             {/* Aufprall */}
-            <ellipse id="flash" cx={IMPACT_PT.x} cy={IMPACT_PT.y} rx={190} ry={150} fill="#fff6e4" opacity="0" />
+            <ellipse id="flash" cx={IMPACT_PT.x} cy={IMPACT_PT.y} rx={190} ry={150} fill="#eef5ff" opacity="0" />
             <circle
               id="ring"
               r="40"
               fill="none"
-              stroke="#ffb43c"
+              stroke="#6ba8ff"
               strokeWidth="2"
               opacity="0"
               style={{ transformBox: 'view-box' }}
@@ -455,12 +455,12 @@ export function CrashSequence() {
                 <g key={c.label}>
                   <path
                     d={`M ${IMPACT_PT.x} ${IMPACT_PT.y} L ${IMPACT_PT.x + c.dx} ${IMPACT_PT.y + c.dy}`}
-                    stroke="#ffb43c"
+                    stroke="#6ba8ff"
                     strokeOpacity=".5"
                     strokeWidth="1"
                     strokeDasharray="4 5"
                   />
-                  <circle cx={IMPACT_PT.x + c.dx} cy={IMPACT_PT.y + c.dy} r="3.5" fill="#ffb43c" />
+                  <circle cx={IMPACT_PT.x + c.dx} cy={IMPACT_PT.y + c.dy} r="3.5" fill="#6ba8ff" />
                   <text
                     x={IMPACT_PT.x + c.dx + (c.dx < 0 ? -12 : 12)}
                     y={IMPACT_PT.y + c.dy - 8}
@@ -480,7 +480,7 @@ export function CrashSequence() {
                     fontFamily="monospace"
                     fontSize="13"
                     letterSpacing="1.6"
-                    fill="#ffb43c"
+                    fill="#6ba8ff"
                   >
                     {c.value}
                   </text>
@@ -505,7 +505,7 @@ export function CrashSequence() {
           <div className="mx-auto flex h-full max-w-shell flex-col justify-between py-6 sm:py-10">
             <div className="flex items-start justify-between font-mono text-[.62rem] uppercase tracking-[.22em] text-fg-mute">
               <span>Sequenz 01 · Kollisionsrekonstruktion</span>
-              <span id="hud-phase" className="text-signal">
+              <span id="hud-phase" className="text-signal-bright">
                 ANNÄHERUNG
               </span>
             </div>
@@ -514,7 +514,7 @@ export function CrashSequence() {
                 Abstand <b id="hud-gap" className="ml-2 text-base tracking-normal text-measure">10.30 m</b>
               </span>
               <span>
-                Δv <b id="hud-speed" className="ml-2 text-base tracking-normal text-signal">0 km/h</b>
+                Δv <b id="hud-speed" className="ml-2 text-base tracking-normal text-signal-bright">0 km/h</b>
               </span>
             </div>
           </div>
@@ -543,7 +543,7 @@ export function CrashSequence() {
                 Was hier in Millisekunden geschieht, rekonstruieren wir in Millimetern: Verformung, Kraftverlauf,
                 betroffene Baugruppen. Genau das steht später im Gutachten.
               </p>
-              <Link href="/unfallgutachten" className="tlink mt-5 text-signal">
+              <Link href="/unfallgutachten" className="tlink mt-5 text-signal-bright">
                 Unfallgutachten ansehen <Arrow />
               </Link>
             </div>
@@ -612,7 +612,7 @@ function CarBody({ paint, idPrefix }: { paint: string; idPrefix: string }) {
       </g>
 
       {/* Leuchten */}
-      <rect x="502" y="-44" width="26" height="9" rx="4.5" fill="#ffe6b8" opacity=".85" />
+      <rect x="502" y="-44" width="26" height="9" rx="4.5" fill="#dbe9ff" opacity=".85" />
       <rect x="14" y="-42" width="22" height="8" rx="4" fill="#ff6a5e" opacity=".5" />
     </g>
   );
