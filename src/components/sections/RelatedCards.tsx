@@ -20,7 +20,7 @@ export function RelatedCards({ items }: { items: Related[] }) {
               <Link href={item.href} className="card h-full">
                 <h3 className="font-display text-h3 font-semibold">{item.title}</h3>
                 <p className="text-fg-mute">{item.text}</p>
-                <span className="tlink text-signal">
+                <span className="tlink text-signal-bright">
                   Ansehen <Arrow />
                 </span>
               </Link>

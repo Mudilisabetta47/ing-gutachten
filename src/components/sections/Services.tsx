@@ -91,7 +91,7 @@ export function Services() {
             <span className="absolute left-6 top-6 font-mono text-[.68rem] tracking-[.2em] text-fg-mute lg:left-8">
               {s.num} / 06
             </span>
-            <span className="mb-auto pt-14 text-signal transition-transform duration-500 ease-out group-hover:-translate-y-1.5">
+            <span className="mb-auto pt-14 text-signal-bright transition-transform duration-500 ease-out group-hover:-translate-y-1.5">
               <Icon name={s.icon} size={40} />
             </span>
             <h3 className="mb-2 font-display text-h3 font-semibold">{s.title}</h3>
@@ -109,7 +109,7 @@ export function Services() {
             </ul>
             <Link
               href={s.href}
-              className="tlink mt-[1.1rem] text-signal opacity-100 transition-all duration-500 ease-out lg:translate-y-2 lg:opacity-50 lg:group-hover:translate-y-0 lg:group-hover:opacity-100"
+              className="tlink mt-[1.1rem] text-signal-bright opacity-100 transition-all duration-500 ease-out lg:translate-y-2 lg:opacity-50 lg:group-hover:translate-y-0 lg:group-hover:opacity-100"
             >
               Mehr erfahren <Arrow />
               <span className="sr-only"> zu {s.title}</span>

@@ -269,16 +269,16 @@ export function RequestForm() {
                   onDragLeave={() => setDragging(false)}
                   onDrop={onDrop}
                   className={`relative grid cursor-pointer justify-items-center gap-2 rounded-[14px] border-[1.5px] border-dashed p-7 text-center transition-colors ${
-                    dragging ? 'border-signal bg-signal-soft' : 'border-line hover:border-signal hover:bg-signal-soft'
+                    dragging ? 'border-signal-bright bg-signal-soft' : 'border-line hover:border-signal-bright hover:bg-signal-soft'
                   }`}
                 >
-                  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true" className="h-[30px] w-[30px] text-signal">
+                  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true" className="h-[30px] w-[30px] text-signal-bright">
                     <path d="M24 34V14m0 0-7 7m7-7 7 7M8 34v4a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-4" />
                   </svg>
                   <b className="font-display text-base">Fotos hierher ziehen oder auswählen</b>
                   <small className="text-[.8rem] text-fg-mute">JPG, PNG oder HEIC · bis 12 MB je Bild · maximal 8 Fotos</small>
                   {files.length > 0 && (
-                    <small className="text-[.8rem] text-signal">
+                    <small className="text-[.8rem] text-signal-bright">
                       {files.length} Foto{files.length > 1 ? 's' : ''} ausgewählt
                     </small>
                   )}
@@ -383,7 +383,7 @@ export function RequestForm() {
                     <label className="flex cursor-pointer items-start gap-3 text-[.85rem] text-fg-mute">
                       <input
                         type="checkbox"
-                        className="mt-1 h-[17px] w-[17px] flex-none accent-[#ffb43c]"
+                        className="mt-1 h-[17px] w-[17px] flex-none accent-[#1f6fe0]"
                         checked={values.datenschutz}
                         onChange={(e) => set('datenschutz', e.target.checked)}
                       />
@@ -431,7 +431,7 @@ export function RequestForm() {
         )}
         <p className="mt-4 text-[.8rem] text-fg-mute">
           Dringend? Rufen Sie direkt an:{' '}
-          <a href={`tel:${BIZ.phoneLink}`} className="text-signal">
+          <a href={`tel:${BIZ.phoneLink}`} className="text-signal-bright">
             {BIZ.phoneDisplay}
           </a>
         </p>
@@ -482,7 +482,7 @@ function Options({
               className={`flex min-h-[64px] cursor-pointer items-center gap-3 rounded-[14px] px-4 py-[.85rem] font-display text-[.95rem] font-semibold transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/[.04] ${
                 on ? 'bg-signal-soft' : ''
               }`}
-              style={{ boxShadow: on ? 'inset 0 0 0 1.5px #ffb43c' : 'inset 0 0 0 1px #232b33' }}
+              style={{ boxShadow: on ? 'inset 0 0 0 1.5px #6ba8ff' : 'inset 0 0 0 1px #232b33' }}
             >
               <span
                 className={`h-4 w-4 flex-none rounded-full ${on ? 'bg-signal' : ''}`}

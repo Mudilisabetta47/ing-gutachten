@@ -20,17 +20,17 @@ export function Footer() {
               <br />
               <br />
               Telefon:{' '}
-              <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal">
+              <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal-bright">
                 {BIZ.phoneDisplay}
               </a>
               <br />
               Mobil:{' '}
-              <a href={`tel:${BIZ.mobileLink}`} className="transition-colors hover:text-signal">
+              <a href={`tel:${BIZ.mobileLink}`} className="transition-colors hover:text-signal-bright">
                 {BIZ.mobileDisplay}
               </a>
               <br />
               E-Mail:{' '}
-              <a href={`mailto:${BIZ.email}`} className="transition-colors hover:text-signal">
+              <a href={`mailto:${BIZ.email}`} className="transition-colors hover:text-signal-bright">
                 {BIZ.email}
               </a>
               <br />
@@ -68,10 +68,10 @@ export function Footer() {
         <div className="mt-[clamp(2.5rem,5vw,4rem)] flex flex-wrap items-center gap-x-6 gap-y-[.6rem] border-t border-line py-[1.4rem] text-[.8rem] text-fg-mute">
           <span>© {new Date().getFullYear()} ING Gutachten · Kfz-Sachverständigenbüro Hannover</span>
           <nav className="ml-auto flex flex-wrap gap-5" aria-label="Rechtliches">
-            <Link href="/impressum" className="transition-colors hover:text-signal">
+            <Link href="/impressum" className="transition-colors hover:text-signal-bright">
               Impressum
             </Link>
-            <Link href="/datenschutz" className="transition-colors hover:text-signal">
+            <Link href="/datenschutz" className="transition-colors hover:text-signal-bright">
               Datenschutz
             </Link>
             <CookieSettingsButton />
@@ -96,7 +96,7 @@ function FooterCol({ title, children }: { title: string; children: ReactNode }) 
 function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <li>
-      <Link href={href} className="text-[.93rem] text-fg-dim transition-colors hover:text-signal">
+      <Link href={href} className="text-[.93rem] text-fg-dim transition-colors hover:text-signal-bright">
         {children}
       </Link>
     </li>

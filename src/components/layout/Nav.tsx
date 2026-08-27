@@ -115,7 +115,7 @@ export function Nav() {
           <div className="ml-auto flex items-center gap-[.6rem] xl:ml-0">
             <a
               href={`tel:${BIZ.phoneLink}`}
-              className="hidden font-mono text-[.78rem] text-fg-dim transition-colors hover:text-signal 2xl:inline-flex"
+              className="hidden font-mono text-[.78rem] text-fg-dim transition-colors hover:text-signal-bright 2xl:inline-flex"
             >
               {BIZ.phoneDisplay}
             </a>
@@ -177,7 +177,7 @@ export function Nav() {
                       <Link
                         href={item.href}
                         onClick={() => setOpen(false)}
-                        className="flex items-baseline gap-4 py-[.35rem] font-display font-bold leading-[1.06] tracking-[-.035em] transition-colors hover:text-signal"
+                        className="flex items-baseline gap-4 py-[.35rem] font-display font-bold leading-[1.06] tracking-[-.035em] transition-colors hover:text-signal-bright"
                         style={{ fontSize: 'clamp(2.1rem,11vw,3.4rem)' }}
                       >
                         <em className="font-mono text-[.62rem] not-italic tracking-[.18em] text-fg-mute">
@@ -201,13 +201,13 @@ export function Nav() {
                 Gutachten anfordern <Arrow />
               </Link>
               <div className="flex flex-wrap gap-x-6 gap-y-[.4rem] font-mono text-[.78rem] text-fg-mute">
-                <a href={`tel:${BIZ.phoneLink}`} className="hover:text-signal">
+                <a href={`tel:${BIZ.phoneLink}`} className="hover:text-signal-bright">
                   {BIZ.phoneDisplay}
                 </a>
-                <a href={`tel:${BIZ.mobileLink}`} className="hover:text-signal">
+                <a href={`tel:${BIZ.mobileLink}`} className="hover:text-signal-bright">
                   {BIZ.mobileDisplay}
                 </a>
-                <a href={`mailto:${BIZ.email}`} className="hover:text-signal">
+                <a href={`mailto:${BIZ.email}`} className="hover:text-signal-bright">
                   {BIZ.email}
                 </a>
                 <span>

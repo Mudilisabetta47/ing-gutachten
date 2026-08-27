@@ -8,8 +8,14 @@ const config: Config = {
         ink: { 900: '#08090b', 850: '#0b0d10', 800: '#0e1116', 700: '#13181e', 600: '#1a2027' },
         line: { DEFAULT: '#232b33', soft: 'rgba(255,255,255,.075)' },
         fg: { DEFAULT: '#edf1f4', dim: '#c3ccd4', mute: '#8b98a4' },
-        signal: { DEFAULT: '#ffb43c', soft: 'rgba(255,180,60,.14)', line: 'rgba(255,180,60,.38)' },
-        measure: { DEFAULT: '#5ac8e8', soft: 'rgba(90,200,232,.18)' },
+        signal: {
+          DEFAULT: '#1f6fe0',   // Flaechen: weisser Text erreicht darauf 5.1:1
+          bright: '#6ba8ff',    // Linien und Text auf Graphit: 7.9:1
+          pale: '#bcd9ff',
+          soft: 'rgba(31,111,224,.16)',
+          line: 'rgba(107,168,255,.42)',
+        },
+        measure: { DEFAULT: '#7fa6c0', soft: 'rgba(127,166,192,.18)' },
         danger: '#ff6a5e',
         ok: '#5fd6a4',
       },
