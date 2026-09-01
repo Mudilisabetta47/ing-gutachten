@@ -21,7 +21,7 @@ export function Figure({
           style={{ background: 'linear-gradient(180deg, rgba(8,9,11,.05) 40%, rgba(8,9,11,.55) 100%)' }}
         />
         <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
-          <g stroke="#ffb43c" strokeOpacity=".45" strokeWidth="1.2" fill="none">
+          <g stroke="#6ba8ff" strokeOpacity=".45" strokeWidth="1.2" fill="none">
             <path d="M18 34 v-16 h16 M382 34 v-16 h-16 M18 266 v16 h16 M382 266 v16 h-16" />
           </g>
         </svg>

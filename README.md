@@ -60,6 +60,9 @@ src/
                Services, FlowTimeline, WhyGrid, ServiceMap, PhotoBand, Figure,
                RequestSection, Faq, CtaBand, PageHero, TwoCol, RelatedCards,
                ContactGrid
+               TechScenes     – Sensorik, Struktur, Hochvoltsystem
+               AnalysisScenes – Datenfluss, Datenpanel, Rekonstruktion
+               ServiceScenes  – Regulierung, Wochen, Video, Fahrzeugklassen
     form/      RequestForm (4 Schritte, Validierung, Drag & Drop)
     ui/        Reveal, SplitLines, Magnetic, Tilt, CountUp, Icon, Slug, JsonLd
   lib/
@@ -123,7 +126,61 @@ Sektion bleibt erhalten, die Bewegung entfällt vollständig.
 > erzeugen und jedes `position: sticky` im Dokument aushebeln — die Sequenz
 > würde einfach durchscrollen statt zu pinnen.
 
-## 5. Vor dem Livegang prüfen (wichtig)
+## 5. Navigation und Seitenbaum
+
+Die Hauptnavigation trägt einen Bereich mit Untermenü. Struktur steht in
+`src/lib/content.ts` unter `NAV` — ein Eintrag mit `children` erzeugt
+automatisch das Desktop-Dropdown und das mobile Akkordeon.
+
+```
+Schadensgutachten ─┬─ Gutachter            /schadensgutachten
+                   ├─ Unfallanalyse        /unfallanalyse
+                   ├─ PKW-Gutachten        /pkw-gutachten
+                   ├─ Unfallgutachten      /unfallgutachten
+                   ├─ Unfallrekonstruktion /unfallrekonstruktion
+                   └─ EDR-Systeme          /edr-systeme
+```
+
+Insgesamt 26 Routen. Das Dropdown öffnet bei Hover und bei Tastaturfokus,
+schließt mit `Esc` und über eine kurze Verzögerung — sonst klappt es zu,
+während der Zeiger die Lücke zum Panel überquert.
+
+**Bagatellschäden entfernt.** Die Seite ist gelöscht, alle Verweise und die
+Kategorie sind ersetzt. Damit die alte URL nicht ins Leere läuft, liegt eine
+301-Weiterleitung auf `/pkw-gutachten` in `vercel.json` (und in
+`deploy/.htaccess` für Apache). Der Fachbegriff *Bagatellgrenze* steht
+weiterhin in den FAQ — das ist eine juristische Größe, kein Angebot.
+
+## 6. Formulierungen zu Fahrzeugdaten und EDR
+
+Die Texte auf `/unfallanalyse` und `/edr-systeme` sind bewusst
+zurückhaltend formuliert: „je nach Fahrzeug, seinen Systemen und den
+verfügbaren Daten". Das ist kein Stilmittel, sondern notwendig — Umfang und
+Zugriff auf ereignisbezogene Daten unterscheiden sich stark, und der Zugriff
+setzt technische wie rechtliche Voraussetzungen voraus.
+
+Die Kennwerte im Datenpanel (`DATA_READOUTS` in `content.ts`) sind als
+Beispiele gekennzeichnet und stammen aus keinem realen Fall. Bitte diese
+Kennzeichnung beim Bearbeiten stehen lassen.
+
+## 7. Video einsetzen
+
+Videodatei nach `public/assets/video/` legen und in `content.ts` eintragen:
+
+```ts
+export const SETTLEMENT_VIDEO = {
+  src: '/assets/video/regulierung.mp4',
+  poster: '/assets/img/video-poster.webp',
+  ...
+};
+```
+
+Solange `src` leer ist, zeigt die Komponente einen ruhigen Platzhalter statt
+eines kaputten Players. Der Player lädt mit `preload="none"`, spielt nie
+automatisch und blendet die Bedienelemente erst nach dem Start ein.
+Empfehlung: MP4/H.264, max. 1080p, unter 10 MB.
+
+## 8. Vor dem Livegang prüfen (wichtig)
 
 Diese Angaben ließen sich nicht aus der bestehenden Website verifizieren und sind
 als Annahme eingesetzt — bitte in `src/lib/content.ts` (Block `BIZ`) korrigieren:
@@ -147,7 +204,7 @@ unter Punkt 7.
 **FAQ-Inhalte** sind fachlich formuliert (Bagatellgrenze, Wahlrecht des
 Geschädigten, Kostentragung). Bitte einmal fachlich gegenlesen.
 
-## 6. Formular anschließen
+## 9. Formular anschließen
 
 Ohne Endpunkt fällt das Formular sauber auf das E-Mail-Programm zurück. Für
 echten Serverversand inklusive Fotos in `src/lib/content.ts`:
@@ -165,7 +222,7 @@ Handler unter `src/app/api/anfrage/route.ts` anlegen, der die Daten per SMTP
 weiterschickt. **DSGVO:** externer Dienst = Auftragsverarbeitungsvertrag plus
 Eintrag in der Datenschutzerklärung.
 
-## 7. Bilder ergänzen
+## 10. Bilder ergänzen
 
 Drei echte Aufnahmen sind eingebaut und farblich ins Graphit der Seite
 gegradet (abdunkeln, entsättigen, Split-Toning in Blau/Amber, Vignette):
@@ -187,7 +244,7 @@ Weitere Fotos einfach im selben Look ergänzen und über `<PhotoBand>` oder
 Bei statischem Export ist `next/image` auf `unoptimized` gestellt. Wer die
 Bildoptimierung will, entfernt `output: 'export'` und hostet auf Vercel/Node.
 
-## 8. Bewertungen später einbauen
+## 11. Bewertungen später einbauen
 
 ```tsx
 <section className="section">
@@ -207,7 +264,7 @@ Bildoptimierung will, entfernt `output: 'export'` und hostet auf Vercel/Node.
 Nur echte, nachweisbare Bewertungen — und `AggregateRating`-Markup ausschließlich
 dann, wenn die Bewertungen auch sichtbar auf der Seite stehen.
 
-## 9. SEO
+## 12. SEO
 
 - Metadata-API: eigener Title/Description je Route, Canonicals mit Trailing Slash,
   Open Graph, Twitter Cards
@@ -221,7 +278,7 @@ dann, wenn die Bewertungen auch sichtbar auf der Seite stehen.
 Nach dem Livegang: Google-Business-Profil verknüpfen, Search Console einrichten,
 Sitemap einreichen, NAP-Daten überall identisch halten.
 
-## 10. Performance & Barrierefreiheit
+## 13. Performance & Barrierefreiheit
 
 - Animationen laufen über `transform`/`opacity`; Scroll-Fortschritt kommt aus
   `useScroll`, nicht aus eigenen Scroll-Listenern mit Layout-Lesezugriff
@@ -234,7 +291,7 @@ Sitemap einreichen, NAP-Daten überall identisch halten.
   per Tastatur nutzbar, Fehlermeldungen als `role="alert"`
 - Object-URLs der Foto-Vorschau werden wieder freigegeben
 
-## 11. Deployment
+## 14. Deployment
 
 **Statisch (Standardeinstellung):**
 
@@ -249,7 +306,7 @@ Security-Headern.
 **Vercel/Netlify mit SSR:** `output: 'export'` in `next.config.mjs` entfernen und
 das Repository verbinden — mehr ist nicht nötig.
 
-## 12. Was geprüft wurde
+## 15. Was geprüft wurde
 
 | Bereich | Status |
 |---|---|
@@ -259,7 +316,10 @@ das Repository verbinden — mehr ist nicht nötig.
 | Client/Server | `'use client'` nur wo nötig |
 | Reduced Motion | in jeder Animationskomponente behandelt, inkl. Kollisionssequenz |
 | Sticky | `overflow-x: clip` statt `hidden`, damit das Pinning trägt |
-| Bestehende Sektionen | unverändert, nur Startseite, Über uns und Unfallgutachten ergänzt |
+| Bestehende Sektionen | unverändert, bestehende Animationssprache durchgehend weiterverwendet |
+| Routen | 26 Stück, alle internen Links maschinell gegen den Seitenbaum geprüft |
+| Metadaten | Title und Description auf jeder Seite, genau eine H1 |
+| Entfernte Seite | keine toten Links, 301 auf /pkw-gutachten hinterlegt |
 
 Nicht möglich in der Bauumgebung: `npm install` und damit ein echter
 `next build` sowie das visuelle Rendering im Browser. Bitte einmal lokal

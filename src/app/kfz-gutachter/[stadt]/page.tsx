@@ -55,7 +55,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         asideItems={[
           'Unfall- und Schadengutachten',
           'Wertgutachten und Fahrzeugbewertung',
-          'Kostenvoranschlag bei Bagatellschäden',
+          'Kostenvoranschlag bei kleineren Schäden',
           'Elektro-, Hybrid- und Nutzfahrzeuge',
           'Motorrad und Oldtimer',
           'Achs- und Karosserievermessung',

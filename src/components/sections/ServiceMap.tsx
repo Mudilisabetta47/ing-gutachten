@@ -25,13 +25,13 @@ export function ServiceMap() {
               </g>
               <path
                 d="M8 40 L26 30 L44 34 L52 22 L66 26 L78 40 L70 56 L52 66 L34 60 L16 54 Z"
-                fill="rgba(255,180,60,.05)"
-                stroke="rgba(255,180,60,.35)"
+                fill="rgba(107,168,255,.05)"
+                stroke="rgba(107,168,255,.35)"
                 strokeWidth=".35"
               />
               <path d="M14 8 C34 26 48 34 92 58" stroke="rgba(255,255,255,.09)" strokeWidth=".5" fill="none" />
               <path d="M4 62 C30 52 56 44 96 12" stroke="rgba(255,255,255,.09)" strokeWidth=".5" fill="none" />
-              <circle cx="50" cy="47" r="1.2" fill="#ffb43c" />
+              <circle cx="50" cy="47" r="1.2" fill="#6ba8ff" />
             </svg>
 
             {REGIONS.map((r, i) => {
@@ -56,7 +56,7 @@ export function ServiceMap() {
                       className={`block h-[9px] w-[9px] rounded-full transition-all duration-300 ease-out ${
                         on ? 'scale-125 bg-signal' : 'bg-measure group-hover:scale-125 group-hover:bg-signal'
                       }`}
-                      style={{ boxShadow: on ? '0 0 0 7px rgba(255,180,60,.16)' : '0 0 0 4px rgba(90,200,232,.14)' }}
+                      style={{ boxShadow: on ? '0 0 0 7px rgba(107,168,255,.16)' : '0 0 0 4px rgba(90,200,232,.14)' }}
                       aria-hidden="true"
                     />
                     {r.name}
@@ -110,7 +110,7 @@ export function ServiceMap() {
                   <Link
                     key={r.name}
                     href={`/kfz-gutachter/${r.slug}`}
-                    className="rounded-full px-[.85rem] py-[.45rem] text-[.82rem] text-fg-dim transition-all hover:bg-signal hover:text-ink-900"
+                    className="rounded-full px-[.85rem] py-[.45rem] text-[.82rem] text-fg-dim transition-all hover:bg-signal hover:text-white"
                     style={{ boxShadow: 'inset 0 0 0 1px #232b33' }}
                   >
                     {r.name}

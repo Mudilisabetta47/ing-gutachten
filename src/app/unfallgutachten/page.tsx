@@ -29,7 +29,7 @@ export default function Page() {
       service={{ name: 'Unfallgutachten', description: DESCRIPTION, path: '/unfallgutachten' }}
       faqs={[FAQS[0], FAQS[1], FAQS[4], FAQS[5], FAQS[8], FAQS[9]]}
       related={[
-        { title: 'Bagatellschäden', text: 'Kleiner Schaden? Dann reicht oft ein Kostenvoranschlag.', href: '/bagatellschaeden' },
+        { title: 'Unfallanalyse', text: 'Technische Auswertung von Schadenbild und Fahrzeugzustand.', href: '/unfallanalyse' },
         { title: 'Wertgutachten', text: 'Wenn es um den Fahrzeugwert statt um einen Schaden geht.', href: '/wertgutachten' },
         { title: 'Kontakt & Termin', text: 'Kurzfristige Terminvergabe, Vor-Ort-Service in Hannover.', href: '/kontakt' },
       ]}

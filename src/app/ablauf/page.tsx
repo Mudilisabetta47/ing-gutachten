@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { Landing } from '@/components/layout/Landing';
 import { TwoCol } from '@/components/sections/TwoCol';
 import { FlowTimeline } from '@/components/sections/FlowTimeline';
+import { SettlementFlow, WeeksTimeline, VideoSection } from '@/components/sections/ServiceScenes';
+import { Reveal } from '@/components/ui/Reveal';
+import { Slug } from '@/components/ui/Slug';
 import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
@@ -53,6 +56,75 @@ export default function Page() {
           kommen wir zum Abstellort oder zum Abschleppdienst.
         </p>
       </TwoCol>
+
+      <section className="section border-y border-line bg-ink-850">
+        <div className="shell">
+          <Slug left="Schadenregulierung" right="05 Stationen" />
+          <div className="mb-[clamp(2.5rem,6vw,4rem)] grid max-w-3xl gap-4">
+            <p className="eyebrow">Begleitung bis zum Schluss</p>
+            <Reveal>
+              <h2 className="display text-[clamp(1.8rem,4vw,3rem)]">
+                Wir beraten auch bei der
+                <br />
+                weiteren Abwicklung.
+              </h2>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <p className="lead">
+                Mit der Übergabe des Gutachtens ist unsere Arbeit nicht zu Ende. Wir bleiben ansprechbar,
+                erklären Positionen und nehmen bei Kürzungen fachlich Stellung.
+              </p>
+            </Reveal>
+          </div>
+
+          <SettlementFlow />
+
+          <p className="notice mt-10 max-w-[70ch]">
+            Der konkrete Ablauf und der Umfang der Leistungen können je nach Versicherung und Einzelfall
+            unterschiedlich sein. Eine bestimmte Regulierungsentscheidung lässt sich nicht zusichern.
+          </p>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="shell">
+          <Slug left="Zeitrahmen" right="04 Wochen" />
+          <div className="mb-[clamp(2rem,5vw,3.5rem)] grid max-w-3xl gap-4">
+            <p className="eyebrow">Wie lange dauert die Regulierung</p>
+            <Reveal>
+              <h2 className="display text-[clamp(1.8rem,4vw,3rem)]">Rechnen Sie mit Wochen,
+                <br />
+                nicht mit Tagen.</h2>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <p className="lead">
+                Je nach Einzelfall und Versicherung kann die Schadenregulierung mehrere Wochen dauern. Ein
+                Bearbeitungszeitraum von rund vier Wochen ist nicht ungewöhnlich.
+              </p>
+            </Reveal>
+          </div>
+
+          <WeeksTimeline />
+
+          <div className="mt-12 grid gap-[clamp(2rem,5vw,4rem)] lg:grid-cols-[1.1fr_.9fr] lg:items-center">
+            <VideoSection />
+            <div className="grid content-start gap-5">
+              <p className="eyebrow">Kurz erklärt</p>
+              <Reveal>
+                <h3 className="display text-[clamp(1.4rem,3vw,2.1rem)]">Was in dieser Zeit passiert.</h3>
+              </Reveal>
+              <p className="text-fg-dim">
+                Zwischen Gutachtenversand und Zahlung liegen Prüfschritte, auf die weder Sie noch wir Einfluss
+                haben. Was wir beeinflussen können: dass die Unterlagen vollständig sind und Rückfragen gar nicht
+                erst entstehen.
+              </p>
+              <p className="text-fg-mute">
+                Wenn sich nichts bewegt, hilft oft ein Anruf. Melden Sie sich, statt zu warten.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <TwoCol
         eyebrow="Danach"

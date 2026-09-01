@@ -51,7 +51,7 @@ export function FlowTimeline({ withHeading = true }: { withHeading?: boolean }) 
         <div ref={wrap} className="relative">
           <div className="absolute bottom-0 left-[19px] top-0 w-px bg-line lg:left-1/2" aria-hidden="true">
             <motion.i
-              className="absolute inset-0 block origin-top bg-[linear-gradient(180deg,#ffb43c,#5ac8e8)]"
+              className="absolute inset-0 block origin-top bg-[linear-gradient(180deg,#6ba8ff,#5ac8e8)]"
               style={{ scaleY: reduced ? 1 : scaleY }}
             />
           </div>

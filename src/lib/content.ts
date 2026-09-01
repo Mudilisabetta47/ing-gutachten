@@ -23,11 +23,22 @@ export const BIZ = {
   lng: 9.7742,
 } as const;
 
-export type NavItem = { label: string; href: string };
+export type NavItem = { label: string; href: string; children?: NavItem[] };
 
 export const NAV: NavItem[] = [
+  {
+    label: 'Schadensgutachten',
+    href: '/schadensgutachten',
+    children: [
+      { label: 'Gutachter', href: '/schadensgutachten' },
+      { label: 'Unfallanalyse', href: '/unfallanalyse' },
+      { label: 'PKW-Gutachten', href: '/pkw-gutachten' },
+      { label: 'Unfallgutachten', href: '/unfallgutachten' },
+      { label: 'Unfallrekonstruktion', href: '/unfallrekonstruktion' },
+      { label: 'EDR-Systeme', href: '/edr-systeme' },
+    ],
+  },
   { label: 'Leistungen', href: '/leistungen' },
-  { label: 'Schadenfall', href: '/unfallgutachten' },
   { label: 'Ablauf', href: '/ablauf' },
   { label: 'Über uns', href: '/ueber-uns' },
   { label: 'Einsatzgebiet', href: '/einsatzgebiet' },
@@ -35,6 +46,8 @@ export const NAV: NavItem[] = [
   { label: 'Kontakt', href: '/kontakt' },
 ];
 
+/** Flache Liste aller Navigationsziele – für Sitemap und Link-Prüfung. */
+export const NAV_FLAT: NavItem[] = NAV.flatMap((n) => (n.children ? [n, ...n.children] : [n]));
 export type IconName =
   | 'car' | 'truck' | 'bolt' | 'bike' | 'classic' | 'dent'
   | 'shield' | 'clock' | 'pin' | 'scale' | 'doc' | 'ruler';
@@ -51,7 +64,7 @@ export type Service = {
 
 export const SERVICES: Service[] = [
   {
-    href: '/unfallgutachten',
+    href: '/pkw-gutachten',
     num: '01',
     title: 'PKW-Gutachten',
     teaser: 'Unfall- und Schadengutachten für Pkw und Transporter – beweissicher dokumentiert.',
@@ -81,7 +94,7 @@ export const SERVICES: Service[] = [
     href: '/motorrad-gutachten',
     num: '04',
     title: 'Motorrad',
-    teaser: 'Gutachten für Motorräder, Roller und Krafträder – auch bei Sturz- und Bagatellschäden.',
+    teaser: 'Gutachten für Motorräder, Roller und Krafträder – auch bei Sturz- und Kleinschäden.',
     tags: ['Sturzschaden', 'Anbauteile', 'Wertgutachten'],
     gradient: 'linear-gradient(150deg,#1e2129,#0b0d11 62%)',
     icon: 'bike',
@@ -92,17 +105,8 @@ export const SERVICES: Service[] = [
     title: 'Oldtimer',
     teaser: 'Wertgutachten und Zustandsdokumentation klassischer Fahrzeuge – belastbar für Versicherer.',
     tags: ['Marktwert', 'Zustandsnote', 'Dokumentation'],
-    gradient: 'linear-gradient(150deg,#231d17,#0d0b09 62%)',
+    gradient: 'linear-gradient(150deg,#17202b,#0b0d11 62%)',
     icon: 'classic',
-  },
-  {
-    href: '/bagatellschaeden',
-    num: '06',
-    title: 'Bagatellschäden',
-    teaser: 'Kostenvoranschlag für kleinere Schäden – schnell, günstig und ohne Umwege.',
-    tags: ['Parkschaden', 'Kratzer', 'Kurzfristig'],
-    gradient: 'linear-gradient(150deg,#1b2028,#0a0d11 62%)',
-    icon: 'dent',
   },
 ];
 
@@ -140,7 +144,7 @@ export const FAQS: Faq[] = [
   },
   {
     q: 'Wer trägt die Kosten für das Gutachten?',
-    a: 'Bei einem Haftpflichtschaden, den die Gegenseite verursacht hat, gehören die Sachverständigenkosten zum erstattungsfähigen Schaden und werden von der gegnerischen Versicherung getragen. Bei einem Kaskoschaden beauftragt in der Regel Ihr eigener Versicherer die Begutachtung. Bei Bagatellschäden empfehlen wir einen Kostenvoranschlag – wir sagen Ihnen vorab, was in Ihrem Fall sinnvoll ist.',
+    a: 'Bei einem Haftpflichtschaden, den die Gegenseite verursacht hat, gehören die Sachverständigenkosten zum erstattungsfähigen Schaden und werden von der gegnerischen Versicherung getragen. Bei einem Kaskoschaden beauftragt in der Regel Ihr eigener Versicherer die Begutachtung. Bei sehr kleinen Schäden empfehlen wir einen Kostenvoranschlag – wir sagen Ihnen vorab, was in Ihrem Fall sinnvoll ist.',
   },
   {
     q: 'Wie schnell bekomme ich einen Termin?',
@@ -276,7 +280,7 @@ export const DAMAGE_ZONES: DamageZone[] = [
 
 export const TICKER_ITEMS = [
   'Unfallgutachten', 'Wertgutachten', 'Achs- & Karosserievermessung', 'Restwertermittlung',
-  'Wertminderung', 'Nutzungsausfall', 'Oldtimer-Bewertung', 'Elektro & Hybrid', 'Bagatellschäden',
+  'Wertminderung', 'Nutzungsausfall', 'Oldtimer-Bewertung', 'Elektro & Hybrid', 'Unfallanalyse',
 ];
 
 export const REQUEST_REASONS = ['Unfall', 'Parkschaden', 'Wertgutachten', 'Fahrzeugbewertung', 'Leasingrückgabe', 'Sonstiges'];
@@ -287,3 +291,104 @@ export const REQUEST_VEHICLES = ['PKW', 'LKW', 'Motorrad', 'Elektro / Hybrid', '
  * E-Mail-Programm des Nutzers. Siehe README, Abschnitt "Formular anschließen".
  */
 export const FORM_ENDPOINT = '';
+
+/* =====================================================================
+   Schadensgutachten-Cluster
+   ===================================================================== */
+
+export const ASSESSMENT_PAGES: { href: string; title: string; teaser: string; icon: IconName }[] = [
+  { href: '/unfallanalyse', title: 'Unfallanalyse', teaser: 'Technische Auswertung von Fahrzeugzustand, Schadenbild und verfügbaren Daten.', icon: 'ruler' },
+  { href: '/pkw-gutachten', title: 'PKW-Gutachten', teaser: 'Vollständige Aufnahme, Kalkulation und Bewertung für Pkw und Transporter.', icon: 'car' },
+  { href: '/unfallgutachten', title: 'Unfallgutachten', teaser: 'Beweissichere Dokumentation nach dem Unfall – für Versicherung und Anwalt.', icon: 'doc' },
+  { href: '/unfallrekonstruktion', title: 'Unfallrekonstruktion', teaser: 'Rekonstruktion des Ablaufs aus Spurenlage, Schadenbild und Fahrzeugpositionen.', icon: 'scale' },
+  { href: '/edr-systeme', title: 'EDR-Systeme', teaser: 'Ereignisbezogene Fahrzeugdaten – abhängig von Fahrzeug, System und Zugriff.', icon: 'bolt' },
+];
+
+/** Fahrzeugklassen für den visuellen Selektor. */
+export const VEHICLE_CATEGORIES: {
+  key: string;
+  title: string;
+  icon: IconName;
+  href: string;
+  note: string;
+  details: string[];
+}[] = [
+  {
+    key: 'pkw', title: 'Personenkraftwagen', icon: 'car', href: '/pkw-gutachten',
+    note: 'Pkw und Transporter aller Marken.',
+    details: ['Karosserie- und Achsvermessung', 'Assistenzsysteme und Kalibrierung', 'Wertminderung und Restwert'],
+  },
+  {
+    key: 'ev', title: 'Elektrofahrzeuge', icon: 'bolt', href: '/e-auto-hybrid-gutachten',
+    note: 'Mit Blick auf Batterie und Hochvoltsystem.',
+    details: ['Batteriegehäuse und Unterboden', 'Hochvoltpfad und Ladetechnik', 'Thermomanagement'],
+  },
+  {
+    key: 'bike', title: 'Motorräder', icon: 'bike', href: '/motorrad-gutachten',
+    note: 'Krafträder, Roller und Zubehör.',
+    details: ['Rahmen- und Gabelgeometrie', 'Anbauteile und Umbauten', 'Schutzkleidung'],
+  },
+  {
+    key: 'classic', title: 'Klassische Fahrzeuge', icon: 'classic', href: '/oldtimer-gutachten',
+    note: 'Oldtimer und Youngtimer.',
+    details: ['Zustandsnote und Originalität', 'Restaurierungsstand', 'Markt- und Versicherungswert'],
+  },
+];
+
+/** Sensorpunkte am Fahrzeug (Prozentwerte auf der Silhouette). */
+export const SENSOR_POINTS: { x: number; y: number; label: string; kind: 'radar' | 'kamera' | 'ultraschall' }[] = [
+  { x: 92, y: 62, label: 'Frontradar', kind: 'radar' },
+  { x: 86, y: 44, label: 'Frontkamera', kind: 'kamera' },
+  { x: 96, y: 74, label: 'Parksensoren vorn', kind: 'ultraschall' },
+  { x: 50, y: 40, label: 'Innenspiegelkamera', kind: 'kamera' },
+  { x: 22, y: 52, label: 'Totwinkelradar', kind: 'radar' },
+  { x: 8, y: 72, label: 'Parksensoren hinten', kind: 'ultraschall' },
+  { x: 12, y: 44, label: 'Rückfahrkamera', kind: 'kamera' },
+];
+
+/** Datenfluss der EDR-Darstellung. */
+export const EDR_STEPS: { title: string; text: string }[] = [
+  { title: 'Fahrzeug', text: 'Steuergeräte erfassen im Fahrbetrieb laufend Zustandsgrößen.' },
+  { title: 'Ereignis', text: 'Bei einem auslösenden Ereignis kann ein kurzes Zeitfenster gesichert werden.' },
+  { title: 'Auslesen', text: 'Sofern Fahrzeug, System und Berechtigung es zulassen, lassen sich diese Daten auslesen.' },
+  { title: 'Auswertung', text: 'Die Werte werden mit Spurenlage und Schadenbild abgeglichen.' },
+];
+
+/** Beispielhafte Kennwerte für das Datenpanel – bewusst als Beispiel gekennzeichnet. */
+export const DATA_READOUTS: { label: string; value: string; unit: string }[] = [
+  { label: 'Geschwindigkeit', value: '48', unit: 'km/h' },
+  { label: 'Bremsdruck', value: '82', unit: '%' },
+  { label: 'Gurtstatus', value: 'angelegt', unit: '' },
+  { label: 'Δv Aufprall', value: '17', unit: 'km/h' },
+  { label: 'Lenkwinkel', value: '-12', unit: '°' },
+  { label: 'Auslösung', value: 'Stufe 1', unit: '' },
+];
+
+/** Regulierungsablauf. */
+export const SETTLEMENT_STEPS: { title: string; text: string }[] = [
+  { title: 'Schaden', text: 'Der Schaden wird gemeldet und das Fahrzeug für die Besichtigung bereitgestellt.' },
+  { title: 'Gutachten', text: 'Wir nehmen auf, messen, kalkulieren und erstellen das Gutachten.' },
+  { title: 'Versicherung', text: 'Das Gutachten geht an die regulierende Versicherung und auf Wunsch an Ihren Anwalt.' },
+  { title: 'Prüfung', text: 'Die Versicherung prüft. Bei Kürzungen nehmen wir fachlich Stellung.' },
+  { title: 'Regulierung', text: 'Die Zahlung erfolgt – als Reparaturfreigabe oder auf Gutachtenbasis.' },
+];
+
+export const SETTLEMENT_WEEKS: { week: string; text: string }[] = [
+  { week: 'Woche 1', text: 'Besichtigung, Gutachtenerstellung, Versand an die Versicherung.' },
+  { week: 'Woche 2', text: 'Eingangsprüfung und Aktenanlage beim Versicherer.' },
+  { week: 'Woche 3', text: 'Sachbearbeitung, gegebenenfalls Rückfragen oder eigene Prüfung.' },
+  { week: 'Woche 4', text: 'Regulierungsentscheidung und Zahlungsanweisung.' },
+];
+
+/**
+ * Video im Bereich Schadenregulierung.
+ * Datei unter public/assets/video/ ablegen und hier eintragen.
+ * Solange src leer ist, zeigt die Komponente einen sauberen Platzhalter
+ * statt eines kaputten Players.
+ */
+export const SETTLEMENT_VIDEO = {
+  src: '',
+  poster: '/assets/img/begutachtung-protokoll.webp',
+  title: 'Schadenregulierung erklärt',
+  caption: 'ING Gutachten · Hannover',
+};

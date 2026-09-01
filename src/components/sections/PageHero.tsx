@@ -29,7 +29,7 @@ export function PageHero({
                   {last ? (
                     <span aria-current="page">{c.name}</span>
                   ) : (
-                    <Link href={c.href} className="transition-colors hover:text-signal">
+                    <Link href={c.href} className="transition-colors hover:text-signal-bright">
                       {c.name}
                     </Link>
                   )}

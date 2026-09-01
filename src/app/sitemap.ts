@@ -8,7 +8,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const staticPaths: { path: string; priority: number; changeFrequency: 'weekly' | 'monthly' }[] = [
     { path: '/', priority: 1, changeFrequency: 'weekly' },
+    { path: '/schadensgutachten', priority: 0.95, changeFrequency: 'monthly' },
     { path: '/leistungen', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/pkw-gutachten', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/unfallanalyse', priority: 0.85, changeFrequency: 'monthly' },
+    { path: '/unfallrekonstruktion', priority: 0.8, changeFrequency: 'monthly' },
+    { path: '/edr-systeme', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/wertgutachten', priority: 0.9, changeFrequency: 'monthly' },
     { path: '/ablauf', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/einsatzgebiet', priority: 0.8, changeFrequency: 'monthly' },

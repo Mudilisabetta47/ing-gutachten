@@ -32,6 +32,12 @@ Options -Indexes
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
+# --- Weiterleitungen entfernter Seiten -----------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^bagatellschaeden/?$ /pkw-gutachten [R=301,L]
+</IfModule>
+
 # --- HTTPS + www-Kanonisierung (bei Bedarf aktivieren) -------------------
 <IfModule mod_rewrite.c>
   RewriteEngine On

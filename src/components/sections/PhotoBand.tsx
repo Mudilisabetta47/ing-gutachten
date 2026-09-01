@@ -34,7 +34,7 @@ export function PhotoBand({
           aria-hidden="true"
           style={{
             background:
-              'linear-gradient(90deg, rgba(8,9,11,.94) 0%, rgba(8,9,11,.72) 42%, rgba(8,9,11,.35) 100%), radial-gradient(90% 70% at 70% 40%, rgba(255,180,60,.08), transparent 70%)',
+              'linear-gradient(90deg, rgba(8,9,11,.94) 0%, rgba(8,9,11,.72) 42%, rgba(8,9,11,.35) 100%), radial-gradient(90% 70% at 70% 40%, rgba(107,168,255,.08), transparent 70%)',
           }}
         />
 
@@ -44,7 +44,7 @@ export function PhotoBand({
             <path d="M0 90 H1200 M0 510 H1200" strokeDasharray="2 10" />
             <path d="M60 60 V120 M1140 480 V540" />
           </g>
-          <g stroke="#ffb43c" strokeOpacity=".5" strokeWidth="1.5" fill="none">
+          <g stroke="#6ba8ff" strokeOpacity=".5" strokeWidth="1.5" fill="none">
             <path d="M840 170 h-26 v26 M980 170 h26 v26 M840 400 h-26 v-26 M980 400 h26 v-26" />
           </g>
         </svg>

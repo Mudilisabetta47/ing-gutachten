@@ -26,13 +26,13 @@ export function RequestSection() {
             <div className="card mt-4">
               <p className="eyebrow eyebrow-plain">Lieber direkt sprechen?</p>
               <p className="font-display text-[1.35rem] tracking-[-.02em]">
-                <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal">
+                <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal-bright">
                   {BIZ.phoneDisplay}
                 </a>
               </p>
               <p className="text-[.9rem] text-fg-mute">
                 Mobil{' '}
-                <a href={`tel:${BIZ.mobileLink}`} className="transition-colors hover:text-signal">
+                <a href={`tel:${BIZ.mobileLink}`} className="transition-colors hover:text-signal-bright">
                   {BIZ.mobileDisplay}
                 </a>{' '}
                 · {BIZ.hours}

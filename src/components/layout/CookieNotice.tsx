@@ -63,7 +63,7 @@ export function CookieNotice() {
           <p className="text-[.85rem] text-fg-dim">
             <strong>Nur das Nötigste.</strong> Diese Website nutzt ausschließlich technisch notwendige
             Speicherung. Es werden keine Tracking- oder Marketing-Cookies gesetzt. Details in der{' '}
-            <Link href="/datenschutz" className="text-signal underline underline-offset-2">
+            <Link href="/datenschutz" className="text-signal-bright underline underline-offset-2">
               Datenschutzerklärung
             </Link>
             .
@@ -87,7 +87,7 @@ export function CookieSettingsButton() {
   return (
     <button
       type="button"
-      className="transition-colors hover:text-signal"
+      className="transition-colors hover:text-signal-bright"
       onClick={() => document.dispatchEvent(new CustomEvent('ing:cookie-settings'))}
     >
       Cookie-Einstellungen

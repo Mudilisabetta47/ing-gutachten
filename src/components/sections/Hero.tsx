@@ -80,7 +80,7 @@ export function Hero() {
                   'Ihr Schaden.',
                   <span
                     key="accent"
-                    className="inline-block bg-[linear-gradient(96deg,#ffb43c,#ffe0a8_55%,#ffb43c)] bg-clip-text text-transparent"
+                    className="inline-block bg-[linear-gradient(96deg,#6ba8ff,#dbeaff_50%,#4b93f5)] bg-clip-text text-transparent"
                   >
                     Unsere Expertise.
                   </span>,
@@ -132,7 +132,7 @@ export function Hero() {
             <div>
               <dt className="font-mono text-[.65rem] uppercase tracking-[.2em] text-fg-mute">Direkt</dt>
               <dd className="mt-[.15rem] font-display text-[1.02rem] font-semibold">
-                <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal">
+                <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal-bright">
                   {BIZ.phoneDisplay}
                 </a>
               </dd>
@@ -146,7 +146,7 @@ export function Hero() {
         style={{ left: 'var(--pad)' }}
         aria-hidden="true"
       >
-        <span className="block h-[42px] w-px animate-scroll-hint bg-[linear-gradient(#ffb43c,transparent)]" />
+        <span className="block h-[42px] w-px animate-scroll-hint bg-[linear-gradient(#6ba8ff,transparent)]" />
         <span>Scrollen</span>
       </div>
     </section>

@@ -40,7 +40,7 @@ export default function Page() {
                 <Link href={`/kfz-gutachter/${r.slug}`} className="card h-full">
                   <h2 className="font-display text-h3 font-semibold">Kfz-Gutachter {r.name}</h2>
                   <p className="text-fg-mute">{r.note}</p>
-                  <span className="tlink text-signal">
+                  <span className="tlink text-signal-bright">
                     Zur Region <Arrow />
                   </span>
                 </Link>

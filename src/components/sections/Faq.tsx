@@ -22,7 +22,7 @@ export function FaqList({ items, startIndex = 1 }: { items: FaqItem[]; startInde
                 aria-expanded={isOpen}
                 aria-controls={id}
                 className={`flex w-full cursor-pointer items-start gap-5 border-0 bg-transparent py-6 text-left font-display text-[clamp(1.02rem,2.2vw,1.3rem)] font-semibold tracking-[-.015em] transition-colors ${
-                  isOpen ? 'text-signal' : 'text-fg hover:text-signal'
+                  isOpen ? 'text-signal-bright' : 'text-fg hover:text-signal-bright'
                 }`}
               >
                 <span className="flex-none pt-[.4em] font-mono text-[.68rem] text-fg-mute">

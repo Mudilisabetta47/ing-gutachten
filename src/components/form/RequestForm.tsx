@@ -41,6 +41,9 @@ export function RequestForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [doc, setDoc] = useState<File | null>(null);
+  const [docDragging, setDocDragging] = useState(false);
+  const [docError, setDocError] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const [done, setDone] = useState(false);
@@ -99,6 +102,23 @@ export function RequestForm() {
     });
   };
 
+  /** Fahrzeugschein: Bild oder PDF, eine Datei, maximal 12 MB. */
+  const takeDoc = (list: FileList | null) => {
+    const f = list?.[0];
+    if (!f) return;
+    const ok = f.type.startsWith('image/') || f.type === 'application/pdf';
+    if (!ok) {
+      setDocError('Bitte ein Foto oder eine PDF-Datei auswählen.');
+      return;
+    }
+    if (f.size > MAX_SIZE) {
+      setDocError('Die Datei ist größer als 12 MB.');
+      return;
+    }
+    setDocError('');
+    setDoc(f);
+  };
+
   const onDrop = (e: DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     setDragging(false);
@@ -121,6 +141,7 @@ export function RequestForm() {
         values.standort ? `Standort: ${values.standort}` : '',
         values.nachricht ? `Nachricht: ${values.nachricht}` : '',
         files.length ? `(${files.length} Foto(s) bitte als Anhang beifügen)` : '',
+        doc ? '(Fahrzeugschein bitte als Anhang beifügen)' : '',
       ]
         .filter(Boolean)
         .join('\n');
@@ -137,6 +158,7 @@ export function RequestForm() {
       const data = new FormData();
       Object.entries(values).forEach(([k, v]) => data.append(k, String(v)));
       files.forEach((f, i) => data.append(`foto_${i + 1}`, f));
+      if (doc) data.append('fahrzeugschein', doc);
       const res = await fetch(FORM_ENDPOINT, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
       if (!res.ok) throw new Error('request failed');
       setDone(true);
@@ -269,16 +291,16 @@ export function RequestForm() {
                   onDragLeave={() => setDragging(false)}
                   onDrop={onDrop}
                   className={`relative grid cursor-pointer justify-items-center gap-2 rounded-[14px] border-[1.5px] border-dashed p-7 text-center transition-colors ${
-                    dragging ? 'border-signal bg-signal-soft' : 'border-line hover:border-signal hover:bg-signal-soft'
+                    dragging ? 'border-signal-bright bg-signal-soft' : 'border-line hover:border-signal-bright hover:bg-signal-soft'
                   }`}
                 >
-                  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true" className="h-[30px] w-[30px] text-signal">
+                  <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true" className="h-[30px] w-[30px] text-signal-bright">
                     <path d="M24 34V14m0 0-7 7m7-7 7 7M8 34v4a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-4" />
                   </svg>
                   <b className="font-display text-base">Fotos hierher ziehen oder auswählen</b>
                   <small className="text-[.8rem] text-fg-mute">JPG, PNG oder HEIC · bis 12 MB je Bild · maximal 8 Fotos</small>
                   {files.length > 0 && (
-                    <small className="text-[.8rem] text-signal">
+                    <small className="text-[.8rem] text-signal-bright">
                       {files.length} Foto{files.length > 1 ? 's' : ''} ausgewählt
                     </small>
                   )}
@@ -293,6 +315,88 @@ export function RequestForm() {
                     onChange={(e: ChangeEvent<HTMLInputElement>) => addFiles(e.target.files)}
                   />
                 </label>
+
+                {/* Fahrzeugschein — Bild oder PDF, eine Datei */}
+                <div className="grid gap-2">
+                  <span className="field-label">Fahrzeugschein (optional)</span>
+                  {!doc ? (
+                    <label
+                      htmlFor="fahrzeugschein"
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        setDocDragging(true);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDocDragging(true);
+                      }}
+                      onDragLeave={() => setDocDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDocDragging(false);
+                        takeDoc(e.dataTransfer.files);
+                      }}
+                      className={`relative flex cursor-pointer items-center gap-4 rounded-[14px] border-[1.5px] border-dashed p-4 transition-colors ${
+                        docDragging ? 'border-signal-bright bg-signal-soft' : 'border-line hover:border-signal-bright hover:bg-signal-soft'
+                      }`}
+                    >
+                      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="h-7 w-7 flex-none text-signal-bright">
+                        <path d="M12 5h16l8 8v30H12z" />
+                        <path d="M28 5v9h8M18 26h12M18 33h8" />
+                      </svg>
+                      <span className="grid gap-[.15rem]">
+                        <b className="font-display text-[.95rem]">Zulassungsbescheinigung I hochladen</b>
+                        <small className="text-[.78rem] text-fg-mute">Foto oder PDF · bis 12 MB · beschleunigt die Bearbeitung</small>
+                      </span>
+                      <input
+                        id="fahrzeugschein"
+                        name="fahrzeugschein"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        capture="environment"
+                        className="absolute inset-0 cursor-pointer opacity-0"
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => takeDoc(e.target.files)}
+                      />
+                    </label>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex items-center gap-3 rounded-[14px] border border-line bg-white/[.03] p-4"
+                    >
+                      <motion.span
+                        initial={{ scale: 0.4, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                        className="grid h-9 w-9 flex-none place-items-center rounded-full text-ok"
+                        style={{ background: 'rgba(95,214,164,.12)', boxShadow: 'inset 0 0 0 1px rgba(95,214,164,.4)' }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      </motion.span>
+                      <span className="min-w-0 grid gap-[.1rem]">
+                        <b className="truncate font-display text-[.92rem]">{doc.name}</b>
+                        <small className="text-[.75rem] text-fg-mute">{(doc.size / 1024 / 1024).toFixed(1)} MB · bereit zum Senden</small>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setDoc(null)}
+                        className="ml-auto grid h-8 w-8 flex-none place-items-center rounded-full text-fg-mute transition-colors hover:text-danger"
+                        style={{ boxShadow: 'inset 0 0 0 1px #232b33' }}
+                        aria-label="Fahrzeugschein entfernen"
+                      >
+                        ✕
+                      </button>
+                    </motion.div>
+                  )}
+                  {docError && (
+                    <span role="alert" className="text-[.78rem] text-danger">
+                      {docError}
+                    </span>
+                  )}
+                </div>
 
                 {previews.length > 0 && (
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(78px,1fr))] gap-2" aria-live="polite">
@@ -383,7 +487,7 @@ export function RequestForm() {
                     <label className="flex cursor-pointer items-start gap-3 text-[.85rem] text-fg-mute">
                       <input
                         type="checkbox"
-                        className="mt-1 h-[17px] w-[17px] flex-none accent-[#ffb43c]"
+                        className="mt-1 h-[17px] w-[17px] flex-none accent-[#1f6fe0]"
                         checked={values.datenschutz}
                         onChange={(e) => set('datenschutz', e.target.checked)}
                       />
@@ -431,7 +535,7 @@ export function RequestForm() {
         )}
         <p className="mt-4 text-[.8rem] text-fg-mute">
           Dringend? Rufen Sie direkt an:{' '}
-          <a href={`tel:${BIZ.phoneLink}`} className="text-signal">
+          <a href={`tel:${BIZ.phoneLink}`} className="text-signal-bright">
             {BIZ.phoneDisplay}
           </a>
         </p>
@@ -482,7 +586,7 @@ function Options({
               className={`flex min-h-[64px] cursor-pointer items-center gap-3 rounded-[14px] px-4 py-[.85rem] font-display text-[.95rem] font-semibold transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-white/[.04] ${
                 on ? 'bg-signal-soft' : ''
               }`}
-              style={{ boxShadow: on ? 'inset 0 0 0 1.5px #ffb43c' : 'inset 0 0 0 1px #232b33' }}
+              style={{ boxShadow: on ? 'inset 0 0 0 1.5px #6ba8ff' : 'inset 0 0 0 1px #232b33' }}
             >
               <span
                 className={`h-4 w-4 flex-none rounded-full ${on ? 'bg-signal' : ''}`}

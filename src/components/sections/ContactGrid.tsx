@@ -15,7 +15,7 @@ export function ContactGrid() {
           <span className="eyebrow eyebrow-plain">{c.label}</span>
           <b className="font-display text-[1.1rem] tracking-[-.01em]">
             {c.href ? (
-              <a href={c.href} className="transition-colors hover:text-signal">
+              <a href={c.href} className="transition-colors hover:text-signal-bright">
                 {c.value}
               </a>
             ) : (

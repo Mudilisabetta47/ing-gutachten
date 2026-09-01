@@ -28,9 +28,9 @@ export function WhyGrid() {
             >
               <span
                 className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-700 group-hover:opacity-100"
-                style={{ background: 'radial-gradient(120% 90% at 0% 0%, rgba(255,180,60,.09), transparent 60%)' }}
+                style={{ background: 'radial-gradient(120% 90% at 0% 0%, rgba(107,168,255,.09), transparent 60%)' }}
               />
-              <span className="relative text-signal">
+              <span className="relative text-signal-bright">
                 <Icon name={item.icon} />
               </span>
               <h3 className="relative font-display text-[1.18rem] font-semibold">{item.title}</h3>

@@ -24,6 +24,12 @@ const EXTRA = [
     teaser: 'Marktwert, Wiederbeschaffungswert und Restwert – für Verkauf, Erbfall, Scheidung, Leasingrückgabe oder Versicherung.',
   },
   {
+    href: '/schadensgutachten',
+    icon: 'doc' as const,
+    title: 'Schadensgutachten',
+    teaser: 'Der Überblick über Gutachter-Leistungen, Unfallanalyse und Rekonstruktion.',
+  },
+  {
     href: '/ablauf',
     icon: 'ruler' as const,
     title: 'Achs- & Karosserievermessung',
@@ -37,7 +43,7 @@ export default function Page() {
       eyebrow="Leistungsübersicht"
       title="Alle Gutachten aus einer Hand."
       lead="Ob Unfallschaden, Wertermittlung oder Kostenvoranschlag: Wir begutachten jedes Fahrzeug nach derselben Systematik – vollständig dokumentiert, unabhängig kalkuliert und kurzfristig verfügbar."
-      chips={['PKW & Transporter', 'LKW & Nutzfahrzeuge', 'Elektro & Hybrid', 'Motorrad', 'Oldtimer', 'Bagatellschäden']}
+      chips={['PKW & Transporter', 'LKW & Nutzfahrzeuge', 'Elektro & Hybrid', 'Motorrad', 'Oldtimer']}
       trail={[{ name: 'Leistungen', href: '/leistungen' }]}
       related={[
         { title: 'Unfallgutachten', text: 'Nach dem unverschuldeten Unfall: beweissichere Dokumentation für die gegnerische Versicherung.', href: '/unfallgutachten' },
@@ -52,12 +58,12 @@ export default function Page() {
             {[...SERVICES, ...EXTRA].map((s) => (
               <Tilt key={s.href} max={4}>
                 <Link href={s.href} className="card h-full">
-                  <span className="text-signal">
+                  <span className="text-signal-bright">
                     <Icon name={s.icon} />
                   </span>
                   <h2 className="font-display text-h3 font-semibold">{s.title}</h2>
                   <p className="text-fg-mute">{s.teaser}</p>
-                  <span className="tlink text-signal">
+                  <span className="tlink text-signal-bright">
                     Details <Arrow />
                   </span>
                 </Link>

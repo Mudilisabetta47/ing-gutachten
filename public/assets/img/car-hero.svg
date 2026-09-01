@@ -5,14 +5,14 @@
       <stop offset="1" stop-color="#0d1116" stop-opacity=".9"/>
     </linearGradient>
     <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ffb43c" stop-opacity="0"/>
-      <stop offset=".28" stop-color="#ffb43c" stop-opacity=".95"/>
-      <stop offset=".62" stop-color="#ffd79a" stop-opacity=".7"/>
+      <stop offset="0" stop-color="#6ba8ff" stop-opacity="0"/>
+      <stop offset=".28" stop-color="#6ba8ff" stop-opacity=".95"/>
+      <stop offset=".62" stop-color="#bcd9ff" stop-opacity=".7"/>
       <stop offset="1" stop-color="#5ac8e8" stop-opacity=".55"/>
     </linearGradient>
     <radialGradient id="lampF" cx=".5" cy=".5" r=".5">
-      <stop offset="0" stop-color="#fff5e0" stop-opacity=".95"/>
-      <stop offset="1" stop-color="#ffb43c" stop-opacity="0"/>
+      <stop offset="0" stop-color="#eef5ff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#6ba8ff" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="ground" cx=".5" cy=".5" r=".5">
       <stop offset="0" stop-color="#000" stop-opacity=".75"/>
@@ -59,8 +59,8 @@
 
   <!-- Licht -->
   <ellipse cx="140" cy="336" rx="120" ry="52" fill="url(#lampF)" opacity=".55"/>
-  <rect x="104" y="326" width="62" height="14" rx="7" fill="#ffe6b8" opacity=".9"/>
-  <rect x="1104" y="322" width="48" height="12" rx="6" fill="#ffb43c" opacity=".55"/>
+  <rect x="104" y="326" width="62" height="14" rx="7" fill="#dbe9ff" opacity=".9"/>
+  <rect x="1104" y="322" width="48" height="12" rx="6" fill="#6ba8ff" opacity=".55"/>
 
   <!-- Messmarken -->
   <g stroke="#5ac8e8" stroke-opacity=".45" stroke-width="1" fill="none">
