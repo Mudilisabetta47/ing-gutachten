@@ -39,9 +39,8 @@ export function SplitLines({
         <span key={i} className="block overflow-hidden">
           <motion.span
             className="block"
-            initial={{ y: '105%' }}
-            whileInView={{ y: '0%' }}
-            viewport={{ once: true, margin: '0px 0px -10% 0px' }}
+            initial={false}
+            animate={{ y: '0%' }}
             transition={{ duration: 1.05, delay: delay + i * stagger, ease: [0.16, 1, 0.3, 1] }}
           >
             {line}

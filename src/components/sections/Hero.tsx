@@ -67,7 +67,7 @@ export function Hero() {
           <div>
             <motion.p
               className="eyebrow mb-6"
-              initial={reduced ? false : { opacity: 0, y: 14 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             >
@@ -90,7 +90,7 @@ export function Hero() {
 
             <motion.p
               className="lead"
-              initial={reduced ? false : { opacity: 0, y: 18 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
             >
@@ -100,7 +100,7 @@ export function Hero() {
 
             <motion.div
               className="mt-9 flex flex-wrap gap-[.85rem]"
-              initial={reduced ? false : { opacity: 0, y: 18 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.48, ease: [0.16, 1, 0.3, 1] }}
             >
@@ -119,7 +119,7 @@ export function Hero() {
 
           <motion.dl
             className="grid grid-cols-2 gap-x-6 gap-y-4 border-l border-line pl-6 sm:grid-cols-1"
-            initial={reduced ? false : { opacity: 0, x: 34 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.9, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
