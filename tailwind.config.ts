@@ -5,61 +5,61 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: { 900: '#08090b', 850: '#0b0d10', 800: '#0e1116', 700: '#13181e', 600: '#1a2027' },
-        line: { DEFAULT: '#232b33', soft: 'rgba(255,255,255,.075)' },
-        fg: { DEFAULT: '#edf1f4', dim: '#c3ccd4', mute: '#8b98a4' },
-        signal: {
-          DEFAULT: '#1f6fe0',   // Flaechen: weisser Text erreicht darauf 5.1:1
-          bright: '#6ba8ff',    // Linien und Text auf Graphit: 7.9:1
-          pale: '#bcd9ff',
-          soft: 'rgba(31,111,224,.16)',
-          line: 'rgba(107,168,255,.42)',
-        },
-        measure: { DEFAULT: '#7fa6c0', soft: 'rgba(127,166,192,.18)' },
-        danger: '#ff6a5e',
-        ok: '#5fd6a4',
+        /* ---- ROSE CAFÉ Design-Token-System ------------------------------
+           Ändert man die Markenfarbe (rose / rose-deep), verändert sich die
+           gesamte visuelle Sprache der Website. */
+        bone: '#f8f2ea',
+        cream: '#efe3d3',
+        ink: { DEFAULT: '#241a16', dim: '#5a4a41', mute: '#8d7a6d' },
+        night: { DEFAULT: '#140f0d', 800: '#1a1310', 700: '#221a16', 600: '#2c221c' },
+        rose: { DEFAULT: '#b8636f', deep: '#7d2f3a', pale: '#e9c9c9', line: 'rgba(184,99,111,.45)', soft: 'rgba(184,99,111,.14)' },
+        gold: '#c9a463',
+        line: { DEFAULT: 'rgba(36,26,22,.12)', night: 'rgba(255,246,236,.12)' },
+        fg: { DEFAULT: '#241a16', dim: '#5a4a41', mute: '#8d7a6d', night: '#f8f2ea', 'night-dim': '#cdbfae' },
       },
       fontFamily: {
-        display: ['var(--font-archivo)', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        display: ['var(--font-fraunces)', 'Georgia', 'serif'],
         body: ['var(--font-manrope)', 'Segoe UI', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'Menlo', 'monospace'],
       },
       fontSize: {
-        eyebrow: ['clamp(.66rem,.62rem + .18vw,.76rem)', { letterSpacing: '.22em' }],
-        lead: ['clamp(1.1rem,1rem + .6vw,1.4rem)', { lineHeight: '1.5' }],
-        h3: ['clamp(1.25rem,1.1rem + .8vw,1.75rem)', { lineHeight: '1.15', letterSpacing: '-.02em' }],
-        h2: ['clamp(2rem,1.4rem + 3.1vw,4.25rem)', { lineHeight: '.96', letterSpacing: '-.035em' }],
-        h1: ['clamp(2.6rem,1.5rem + 5.6vw,7.5rem)', { lineHeight: '.94', letterSpacing: '-.038em' }],
+        eyebrow: ['clamp(.64rem,.6rem + .18vw,.74rem)', { letterSpacing: '.24em' }],
+        lead: ['clamp(1.1rem,1rem + .6vw,1.4rem)', { lineHeight: '1.55' }],
+        h3: ['clamp(1.3rem,1.1rem + .9vw,1.9rem)', { lineHeight: '1.16', letterSpacing: '-.01em' }],
+        h2: ['clamp(2.1rem,1.3rem + 3.6vw,4.6rem)', { lineHeight: '.98', letterSpacing: '-.02em' }],
+        h1: ['clamp(3rem,1.3rem + 7.6vw,9rem)', { lineHeight: '.92', letterSpacing: '-.015em' }],
       },
       maxWidth: { shell: '1440px' },
-      /* Bewusste Überschreibung: `ease-out` ist projektweit unsere
-         Premium-Kurve, damit jede Bewegung dieselbe Handschrift hat. */
       transitionTimingFunction: {
-        out: 'cubic-bezier(.16,1,.3,1)',
-        inout: 'cubic-bezier(.65,0,.35,1)',
+        cinematic: 'cubic-bezier(.16,1,.3,1)',
+        impact: 'cubic-bezier(.65,0,.35,1)',
+        swift: 'cubic-bezier(.22,1,.36,1)',
+        expo: 'cubic-bezier(.87,0,.13,1)',
       },
       keyframes: {
-        sweep: { '0%': { backgroundPosition: '130% 0' }, '55%,100%': { backgroundPosition: '-40% 0' } },
-        ticker: { to: { transform: 'translateX(-50%)' } },
-        pingSlow: {
-          '0%': { transform: 'scale(1)', opacity: '.7' },
-          '70%,100%': { transform: 'scale(2.05)', opacity: '0' },
+        grain: { '0%,100%': { transform: 'translate(0,0)' }, '50%': { transform: 'translate(-2%,1%)' } },
+        drift: { '0%,100%': { transform: 'translate3d(0,0,0)' }, '50%': { transform: 'translate3d(0,-10px,0)' } },
+        steam: {
+          '0%': { transform: 'translateY(0) scaleX(1)', opacity: '0' },
+          '18%': { opacity: '.5' },
+          '100%': { transform: 'translateY(-46px) scaleX(1.6)', opacity: '0' },
         },
         scrollHint: {
           '0%,100%': { transform: 'scaleY(.35)', transformOrigin: 'top' },
           '50%': { transform: 'scaleY(1)', transformOrigin: 'top' },
         },
-        fadeSwap: {
-          from: { opacity: '0', transform: 'translateY(10px)', filter: 'blur(4px)' },
-          to: { opacity: '1', transform: 'none', filter: 'blur(0)' },
+        petal: {
+          '0%': { transform: 'translate3d(0,-8vh,0) rotate(0deg)', opacity: '0' },
+          '10%': { opacity: '.5' },
+          '100%': { transform: 'translate3d(-6vw,110vh,0) rotate(220deg)', opacity: '0' },
         },
       },
       animation: {
-        sweep: 'sweep 9s cubic-bezier(.65,0,.35,1) infinite',
-        ticker: 'ticker 38s linear infinite',
-        'ping-slow': 'pingSlow 2.6s cubic-bezier(.16,1,.3,1) infinite',
+        grain: 'grain 1.3s steps(2) infinite',
+        drift: 'drift 7s ease-in-out infinite',
+        steam: 'steam 4.5s ease-in infinite',
         'scroll-hint': 'scrollHint 2.2s cubic-bezier(.65,0,.35,1) infinite',
-        'fade-swap': 'fadeSwap .5s cubic-bezier(.16,1,.3,1)',
+        petal: 'petal 14s linear infinite',
       },
     },
   },

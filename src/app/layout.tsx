@@ -1,36 +1,43 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { Archivo, JetBrains_Mono, Manrope } from 'next/font/google';
+import { Fraunces, JetBrains_Mono, Manrope } from 'next/font/google';
 import './globals.css';
-import { Nav } from '@/components/layout/Nav';
+import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { Dock } from '@/components/layout/Dock';
 import { CookieNotice } from '@/components/layout/CookieNotice';
-import { SmoothScroll } from '@/components/layout/SmoothScroll';
-import { CustomCursor } from '@/components/layout/CustomCursor';
+import { SmoothScroll } from '@/components/core/SmoothScroll';
+import { CustomCursor } from '@/components/core/CustomCursor';
+import { ScrollProgress } from '@/components/core/ScrollProgress';
+import { Loader } from '@/components/core/Loader';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { localBusinessSchema } from '@/lib/seo';
 import { SITE_URL } from '@/lib/content';
 
-const archivo = Archivo({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-archivo', display: 'swap' });
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-fraunces',
+  display: 'swap',
+});
 const manrope = Manrope({ subsets: ['latin'], weight: ['300', '400', '500', '600'], variable: '--font-manrope', display: 'swap' });
 const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-mono', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Kfz-Gutachter Hannover | ING Gutachten',
-    template: '%s | ING Gutachten',
+    default: 'Rose Café Bremen | Café in Bremen-Schwachhausen',
+    template: '%s | Rose Café Bremen',
   },
   description:
-    'Unabhängiger Kfz-Gutachter in Hannover: Unfallgutachten, Schadengutachten und Wertgutachten mit Vor-Ort-Service.',
-  authors: [{ name: 'ING Gutachten – Kfz-Sachverständigenbüro Hannover' }],
+    'Rose Café in Bremen-Schwachhausen: Frühstück, Kaffee, hausgemachte Kuchen und Desserts in warmer, editorialer Atmosphäre.',
+  authors: [{ name: 'Rose Café Bremen' }],
   icons: { icon: '/assets/img/favicon.svg', apple: '/assets/img/favicon.svg' },
-  other: { 'geo.region': 'DE-NI', 'geo.placename': 'Hannover' },
+  other: { 'geo.region': 'DE-HB', 'geo.placename': 'Bremen' },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#08090b',
+  themeColor: '#140f0d',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -38,21 +45,22 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="de" className={`${archivo.variable} ${manrope.variable} ${mono.variable}`}>
+    <html lang="de" className={`${fraunces.variable} ${manrope.variable} ${mono.variable}`}>
       <body>
         <JsonLd data={localBusinessSchema()} />
         <a
           href="#main"
-          className="sr-only sr-only-focusable absolute left-0 top-0 z-[200] bg-signal px-5 py-3 text-white"
+          className="sr-only sr-only-focusable absolute left-0 top-0 z-[200] bg-rose-deep px-5 py-3 text-bone"
         >
           Zum Inhalt springen
         </a>
+        <Loader />
+        <ScrollProgress />
         <SmoothScroll />
         <CustomCursor />
-        <Nav />
+        <Header />
         <main id="main">{children}</main>
         <Footer />
-        <Dock />
         <CookieNotice />
       </body>
     </html>

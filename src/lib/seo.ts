@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BIZ, FAQS, REGIONS, SERVICES, SITE_URL, type Faq } from './content';
+import { BIZ, FAQS, SITE_URL, type Faq } from './content';
 
 /** Baut die Standard-Metadaten einer Seite inkl. Canonical und Open Graph. */
 export function buildMetadata(opts: {
@@ -19,17 +19,17 @@ export function buildMetadata(opts: {
     openGraph: {
       type: 'website',
       locale: 'de_DE',
-      siteName: 'ING Gutachten',
+      siteName: 'Rose Café Bremen',
       title: opts.title,
       description: opts.description,
       url,
-      images: [{ url: '/assets/img/og-ing-gutachten.jpg', width: 1200, height: 630, alt: 'ING Gutachten – Kfz-Sachverständigenbüro Hannover' }],
+      images: [{ url: '/assets/img/og-rose-cafe.svg', width: 1200, height: 630, alt: 'Rose Café Bremen' }],
     },
     twitter: {
       card: 'summary_large_image',
       title: opts.title,
       description: opts.description,
-      images: ['/assets/img/og-ing-gutachten.jpg'],
+      images: ['/assets/img/og-rose-cafe.svg'],
     },
   };
 }
@@ -37,47 +37,28 @@ export function buildMetadata(opts: {
 export function localBusinessSchema() {
   return {
     '@context': 'https://schema.org',
-    '@type': ['AutomotiveBusiness', 'ProfessionalService', 'LocalBusiness'],
+    '@type': ['CafeOrCoffeeShop', 'LocalBusiness'],
     '@id': `${SITE_URL}/#business`,
     name: BIZ.name,
-    alternateName: 'ING Gutachten',
+    alternateName: 'Rose Café',
     description:
-      'Unabhängiges Kfz-Sachverständigenbüro in Hannover: Unfallgutachten, Schadengutachten, Wertgutachten und Kostenvoranschläge für PKW, LKW, Elektro- und Hybridfahrzeuge, Motorräder und Oldtimer. Vor-Ort-Service in Hannover und Umgebung.',
+      'Café in Bremen-Schwachhausen: Frühstück, Kaffee, hausgemachte Kuchen und Desserts in warmer, editorialer Atmosphäre.',
     url: `${SITE_URL}/`,
-    telephone: '+49 511 54300976',
+    telephone: BIZ.phoneLink,
     email: BIZ.email,
-    image: `${SITE_URL}/assets/img/og-ing-gutachten.jpg`,
+    image: `${SITE_URL}/assets/img/og-rose-cafe.svg`,
     priceRange: '$$',
     address: {
       '@type': 'PostalAddress',
       streetAddress: BIZ.street,
       postalCode: BIZ.zip,
       addressLocality: BIZ.city,
-      addressRegion: 'Niedersachsen',
+      addressRegion: 'Bremen',
       addressCountry: 'DE',
     },
     geo: { '@type': 'GeoCoordinates', latitude: BIZ.lat, longitude: BIZ.lng },
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        opens: '08:00',
-        closes: '18:00',
-      },
-    ],
-    areaServed: REGIONS.map((r) => ({ '@type': 'City', name: r.name.split(' /')[0] })),
-    knowsAbout: [
-      'Unfallgutachten', 'Schadengutachten', 'Wertgutachten', 'Achsvermessung',
-      'Karosserievermessung', 'Restwertermittlung', 'Wertminderung', 'Nutzungsausfall',
-    ],
-    hasOfferCatalog: {
-      '@type': 'OfferCatalog',
-      name: 'Kfz-Gutachten',
-      itemListElement: SERVICES.map((s) => ({
-        '@type': 'Offer',
-        itemOffered: { '@type': 'Service', name: s.title, url: `${SITE_URL}${s.href}/` },
-      })),
-    },
+    servesCuisine: ['Café', 'Frühstück', 'Kuchen & Desserts'],
+    sameAs: [BIZ.instagramHref],
   };
 }
 
@@ -93,38 +74,11 @@ export function faqSchema(items: Faq[] = FAQS) {
   };
 }
 
-export function breadcrumbSchema(trail: { name: string; href: string }[]) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: trail.map((t, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      name: t.name,
-      item: `${SITE_URL}${t.href === '/' ? '/' : `${t.href}/`}`,
-    })),
-  };
-}
-
-export function serviceSchema(name: string, description: string, path: string) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    name,
-    serviceType: name,
-    description,
-    url: `${SITE_URL}${path}/`,
-    provider: { '@id': `${SITE_URL}/#business` },
-    areaServed: { '@type': 'City', name: 'Hannover' },
-    audience: { '@type': 'Audience', audienceType: 'Fahrzeughalter, Geschädigte, Anwälte, Versicherungen' },
-  };
-}
-
 export function websiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'ING Gutachten',
+    name: 'Rose Café Bremen',
     url: `${SITE_URL}/`,
     inLanguage: 'de-DE',
   };
