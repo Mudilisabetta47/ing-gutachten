@@ -1,8 +1,8 @@
 {
-  "name": "ing-gutachten",
+  "name": "rose-cafe-bremen",
   "version": "1.0.0",
   "private": true,
-  "description": "Website des Kfz-Sachverstaendigenbueros ING Gutachten, Hannover",
+  "description": "Premium-Website fuer Rose Cafe Bremen",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

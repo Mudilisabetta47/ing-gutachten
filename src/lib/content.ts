@@ -1,394 +1,325 @@
 /**
- * Zentrale Inhaltsquelle. Alles, was ohne Code-Änderung gepflegt werden soll,
- * steht hier – Navigation, Leistungen, Regionen, FAQ, Ablauf.
+ * Zentrale Inhaltsquelle für ROSE CAFÉ, Bremen.
+ * Alles, was ohne Code-Änderung gepflegt werden soll, steht hier.
+ *
+ * WICHTIG: Öffnungszeiten, Telefonnummer, Adresse, Bewertungen und Preise
+ * sind Platzhalter und MÜSSEN vor Livegang durch echte Daten ersetzt werden.
+ * Es wurden bewusst keine Zahlen oder Zitate erfunden.
  */
 
-export const SITE_URL = 'https://ing-gutachten.de';
+export const SITE_URL = 'https://rose-cafe-bremen.de';
 
 export const BIZ = {
-  name: 'ING Gutachten – KFZ-Sachverständigenbüro Hannover',
-  short: 'ING GUTACHTEN',
-  street: 'Hildesheimer Straße 229',
-  zip: '30519',
-  city: 'Hannover',
-  phoneDisplay: '0511 – 543 00 976',
-  phoneLink: '+4951154300976',
-  mobileDisplay: '0173 – 72 79 763',
-  mobileLink: '+491737279763',
-  /** TODO vor Livegang prüfen – nicht aus der Bestandsseite verifiziert. */
-  email: 'info@ing-gutachten.de',
-  /** TODO vor Livegang prüfen. */
-  hours: 'Mo – Fr 08:00 – 18:00 Uhr · Sa nach Vereinbarung',
-  lat: 52.3402,
-  lng: 9.7742,
+  name: 'Rose Café Bremen',
+  short: 'ROSE CAFÉ',
+  street: '[Straße Hausnummer]',
+  zip: '[PLZ]',
+  city: 'Bremen',
+  district: 'Schwachhausen',
+  /** TODO vor Livegang: echte Telefonnummer eintragen. */
+  phoneDisplay: '[Telefonnummer]',
+  phoneLink: '+49000000000',
+  /** TODO vor Livegang: echte E-Mail-Adresse eintragen. */
+  email: 'info@rose-cafe-bremen.de',
+  /** TODO vor Livegang: echte Öffnungszeiten eintragen. */
+  hours: [
+    { d: 'Montag – Freitag', t: '[Uhrzeit]' },
+    { d: 'Samstag', t: '[Uhrzeit]' },
+    { d: 'Sonntag', t: '[Uhrzeit]' },
+  ],
+  instagram: '@rosecafe.bremen',
+  instagramHref: 'https://instagram.com',
+  /** TODO vor Livegang: echte Koordinaten eintragen. */
+  lat: 53.0793,
+  lng: 8.8017,
 } as const;
 
-export type NavItem = { label: string; href: string; children?: NavItem[] };
+export type NavItem = { label: string; href: string };
 
 export const NAV: NavItem[] = [
-  {
-    label: 'Schadensgutachten',
-    href: '/schadensgutachten',
-    children: [
-      { label: 'Gutachter', href: '/schadensgutachten' },
-      { label: 'Unfallanalyse', href: '/unfallanalyse' },
-      { label: 'PKW-Gutachten', href: '/pkw-gutachten' },
-      { label: 'Unfallgutachten', href: '/unfallgutachten' },
-      { label: 'Unfallrekonstruktion', href: '/unfallrekonstruktion' },
-      { label: 'EDR-Systeme', href: '/edr-systeme' },
-    ],
-  },
-  { label: 'Leistungen', href: '/leistungen' },
-  { label: 'Ablauf', href: '/ablauf' },
-  { label: 'Über uns', href: '/ueber-uns' },
-  { label: 'Einsatzgebiet', href: '/einsatzgebiet' },
-  { label: 'FAQ', href: '/faq' },
-  { label: 'Kontakt', href: '/kontakt' },
+  { label: 'Story', href: '#story' },
+  { label: 'Frühstück', href: '#food' },
+  { label: 'Signature', href: '#signature' },
+  { label: 'Atmosphäre', href: '#atmosphere' },
+  { label: 'Bewertungen', href: '#reviews' },
+  { label: 'Besuch uns', href: '#visit' },
 ];
 
-/** Flache Liste aller Navigationsziele – für Sitemap und Link-Prüfung. */
-export const NAV_FLAT: NavItem[] = NAV.flatMap((n) => (n.children ? [n, ...n.children] : [n]));
-export type IconName =
-  | 'car' | 'truck' | 'bolt' | 'bike' | 'classic' | 'dent'
-  | 'shield' | 'clock' | 'pin' | 'scale' | 'doc' | 'ruler';
+/* =====================================================================
+   FOOD STORY — die Speisekarte als Szenenfolge, nicht als Tabelle.
+   Jede Phase bekommt Kamera-Fokus, eigene Lichtstimmung und Typografie.
+   ===================================================================== */
 
-export type Service = {
-  href: string;
+/**
+ * Die Speisekarte — 1:1 aus der Original-Speisekarte des Rose Café
+ * übernommen (Gerichte, Preise, Beschreibungen). Keine erfundenen
+ * Inhalte. Bei fehlenden Angaben (z. B. Brunch-Preise) steht ein
+ * ausdrücklicher Platzhalter statt einer Zahl.
+ */
+export type MenuItem = { name: string; price?: string; note?: string };
+export type MenuCategory = {
+  key: string;
   num: string;
   title: string;
-  teaser: string;
-  tags: string[];
-  gradient: string;
-  icon: IconName;
+  tone: 'dawn' | 'roast' | 'sugar' | 'signature' | 'green' | 'drink';
+  intro?: string;
+  items: MenuItem[];
+  footnote?: string;
 };
 
-export const SERVICES: Service[] = [
+export const MENU_CATEGORIES: MenuCategory[] = [
   {
-    href: '/pkw-gutachten',
+    key: 'kaffee',
     num: '01',
-    title: 'PKW-Gutachten',
-    teaser: 'Unfall- und Schadengutachten für Pkw und Transporter – beweissicher dokumentiert.',
-    tags: ['Unfallschaden', 'Wertminderung', 'Nutzungsausfall'],
-    gradient: 'linear-gradient(150deg,#1c242d,#0b0e12 62%)',
-    icon: 'car',
+    title: 'Kaffee',
+    tone: 'roast',
+    items: [
+      { name: 'Espresso', price: '2,50 €' },
+      { name: 'Espresso Doppelt', price: '3,50 €' },
+      { name: 'Espresso Macchiato', price: '3,60 €' },
+      { name: 'Americano', price: '3,00 €' },
+      { name: 'Flat White', price: '4,50 €' },
+      { name: 'Cappuccino', price: '4,20 €' },
+      { name: 'Latte Macchiato', price: '4,50 €' },
+      { name: 'Café con Leche', price: '3,50 €' },
+      { name: 'Rose Latte', price: '4,90 €' },
+      { name: 'Orientalisches Mocca', price: '3,00 €' },
+      { name: 'Heiße Schokolade', price: '4,90 €' },
+      { name: 'Chai Latte', price: '4,90 €' },
+      { name: 'Café Crema', price: '2,50 €' },
+    ],
   },
   {
-    href: '/lkw-gutachten',
+    key: 'heissgetraenke',
     num: '02',
-    title: 'LKW & Nutzfahrzeuge',
-    teaser: 'Gutachten für Transporter, LKW und Anhänger – inklusive Ausfall- und Ladungsfragen.',
-    tags: ['Nutzfahrzeuge', 'Anhänger', 'Flotten'],
-    gradient: 'linear-gradient(150deg,#1a232b,#0a0d11 62%)',
-    icon: 'truck',
+    title: 'Heißgetränke',
+    tone: 'dawn',
+    items: [
+      { name: 'Schwarzer Tee', price: '3,00 €' },
+      { name: 'Grüner Tee', price: '3,50 €' },
+      { name: 'Frischer Minztee', price: '4,20 €' },
+      { name: 'Rooibos Tee', price: '3,50 €' },
+      { name: 'Ingwer-Tee', price: '4,20 €' },
+      { name: 'Zitronen-Tee', price: '4,20 €' },
+      { name: 'Vitaminbombe', price: '5,90 €' },
+      { name: 'Capu-Schock', price: '4,80 €' },
+    ],
   },
   {
-    href: '/e-auto-hybrid-gutachten',
+    key: 'extras',
     num: '03',
-    title: 'Elektro & Hybrid',
-    teaser: 'Spezialisierte Begutachtung moderner Elektro- und Hybridfahrzeuge inklusive Hochvoltsystem.',
-    tags: ['Hochvolt', 'Batterie', 'Assistenzsysteme'],
-    gradient: 'linear-gradient(150deg,#14232a,#0a0d11 62%)',
-    icon: 'bolt',
+    title: 'Extras & Milch',
+    tone: 'dawn',
+    items: [
+      { name: 'Extra Shot Espresso', price: '1,00 €' },
+      { name: 'Haferdrink', price: '0,50 €' },
+      { name: 'Laktosefreie Milch', price: '0,50 €' },
+    ],
   },
   {
-    href: '/motorrad-gutachten',
+    key: 'fruehstueck',
     num: '04',
-    title: 'Motorrad',
-    teaser: 'Gutachten für Motorräder, Roller und Krafträder – auch bei Sturz- und Kleinschäden.',
-    tags: ['Sturzschaden', 'Anbauteile', 'Wertgutachten'],
-    gradient: 'linear-gradient(150deg,#1e2129,#0b0d11 62%)',
-    icon: 'bike',
+    title: 'Frühstück',
+    tone: 'dawn',
+    items: [
+      {
+        name: 'Frühstück für eine Person',
+        price: '15,95 €',
+        note: 'Zwei knusprige Brötchen, serviert mit Butter, gekochtem Ei, Gouda, Schinken, Bacon sowie einer Auswahl an Marmelade und Honig.',
+      },
+      {
+        name: 'Frühstücksplatte für zwei Personen',
+        price: '35,90 €',
+        note: 'Vier frische Brötchen, dazu eine feine Auswahl an Käse und Schinken. Frisch zubereitetes Rührei. Für den süßen Genuss Butter, Marmelade, Honig, Nutella sowie eine Auswahl an cremigen Aufstrichen.',
+      },
+    ],
   },
   {
-    href: '/oldtimer-gutachten',
+    key: 'orientalisch',
     num: '05',
-    title: 'Oldtimer',
-    teaser: 'Wertgutachten und Zustandsdokumentation klassischer Fahrzeuge – belastbar für Versicherer.',
-    tags: ['Marktwert', 'Zustandsnote', 'Dokumentation'],
-    gradient: 'linear-gradient(150deg,#17202b,#0b0d11 62%)',
-    icon: 'classic',
+    title: 'Orientalisches Frühstück',
+    tone: 'dawn',
+    items: [
+      {
+        name: 'Omelette mit Sucuk',
+        price: '12,90 €',
+        note: 'Sucuk (Knoblauchwurst), Paprika und Tomaten, gebraten mit Eiern und Kräutern – in der Pfanne serviert mit frischem Brot.',
+      },
+      {
+        name: 'Menemen',
+        price: '12,90 €',
+        note: 'Türkisches Rührei mit Gemüse: Eier, Zwiebeln und Tomaten, leicht gewürzt, in der Pfanne geschmort. Auf Wunsch mit frischer Chili. Serviert mit Brot zum Dippen.',
+      },
+    ],
+  },
+  {
+    key: 'hauptgerichte',
+    num: '06',
+    title: 'Hauptgerichte',
+    tone: 'green',
+    items: [
+      { name: 'Wechselnde Tagesgerichte', price: 'ab 10,90 €', note: 'Auch vegane und glutenfreie Speisen erhältlich (siehe Wochenkarte).' },
+      { name: 'Hausgemachte Linsensuppe', price: '5,90 €' },
+      { name: 'Falafel-Teller', price: '10,90 €', note: 'Mit Hummus und einem gemischten Salat serviert.' },
+      {
+        name: 'Falafel Bowl',
+        price: '13,90 €',
+        note: 'Serviert mit Salat, Reis, Hummus, frischem Gemüse, Kräutern und einem hausgemachten Dressing. Dazu knusprige Falafel.',
+      },
+      { name: 'Mujadara', price: '9,90 €', note: 'Linsen und Reis mit knusprigen Röstzwiebeln, serviert mit frischem Joghurt.' },
+      { name: 'Hähnchenschnitzel', price: '13,90 €', note: 'Serviert mit Basmati-Reis, frischem Salat und einer hausgemachten Sauce.' },
+      { name: 'Falafel-To-Go-Wrap', price: '9,90 €', note: 'Frisch gerollt mit knusprigen Falafel, Salat, Gemüse, Hummus und einer hausgemachten Sauce.' },
+      {
+        name: 'Schnitzel mit Pommes',
+        price: '14,90 €',
+        note: 'Knusprig paniertes Schnitzel, serviert mit knusprigen Pommes frites. Auf Wunsch auch mit Jägersoße oder Rahmsoße.',
+      },
+    ],
+  },
+  {
+    key: 'salate',
+    num: '07',
+    title: 'Salate',
+    tone: 'green',
+    items: [
+      { name: 'Burrata Salat', price: '10,90 €', note: 'Serviert mit cremigem Burrata, frischem Rucola, Cherrytomaten, Balsamico-Dressing und knusprigem Brot.' },
+      { name: 'Gemischter Salat', price: '8,90 €', note: 'Frisch zubereitet mit verschiedenen Blattsalaten, Tomaten, Gurken, Paprika und einem hausgemachten Dressing.' },
+      { name: 'Obstsalat', price: '10,90 €', note: 'Frisch geschnittenes, saisonales Obst – eine leichte und erfrischende Wahl.' },
+    ],
+  },
+  {
+    key: 'suesses',
+    num: '08',
+    title: 'Süßes',
+    tone: 'sugar',
+    items: [{ name: 'Hausgemachter Kuchen', price: 'ab 3,80 €', note: 'Auch vegan und glutenfrei erhältlich.' }],
+  },
+  {
+    key: 'waffeln',
+    num: '09',
+    title: 'Waffeln',
+    tone: 'sugar',
+    items: [
+      { name: 'Waffel mit Puderzucker', price: '4,50 €' },
+      { name: 'Waffel mit heißen Kirschen', price: '7,90 €', note: 'Serviert mit Kirschen und Sahne.' },
+      { name: 'Waffel mit heißer Schokolade', price: '6,90 €', note: 'Auf Wunsch mit Nutella und Sahne — zzgl. 0,50 €.' },
+    ],
+    footnote: 'Auch to go möglich.',
+  },
+  {
+    key: 'softdrinks',
+    num: '10',
+    title: 'Softdrinks',
+    tone: 'drink',
+    items: [
+      { name: 'Coca Cola', price: '3,00 €' },
+      { name: 'Sprite', price: '3,00 €' },
+      { name: 'Fanta', price: '3,00 €' },
+      { name: 'Mezzo Mix', price: '3,00 €' },
+      { name: 'ViO Wasser (mit Kohlensäure / still)', price: '3,00 €' },
+      { name: 'Vita Malz', price: '3,00 €' },
+      { name: 'Fritz, diverse Sorten', price: '3,00 €' },
+    ],
+    footnote: 'zzgl. Pfand.',
+  },
+  {
+    key: 'brunch',
+    num: '11',
+    title: 'Brunch',
+    tone: 'signature',
+    intro: 'Brunch jeden Sonntag, 10:00 – 12:00 Uhr — nur mit Reservierung. Die Sitzplätze sind begrenzt; ohne Reservierung kann kein Platz garantiert werden.',
+    items: [
+      { name: 'Erwachsene', price: 'Preis pro Person — auf Anfrage' },
+      { name: 'Kinder', price: 'Preis pro Person — auf Anfrage' },
+    ],
+  },
+  {
+    key: 'veranstaltungen',
+    num: '12',
+    title: 'Veranstaltungen',
+    tone: 'signature',
+    intro: 'Für private Feiern und Veranstaltungen im Rose Café sprechen Sie uns gerne persönlich oder telefonisch an.',
+    items: [],
   },
 ];
 
-export type Region = {
-  name: string;
-  x: number;
-  y: number;
-  note: string;
-  slug?: string;
+/* =====================================================================
+   SIGNATURE PRODUCT — der eine Hauptdarsteller.
+   ===================================================================== */
+
+export const SIGNATURE = {
+  eyebrow: 'Rose Café Signature',
+  name: 'Rose Latte',
+  description: 'Das Signature-Getränk des Hauses.',
+  price: '4,90 €',
 };
 
-export const REGIONS: Region[] = [
-  { name: 'Hannover-Mitte', x: 50, y: 47, note: 'Innenstadt, Calenberger Neustadt und Zooviertel – Vor-Ort-Termine meist am selben Tag.' },
-  { name: 'List / Oststadt', x: 57, y: 36, note: 'Dichter Straßenverkehr, viele Parkrempler. Besichtigung auch am Straßenrand möglich.' },
-  { name: 'Linden', x: 39, y: 50, note: 'Linden-Nord, -Mitte und -Süd inklusive Limmer und Ahlem.' },
-  { name: 'Döhren / Wülfel', x: 55, y: 63, note: 'Direkt an unserem Büro in der Hildesheimer Straße – kürzeste Wege.' },
-  { name: 'Bothfeld / Isernhagen-Süd', x: 66, y: 28, note: 'Begutachtung in Wohnstraßen, Höfen und auf Firmengeländen.' },
-  { name: 'Misburg / Anderten', x: 75, y: 45, note: 'Gewerbegebiete und Nutzfahrzeuge – auch LKW-Termine vor Ort.' },
-  { name: 'Laatzen', x: 58, y: 76, note: 'Laatzen, Rethen und Gleidingen – Vor-Ort-Service im gesamten Stadtgebiet.', slug: 'laatzen' },
-  { name: 'Langenhagen', x: 52, y: 17, note: 'Inklusive Flughafenumfeld, Godshorn und Kaltenweide.', slug: 'langenhagen' },
-  { name: 'Garbsen', x: 27, y: 30, note: 'Garbsen, Berenbostel und Havelse – Termine auch am Abend.', slug: 'garbsen' },
-  { name: 'Seelze', x: 24, y: 44, note: 'Seelze, Letter und Almhorst.', slug: 'seelze' },
-  { name: 'Wunstorf', x: 12, y: 36, note: 'Wunstorf und Steinhuder-Meer-Region.', slug: 'wunstorf' },
-  { name: 'Pattensen', x: 44, y: 86, note: 'Pattensen, Koldingen und Schulenburg.', slug: 'pattensen' },
+/* =====================================================================
+   GALERIE / ATMOSPHÄRE — Platzhalterbilder werden per data-tone gemalt,
+   bis echtes Bildmaterial vorliegt (siehe README).
+   ===================================================================== */
+
+export type GalleryItem = {
+  key: string;
+  tone: 'interior' | 'window' | 'cup' | 'pastry' | 'flowers' | 'people' | 'counter' | 'exterior';
+  caption: string;
+  size: 'sm' | 'md' | 'lg';
+  from: 'left' | 'right' | 'up';
+};
+
+export const GALLERY: GalleryItem[] = [
+  { key: 'g1', tone: 'interior', caption: 'Innenraum, Vormittagslicht', size: 'lg', from: 'left' },
+  { key: 'g2', tone: 'cup', caption: 'Rose Latte', size: 'sm', from: 'right' },
+  { key: 'g3', tone: 'window', caption: 'Fensterplatz', size: 'md', from: 'up' },
+  { key: 'g4', tone: 'pastry', caption: 'Gebäck des Tages', size: 'sm', from: 'left' },
+  { key: 'g5', tone: 'flowers', caption: 'Rosen am Tresen', size: 'md', from: 'right' },
+  { key: 'g6', tone: 'counter', caption: 'Der Tresen', size: 'lg', from: 'up' },
+  { key: 'g7', tone: 'people', caption: 'Ein ruhiger Nachmittag', size: 'md', from: 'left' },
+  { key: 'g8', tone: 'exterior', caption: 'Schaufenster, Bremen', size: 'sm', from: 'right' },
 ];
 
-export const REGION_PAGES = REGIONS.filter((r): r is Region & { slug: string } => Boolean(r.slug));
+/* =====================================================================
+   BEWERTUNGEN — Platzhalter. Vor Livegang durch echte, zitierfähige
+   Bewertungen ersetzen (z. B. Google/Yelp mit Einverständnis).
+   ===================================================================== */
+
+export type Review = { name: string; text: string; rating: number };
+
+export const REVIEWS: Review[] = [
+  { name: '[Name]', text: '[Platzhalter für eine echte Gästebewertung.]', rating: 5 },
+  { name: '[Name]', text: '[Platzhalter für eine echte Gästebewertung.]', rating: 5 },
+  { name: '[Name]', text: '[Platzhalter für eine echte Gästebewertung.]', rating: 5 },
+];
+
+/* =====================================================================
+   FAQ
+   ===================================================================== */
 
 export type Faq = { q: string; a: string };
 
 export const FAQS: Faq[] = [
   {
-    q: 'Wer darf den Kfz-Sachverständigen aussuchen?',
-    a: 'Bei einem unverschuldeten Unfall wählen Sie den Sachverständigen selbst – nicht die gegnerische Versicherung. Sie sind nicht verpflichtet, einen von der Versicherung geschickten Prüfer zu akzeptieren. Ein unabhängiges Gutachten ist die Grundlage dafür, dass alle Positionen Ihres Schadens erfasst werden.',
+    q: 'Nehmt ihr Reservierungen an?',
+    a: 'Ja, für Gruppen empfehlen wir eine kurze Reservierung im Voraus. Nutzen Sie das Formular auf dieser Seite oder rufen Sie uns direkt an.',
   },
   {
-    q: 'Wer trägt die Kosten für das Gutachten?',
-    a: 'Bei einem Haftpflichtschaden, den die Gegenseite verursacht hat, gehören die Sachverständigenkosten zum erstattungsfähigen Schaden und werden von der gegnerischen Versicherung getragen. Bei einem Kaskoschaden beauftragt in der Regel Ihr eigener Versicherer die Begutachtung. Bei sehr kleinen Schäden empfehlen wir einen Kostenvoranschlag – wir sagen Ihnen vorab, was in Ihrem Fall sinnvoll ist.',
+    q: 'Gibt es vegane oder glutenfreie Optionen?',
+    a: 'Wir kennzeichnen unsere Optionen auf der Karte vor Ort und beraten Sie gerne persönlich zu Alternativen.',
   },
   {
-    q: 'Wie schnell bekomme ich einen Termin?',
-    a: 'Kurzfristig, in der Regel innerhalb von 24 bis 48 Stunden. Rufen Sie uns an oder senden Sie eine Anfrage über das Formular – auf Wunsch kommen wir zu Ihnen nach Hause, in die Werkstatt oder an den Abstellort.',
+    q: 'Ist das Café barrierefrei erreichbar?',
+    a: 'Bitte sprechen Sie uns bei Fragen zur Erreichbarkeit direkt an — wir helfen gerne weiter.',
   },
   {
-    q: 'Wie lange dauert die Erstellung des Gutachtens?',
-    a: 'Nach der Besichtigung erstellen wir das Gutachten in der Regel innerhalb von ein bis zwei Werktagen. Sie erhalten es digital, die Versicherung und – wenn gewünscht – Ihr Anwalt bekommen es direkt von uns.',
-  },
-  {
-    q: 'Ab welcher Schadenhöhe lohnt sich ein Gutachten?',
-    a: 'Als Faustregel gilt eine Bagatellgrenze im Bereich von etwa 750 bis 1.000 Euro. Liegt der Schaden darunter, ist ein Kostenvoranschlag meist der richtige Weg. Darüber ist ein vollständiges Schadengutachten sinnvoll, weil nur so Wertminderung, Nutzungsausfall und Reparaturweg sauber belegt sind.',
-  },
-  {
-    q: 'Was steht in einem Schadengutachten?',
-    a: 'Schadenumfang und Reparaturweg, kalkulierte Reparaturkosten, Wiederbeschaffungs- und Restwert, merkantile Wertminderung, Nutzungsausfalldauer beziehungsweise Mietwagenklasse, Vorschäden sowie eine vollständige Fotodokumentation.',
-  },
-  {
-    q: 'Kommen Sie zu mir vor Ort?',
-    a: 'Ja. Der Vor-Ort-Service ist Standard, nicht Aufpreis. Wir begutachten in Hannover und der Region – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort.',
-  },
-  {
-    q: 'Begutachten Sie auch Elektro- und Hybridfahrzeuge?',
-    a: 'Ja. Bei Elektro- und Hybridfahrzeugen kommen Besonderheiten hinzu: Hochvoltsystem, Batteriegehäuse, Ladetechnik und die Frage, ob nach einem Aufprall eine Batterieprüfung notwendig ist. Diese Punkte werden im Gutachten ausdrücklich bewertet.',
-  },
-  {
-    q: 'Was ist eine merkantile Wertminderung?',
-    a: 'Der Betrag, um den Ihr Fahrzeug nach einem fachgerecht reparierten Unfallschaden am Markt weniger wert ist – weil es beim Verkauf als Unfallwagen gilt. Diese Position wird häufig übersehen und gehört ins Gutachten.',
-  },
-  {
-    q: 'Was mache ich direkt nach dem Unfall?',
-    a: 'Unfallstelle sichern, Personen versorgen, bei Bedarf Polizei rufen. Danach: Fotos aus mehreren Abständen, Daten der Beteiligten und Kennzeichen notieren, nichts unterschreiben, was Sie nicht verstehen – und den Sachverständigen einschalten, bevor die Reparatur beginnt.',
+    q: 'Gibt es WLAN und Arbeitsplätze?',
+    a: 'Ja, WLAN steht für Gäste zur Verfügung. Für konzentriertes Arbeiten empfehlen wir die ruhigeren Vormittagsstunden.',
   },
 ];
-
-export type FlowStep = {
-  num: string;
-  title: string;
-  text: string;
-  when: string;
-  duration: string;
-};
-
-export const FLOW_STEPS: FlowStep[] = [
-  {
-    num: '01',
-    title: 'Kontakt & Ersteinschätzung',
-    text: 'Sie rufen an oder senden die Anfrage mit ein paar Fotos. Wir klären in wenigen Minuten, ob ein vollständiges Gutachten oder ein Kostenvoranschlag der richtige Weg ist – und wer die Kosten trägt.',
-    when: 'Tag 0',
-    duration: '10 Minuten',
-  },
-  {
-    num: '02',
-    title: 'Vor-Ort-Besichtigung',
-    text: 'Wir kommen zu Ihnen: nach Hause, in die Werkstatt, an den Unfallort. Schadenaufnahme, Fotodokumentation, Messungen an Karosserie und Achse, Prüfung von Vorschäden.',
-    when: 'Tag 0–2',
-    duration: '45–90 Minuten',
-  },
-  {
-    num: '03',
-    title: 'Gutachtenerstellung',
-    text: 'Kalkulation der Reparaturkosten, Wiederbeschaffungs- und Restwert, merkantile Wertminderung, Nutzungsausfalldauer. Alles belegt und nachvollziehbar aufgebaut.',
-    when: 'Tag 1–3',
-    duration: '1–2 Werktage',
-  },
-  {
-    num: '04',
-    title: 'Übermittlung an Versicherung & Anwalt',
-    text: 'Sie erhalten das Gutachten digital. Auf Wunsch geht es direkt an die gegnerische Versicherung und Ihren Anwalt – damit die Regulierung ohne Rückfragen startet.',
-    when: 'Tag 2–4',
-    duration: 'sofort nach Freigabe',
-  },
-  {
-    num: '05',
-    title: 'Schadensregulierung',
-    text: 'Wir bleiben ansprechbar: bei Rückfragen des Versicherers, bei Kürzungsversuchen und bei der Frage, ob Reparatur, Ersatzbeschaffung oder Abrechnung auf Gutachtenbasis für Sie sinnvoll ist.',
-    when: 'danach',
-    duration: 'so lange es nötig ist',
-  },
-];
-
-export const WHY_ITEMS: { icon: IconName; title: string; text: string }[] = [
-  { icon: 'shield', title: '100 % unabhängig', text: 'Keine Beteiligung von Versicherern, Werkstätten oder Autohäusern. Unser Auftraggeber sind Sie – niemand sonst.' },
-  { icon: 'clock', title: 'Termin in 24–48 Stunden', text: 'Kurzfristige Terminvergabe, auch abends und am Wochenende nach Absprache. Bei nicht fahrbereiten Fahrzeugen kommen wir zum Standort.' },
-  { icon: 'pin', title: 'Vor-Ort-Service inklusive', text: 'Hannover und Umland – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort. Ohne Aufpreis für die Anfahrt.' },
-  { icon: 'ruler', title: 'Achs- & Karosserievermessung', text: 'Messtechnik statt Sichtprüfung: Wir belegen Verzug an Achse und Karosserie mit Werten – nicht mit Vermutungen.' },
-  { icon: 'scale', title: 'Abwicklung mit der Gegenseite', text: 'Wir kommunizieren direkt mit der gegnerischen Versicherung und Ihrem Anwalt und begründen jede Position, die gekürzt werden soll.' },
-  { icon: 'doc', title: 'Über 15 Jahre Erfahrung', text: 'Tausende begutachtete Fahrzeuge vom Kleinwagen bis zum Nutzfahrzeug – und die Routine, Vorschäden von Neuschäden zu trennen.' },
-];
-
-export type DamageZone = {
-  key: string;
-  index: string;
-  title: string;
-  text: string;
-  points: string[];
-  x: number;
-  y: number;
-};
-
-export const DAMAGE_ZONES: DamageZone[] = [
-  {
-    key: 'front', index: 'ZONE 01', title: 'Frontschaden', x: 50, y: 7,
-    text: 'Stoßfänger, Kühlerpaket, Scheinwerfer und Assistenz-Sensorik: Frontschäden sind heute selten nur Blech. Wir dokumentieren jede betroffene Baugruppe einzeln.',
-    points: ['Prüfung von Radar-, Kamera- und Ultraschall-Sensorik', 'Kalibrierungsaufwand der Assistenzsysteme wird beziffert', 'Beurteilung von Längsträger und Schlossträger'],
-  },
-  {
-    key: 'side', index: 'ZONE 02', title: 'Seitenschaden', x: 13, y: 44,
-    text: 'Türen, Schweller und Säulen bestimmen die Fahrzeugsteifigkeit. Wir unterscheiden klar zwischen Instandsetzung und notwendigem Teiletausch.',
-    points: ['Spaltmaß- und Karosserievermessung', 'Beurteilung von Seitenairbags und Gurtstraffern', 'Lackangrenzende Bauteile werden mit erfasst'],
-  },
-  {
-    key: 'rear', index: 'ZONE 03', title: 'Heckschaden', x: 50, y: 93,
-    text: 'Der klassische Auffahrunfall. Auch bei scheinbar kleinem Schadenbild sind Heckabschlussblech und Ladeboden häufig verzogen.',
-    points: ['Prüfung von Heckklappe, Schlossträger und Ladeboden', 'Anhängerkupplung und Verkabelung inklusive', 'Dokumentation für die gegnerische Haftpflicht'],
-  },
-  {
-    key: 'paint', index: 'ZONE 04', title: 'Lackschaden', x: 80, y: 63,
-    text: 'Schichtdickenmessung statt Schätzung. Wir belegen, ob nachlackiert wurde, wie tief der Schaden geht und welcher Lackaufbau notwendig ist.',
-    points: ['Schichtdickenmessung an allen Anbauteilen', 'Beurteilung von Beilackierung und Farbtonangleich', 'Nachweis von Vorschäden und Altlackierungen'],
-  },
-  {
-    key: 'chassis', index: 'ZONE 05', title: 'Fahrwerk & Achsen', x: 20, y: 78,
-    text: 'Nach jeder Kollision mit Bordstein oder Fahrzeug gehört die Achsvermessung dazu. Verzogene Achsgeometrie ist von außen nicht sichtbar.',
-    points: ['Achsvermessung mit Protokoll', 'Prüfung von Lenkung, Federbeinen und Radträgern', 'Bewertung von Reifen- und Felgenschäden'],
-  },
-  {
-    key: 'structure', index: 'ZONE 06', title: 'Strukturschaden', x: 50, y: 50,
-    text: 'Die entscheidende Frage bei größeren Schäden: Ist die tragende Struktur betroffen? Davon hängen Reparaturweg, Restwert und Wertminderung ab.',
-    points: ['Karosserievermessung gegen Herstellersollwerte', 'Bewertung von Rahmen, Längsträgern und Bodengruppe', 'Klare Aussage zu Reparaturwürdigkeit und Totalschaden'],
-  },
-];
-
-export const TICKER_ITEMS = [
-  'Unfallgutachten', 'Wertgutachten', 'Achs- & Karosserievermessung', 'Restwertermittlung',
-  'Wertminderung', 'Nutzungsausfall', 'Oldtimer-Bewertung', 'Elektro & Hybrid', 'Unfallanalyse',
-];
-
-export const REQUEST_REASONS = ['Unfall', 'Parkschaden', 'Wertgutachten', 'Fahrzeugbewertung', 'Leasingrückgabe', 'Sonstiges'];
-export const REQUEST_VEHICLES = ['PKW', 'LKW', 'Motorrad', 'Elektro / Hybrid', 'Oldtimer'];
 
 /**
- * Endpunkt für das Anfrageformular. Leer lassen = Fallback auf das
- * E-Mail-Programm des Nutzers. Siehe README, Abschnitt "Formular anschließen".
+ * Endpunkt für das Reservierungsformular. Leer lassen = Fallback auf das
+ * E-Mail-Programm des Nutzers.
  */
 export const FORM_ENDPOINT = '';
 
-/* =====================================================================
-   Schadensgutachten-Cluster
-   ===================================================================== */
-
-export const ASSESSMENT_PAGES: { href: string; title: string; teaser: string; icon: IconName }[] = [
-  { href: '/unfallanalyse', title: 'Unfallanalyse', teaser: 'Technische Auswertung von Fahrzeugzustand, Schadenbild und verfügbaren Daten.', icon: 'ruler' },
-  { href: '/pkw-gutachten', title: 'PKW-Gutachten', teaser: 'Vollständige Aufnahme, Kalkulation und Bewertung für Pkw und Transporter.', icon: 'car' },
-  { href: '/unfallgutachten', title: 'Unfallgutachten', teaser: 'Beweissichere Dokumentation nach dem Unfall – für Versicherung und Anwalt.', icon: 'doc' },
-  { href: '/unfallrekonstruktion', title: 'Unfallrekonstruktion', teaser: 'Rekonstruktion des Ablaufs aus Spurenlage, Schadenbild und Fahrzeugpositionen.', icon: 'scale' },
-  { href: '/edr-systeme', title: 'EDR-Systeme', teaser: 'Ereignisbezogene Fahrzeugdaten – abhängig von Fahrzeug, System und Zugriff.', icon: 'bolt' },
-];
-
-/** Fahrzeugklassen für den visuellen Selektor. */
-export const VEHICLE_CATEGORIES: {
-  key: string;
-  title: string;
-  icon: IconName;
-  href: string;
-  note: string;
-  details: string[];
-}[] = [
-  {
-    key: 'pkw', title: 'Personenkraftwagen', icon: 'car', href: '/pkw-gutachten',
-    note: 'Pkw und Transporter aller Marken.',
-    details: ['Karosserie- und Achsvermessung', 'Assistenzsysteme und Kalibrierung', 'Wertminderung und Restwert'],
-  },
-  {
-    key: 'ev', title: 'Elektrofahrzeuge', icon: 'bolt', href: '/e-auto-hybrid-gutachten',
-    note: 'Mit Blick auf Batterie und Hochvoltsystem.',
-    details: ['Batteriegehäuse und Unterboden', 'Hochvoltpfad und Ladetechnik', 'Thermomanagement'],
-  },
-  {
-    key: 'bike', title: 'Motorräder', icon: 'bike', href: '/motorrad-gutachten',
-    note: 'Krafträder, Roller und Zubehör.',
-    details: ['Rahmen- und Gabelgeometrie', 'Anbauteile und Umbauten', 'Schutzkleidung'],
-  },
-  {
-    key: 'classic', title: 'Klassische Fahrzeuge', icon: 'classic', href: '/oldtimer-gutachten',
-    note: 'Oldtimer und Youngtimer.',
-    details: ['Zustandsnote und Originalität', 'Restaurierungsstand', 'Markt- und Versicherungswert'],
-  },
-];
-
-/** Sensorpunkte am Fahrzeug (Prozentwerte auf der Silhouette). */
-export const SENSOR_POINTS: { x: number; y: number; label: string; kind: 'radar' | 'kamera' | 'ultraschall' }[] = [
-  { x: 92, y: 62, label: 'Frontradar', kind: 'radar' },
-  { x: 86, y: 44, label: 'Frontkamera', kind: 'kamera' },
-  { x: 96, y: 74, label: 'Parksensoren vorn', kind: 'ultraschall' },
-  { x: 50, y: 40, label: 'Innenspiegelkamera', kind: 'kamera' },
-  { x: 22, y: 52, label: 'Totwinkelradar', kind: 'radar' },
-  { x: 8, y: 72, label: 'Parksensoren hinten', kind: 'ultraschall' },
-  { x: 12, y: 44, label: 'Rückfahrkamera', kind: 'kamera' },
-];
-
-/** Datenfluss der EDR-Darstellung. */
-export const EDR_STEPS: { title: string; text: string }[] = [
-  { title: 'Fahrzeug', text: 'Steuergeräte erfassen im Fahrbetrieb laufend Zustandsgrößen.' },
-  { title: 'Ereignis', text: 'Bei einem auslösenden Ereignis kann ein kurzes Zeitfenster gesichert werden.' },
-  { title: 'Auslesen', text: 'Sofern Fahrzeug, System und Berechtigung es zulassen, lassen sich diese Daten auslesen.' },
-  { title: 'Auswertung', text: 'Die Werte werden mit Spurenlage und Schadenbild abgeglichen.' },
-];
-
-/** Beispielhafte Kennwerte für das Datenpanel – bewusst als Beispiel gekennzeichnet. */
-export const DATA_READOUTS: { label: string; value: string; unit: string }[] = [
-  { label: 'Geschwindigkeit', value: '48', unit: 'km/h' },
-  { label: 'Bremsdruck', value: '82', unit: '%' },
-  { label: 'Gurtstatus', value: 'angelegt', unit: '' },
-  { label: 'Δv Aufprall', value: '17', unit: 'km/h' },
-  { label: 'Lenkwinkel', value: '-12', unit: '°' },
-  { label: 'Auslösung', value: 'Stufe 1', unit: '' },
-];
-
-/** Regulierungsablauf. */
-export const SETTLEMENT_STEPS: { title: string; text: string }[] = [
-  { title: 'Schaden', text: 'Der Schaden wird gemeldet und das Fahrzeug für die Besichtigung bereitgestellt.' },
-  { title: 'Gutachten', text: 'Wir nehmen auf, messen, kalkulieren und erstellen das Gutachten.' },
-  { title: 'Versicherung', text: 'Das Gutachten geht an die regulierende Versicherung und auf Wunsch an Ihren Anwalt.' },
-  { title: 'Prüfung', text: 'Die Versicherung prüft. Bei Kürzungen nehmen wir fachlich Stellung.' },
-  { title: 'Regulierung', text: 'Die Zahlung erfolgt – als Reparaturfreigabe oder auf Gutachtenbasis.' },
-];
-
-export const SETTLEMENT_WEEKS: { week: string; text: string }[] = [
-  { week: 'Woche 1', text: 'Besichtigung, Gutachtenerstellung, Versand an die Versicherung.' },
-  { week: 'Woche 2', text: 'Eingangsprüfung und Aktenanlage beim Versicherer.' },
-  { week: 'Woche 3', text: 'Sachbearbeitung, gegebenenfalls Rückfragen oder eigene Prüfung.' },
-  { week: 'Woche 4', text: 'Regulierungsentscheidung und Zahlungsanweisung.' },
-];
-
-/**
- * Video im Bereich Schadenregulierung.
- * Datei unter public/assets/video/ ablegen und hier eintragen.
- * Solange src leer ist, zeigt die Komponente einen sauberen Platzhalter
- * statt eines kaputten Players.
- */
-export const SETTLEMENT_VIDEO = {
-  src: '',
-  poster: '/assets/img/begutachtung-protokoll.webp',
-  title: 'Schadenregulierung erklärt',
-  caption: 'ING Gutachten · Hannover',
-};
+export const PARTY_SIZES = ['1–2 Personen', '3–4 Personen', '5–8 Personen', 'mehr als 8 Personen'];

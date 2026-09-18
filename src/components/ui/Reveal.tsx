@@ -1,48 +1,38 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { useInViewClass } from '@/hooks/useInViewClass';
 
-type Direction = 'up' | 'left' | 'right' | 'scale';
-
-const OFFSETS: Record<Direction, { x?: number; y?: number; scale?: number }> = {
-  up: { y: 26 },
-  left: { x: -34 },
-  right: { x: 34 },
-  scale: { scale: 0.94 },
-};
+export type RevealMode = 'fade' | 'up' | 'blur' | 'clip' | 'mask' | 'mask-fast' | 'soft' | 'scale';
 
 /**
- * Scroll-Reveal mit Blur-to-sharp. Respektiert prefers-reduced-motion:
- * dann wird der Inhalt sofort und unbewegt gezeigt.
+ * Zentrale Reveal Engine. Reine CSS-Transitionen, per IntersectionObserver
+ * einmalig ausgelöst (`is-in`) — kein Tween pro Element in JS, keine Menge
+ * an parallelen requestAnimationFrame-Läufen.
  */
 export function Reveal({
   children,
+  mode = 'up',
   delay = 0,
-  direction = 'up',
   className,
+  as: Tag = 'div',
 }: {
   children: ReactNode;
+  mode?: RevealMode;
   delay?: number;
-  direction?: Direction;
   className?: string;
+  as?: 'div' | 'span' | 'li';
 }) {
-  const reduced = useReducedMotion();
-  const from = OFFSETS[direction];
-
-  if (reduced) {
-    return <div className={className}>{children}</div>;
-  }
+  const { ref, inView } = useInViewClass<HTMLDivElement>();
+  const style = { '--d': `${delay}ms`, transitionDuration: mode === 'mask-fast' ? undefined : '.9s' } as CSSProperties;
 
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, filter: 'blur(6px)', ...from }}
-      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin: '0px 0px -12% 0px' }}
-      transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
+    <Tag
+      ref={ref as never}
+      className={`rv rv-${mode} ${inView ? 'is-in' : ''} ${className ?? ''}`}
+      style={style}
     >
       {children}
-    </motion.div>
+    </Tag>
   );
 }
