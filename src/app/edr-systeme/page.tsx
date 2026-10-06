@@ -73,7 +73,7 @@ export default function Page() {
         </p>
         <p>
           Ob ein Fahrzeug solche Daten vorhält, in welchem Umfang und in welcher Form, unterscheidet sich
-          erheblich. Pauschale Aussagen wie „jedes moderne Auto speichert den Unfall" sind schlicht falsch.
+          erheblich. Pauschale Aussagen wie „jedes moderne Auto speichert den Unfall&ldquo; sind schlicht falsch.
         </p>
         <p>
           Kommt eine Auswertung in Betracht, klären wir zunächst die Voraussetzungen: Fahrzeug, System,
