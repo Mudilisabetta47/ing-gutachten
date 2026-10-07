@@ -40,10 +40,11 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/bewertungen', label: 'Fahrzeugbewertung', icon: 'gauge', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: false },
   { href: '/admin/restwerte', label: 'Restwert', icon: 'coins', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: false },
   { href: '/admin/nutzungsausfall', label: 'Nutzungsausfall', icon: 'clock', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: false },
-  { href: '/admin/fahrzeugdatenbank', label: 'Fahrzeugdatenbank', icon: 'car', group: 'Kalkulation & Bewertung', anyOf: ['vehicles.read'], phase: 4, ready: false },
+  { href: '/admin/fahrzeugdaten', label: 'Fahrzeugdatenbank', icon: 'car', group: 'Kalkulation & Bewertung', anyOf: ['vehicledata.manage'], phase: 4, ready: true },
 
   { href: '/admin/kunden', label: 'Kunden', icon: 'users', group: 'Stammdaten', anyOf: ['customers.read', 'customers.read.own'], phase: 2, ready: true },
   { href: '/admin/fahrzeuge', label: 'Fahrzeuge', icon: 'car', group: 'Stammdaten', anyOf: ['vehicles.read'], phase: 2, ready: true },
+  { href: '/admin/fahrzeuge/identifizieren', label: 'Fahrzeug identifizieren', icon: 'search', group: 'Stammdaten', anyOf: ['vehicledata.read'], phase: 4, ready: true },
   { href: '/admin/stammdaten/versicherungen', label: 'Versicherungen', icon: 'shield', group: 'Stammdaten', anyOf: ['masterdata.read', 'masterdata.write'], phase: 4, ready: true },
   { href: '/admin/stammdaten/werkstaetten', label: 'Werkstätten', icon: 'wrench', group: 'Stammdaten', anyOf: ['masterdata.read', 'masterdata.write'], phase: 4, ready: true },
   { href: '/admin/stammdaten/rechtsanwaelte', label: 'Rechtsanwälte', icon: 'scale', group: 'Stammdaten', anyOf: ['masterdata.read', 'masterdata.write'], phase: 4, ready: true },

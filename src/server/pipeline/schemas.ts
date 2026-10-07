@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { formatPlate, normalizePlate, parseVin } from '@/lib/normalize';
 import { berlinLocalToDate } from '@/lib/berlin';
+import { normalizeHsn, normalizeTsn } from '@/lib/vehicle-data';
 
 /** Leere Eingaben aus Formularen werden zu null. */
 const opt = (max: number) =>
@@ -44,6 +45,13 @@ export type CustomerInput = z.infer<typeof customerSchema>;
 
 const fuel = z.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID', 'PLUG_IN_HYBRID', 'LPG', 'CNG', 'HYDROGEN', 'OTHER']);
 
+const techText = (max: number) =>
+  z.string().trim().max(max).optional().nullable().transform((v) => (v === undefined ? undefined : v ? v : null));
+const techInt = (min: number, max: number, msg: string) =>
+  z.union([z.string(), z.number()]).optional().nullable()
+    .transform((v) => (v === undefined ? undefined : v === '' || v === null ? null : Number(String(v).replace(/\./g, '').replace(',', '.'))))
+    .refine((v) => v === undefined || v === null || (Number.isInteger(v) && v >= min && v <= max), msg);
+
 export const vehicleSchema = z
   .object({
     manufacturer: z.string().trim().min(1, 'Bitte den Hersteller angeben.').max(80),
@@ -60,8 +68,15 @@ export const vehicleSchema = z
       .refine((v) => v === null || (Number.isInteger(v) && v >= 0 && v <= 3_000_000), 'Bitte einen gültigen Kilometerstand angeben.'),
     fuelType: z.union([fuel, z.literal('')]).optional().nullable().transform((v) => (v ? v : null)),
     color: opt(60),
+    // Fahrzeugdaten (HSN/TSN): fehlt ein Feld im Formular, bleibt der gespeicherte Wert unverändert (undefined statt null)
+    hsn: techText(10), tsn: techText(10), hsnTsnId: techText(40),
+    engineName: techText(80), engineCode: techText(30), bodyStyle: techText(60), driveType: techText(40), transmission: techText(40), vehicleClass: techText(20),
+    powerKw: techInt(1, 2000, 'Bitte eine gültige Leistung in kW angeben.'), powerHp: techInt(1, 3000, 'Bitte eine gültige Leistung in PS angeben.'),
+    displacementCc: techInt(1, 20000, 'Bitte einen gültigen Hubraum in cm³ angeben.'), seats: techInt(1, 99, 'Bitte eine gültige Sitzplatzzahl angeben.'),
   })
   .transform((v, ctx) => {
+    if (v.hsn) { const h = normalizeHsn(v.hsn); if (!h.value) ctx.addIssue({ code: 'custom', path: ['hsn'], message: h.error ?? 'Ungültige HSN.' }); else v.hsn = h.value; }
+    if (v.tsn) { const t = normalizeTsn(v.tsn); if (!t.value) ctx.addIssue({ code: 'custom', path: ['tsn'], message: t.error ?? 'Ungültige TSN.' }); else v.tsn = t.value; }
     const plateNorm = normalizePlate(v.licensePlate);
     if (v.licensePlate && !plateNorm) ctx.addIssue({ code: 'custom', path: ['licensePlate'], message: 'Bitte ein gültiges Kennzeichen angeben.' });
     const vin = parseVin(v.vin);

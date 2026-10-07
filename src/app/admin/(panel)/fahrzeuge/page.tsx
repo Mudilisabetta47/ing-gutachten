@@ -20,7 +20,14 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title="Fahrzeuge" intro="Kennzeichen werden in jeder Schreibweise gefunden („H AB 123“, „H-AB 123“, „hab123“)." />
+      <PageHeader
+        title="Fahrzeuge"
+        intro="Kennzeichen werden in jeder Schreibweise gefunden („H AB 123“, „H-AB 123“, „hab123“)."
+        actions={<>
+          {user.permissions.has('vehicledata.read') && <Link href="/admin/fahrzeuge/identifizieren/" className="adm-btn adm-btn-secondary"><AdminIcon name="search" />Fahrzeug identifizieren</Link>}
+          {user.permissions.has('vehicles.write') && user.permissions.has('customers.write') && <Link href="/admin/fahrzeuge/neu/" className="adm-btn"><AdminIcon name="plus" />Neues Fahrzeug</Link>}
+        </>}
+      />
       <AutoForm action={base}>
         <div className="grow adm-input-group">
           <AdminIcon name="search" />

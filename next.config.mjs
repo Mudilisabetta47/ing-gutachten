@@ -18,6 +18,8 @@ const nextConfig = {
   serverExternalPackages: ['@node-rs/argon2', '@prisma/client', '@prisma/adapter-pg', 'pg'],
   experimental: {
     optimizePackageImports: ['framer-motion'],
+    // Datei-Import der Fahrzeugdaten (CSV/JSON bis 2 MB) läuft über eine Server Action
+    serverActions: { bodySizeLimit: '2.5mb' },
   },
   async headers() {
     return [

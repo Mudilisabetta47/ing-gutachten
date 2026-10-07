@@ -2,7 +2,7 @@ import { ZodError } from 'zod';
 import { AuthRequiredError, ForbiddenError } from '@/server/auth/errors';
 import { DomainError } from '@/server/errors';
 
-export type FormState = { ok?: boolean; error?: string; fields?: Record<string, string>; message?: string; values?: Record<string, string> };
+export type FormState = { ok?: boolean; error?: string; fields?: Record<string, string>; message?: string; values?: Record<string, string>; /** Client navigiert nach Erfolg dorthin (statt `redirect()` in der Action) */ redirectTo?: string };
 
 /** Eingaben für die erneute Anzeige nach einem Fehler (React 19 setzt Formulare zurück). Passwörter nie. */
 export function echo(fd: FormData, ...exclude: string[]): Record<string, string> {

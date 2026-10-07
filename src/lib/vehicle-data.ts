@@ -87,7 +87,7 @@ export function parsePower(raw?: string | null): { kw: number | null; hp: number
 /** „1968 ccm“, „1.498 ccm“, „1 968 cm³“ → Kubikzentimeter. Literangaben („2,0 l“) werden nicht umgerechnet (wären geschätzt). */
 export function parseDisplacement(raw?: string | null): number | null {
   const s = (raw ?? '').replace(/ /g, ' ');
-  const m = s.match(/(\d{1,2}(?:[.\s]\d{3})|\d{3,5})\s*(?:ccm|cm³|cm3|cc)\b/i);
+  const m = s.match(/(\d{1,2}(?:[.\s]\d{3})|\d{3,5})\s*(?:ccm|cm³|cm3|cc)(?![A-Za-z])/i);
   return m ? intOrNull(m[1]) : null;
 }
 
@@ -294,7 +294,7 @@ export const mayOverwrite = (current: number | null | undefined, next: number): 
 /** Prüfstatus eines Datensatzes nach Herkunft: nur eine Drittquelle → PARTIAL; offiziell/lizenziert abgeglichen → VERIFIED. */
 export function verificationFor(source: string, license?: LicenseKey, crossChecked = false): VerificationKey {
   if (crossChecked && (license === 'LICENSED' || source === 'KBA')) return 'VERIFIED';
-  if (source === 'MANUAL') return 'UNVERIFIED';
+  if (source === 'MANUAL' || source === 'IMPORT_FILE') return 'UNVERIFIED';
   if (source === 'KBA' || source === 'DAT' || source === 'VIN') return license === 'LICENSED' || source === 'KBA' ? 'VERIFIED' : 'PARTIAL';
   return 'PARTIAL';
 }
@@ -371,3 +371,8 @@ export function approvalStatus(kind: ApprovalKey | null | undefined, checks: Che
   }
   return { state: 'unknown', text: 'Nicht beurteilbar – die dafür nötigen Angaben (Genehmigungsart, Fahrzeugscheinwerte) liegen nicht vollständig vor.' };
 }
+
+export const SOURCE_LABELS: Record<string, string> = {
+  OWN: 'Eigene Datenbank', HSN_TSN: 'HSN/TSN-Datenbank', KBA: 'KBA', DAT: 'DAT', VIN: 'VIN-Anbieter', MANUAL: 'Manuell erfasst', IMPORT_FILE: 'Datei-Import', MANUAL_CONFIRMED: 'Vom Gutachter bestätigt', SYSTEM: 'System',
+};
+export const sourceLabel = (s: string) => SOURCE_LABELS[s] ?? s;

@@ -6,6 +6,7 @@ import { normalizePhone } from '@/lib/normalize';
 import { DomainError, notFoundError } from '@/server/errors';
 import type { CaseStatusKey } from '@/lib/workflow';
 import type { CaseInput, CustomerInput, VehicleInput } from './schemas';
+import { recordInitialData } from '@/server/vehicledata/apply';
 
 /**
  * Bausteine, die sowohl die manuelle Anlage als auch die Umwandlung einer Anfrage nutzen.
@@ -48,7 +49,9 @@ export async function createCustomerTx(tx: Tx, actorId: string | null, input: Cu
 
 export async function createVehicleTx(tx: Tx, actorId: string | null, customerId: string, input: VehicleInput) {
   const { vinWarning: _w, ...data } = input;
+  if (data.hsnTsnId && !(await tx.vehicleHsnTsn.findFirst({ where: { id: data.hsnTsnId, deletedAt: null }, select: { id: true } }))) data.hsnTsnId = null;
   const vehicle = await tx.vehicle.create({ data: { ...data, customerId } });
+  await recordInitialData(tx, vehicle.id, actorId, vehicle as unknown as Record<string, unknown>, vehicle.hsnTsnId);
   await writeAudit({ actorId, action: 'vehicle.create', entityType: 'Vehicle', entityId: vehicle.id, summary: 'Fahrzeug angelegt', after: { manufacturer: vehicle.manufacturer, model: vehicle.model } }, tx);
   return vehicle;
 }

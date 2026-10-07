@@ -9,6 +9,7 @@ import { normalizePlate } from '@/lib/normalize';
 import { CASE_TERMINAL } from '@/lib/workflow';
 import { caseScope, has, vehicleScope } from './access';
 import { createVehicleTx } from './core';
+import { recordManualChanges } from '@/server/vehicledata/apply';
 import { PAGE_SIZE } from './leads';
 import { changedKeys, vehicleSchema } from './schemas';
 
@@ -59,7 +60,7 @@ export async function getVehicle(user: AuthUser, id: string) {
   const scope = scopeOrThrow(user);
   const vehicle = await db.vehicle.findFirst({
     where: { AND: [{ id, deletedAt: null }, scope] },
-    include: { customer: { select: { id: true, firstName: true, lastName: true, company: true } } },
+    include: { customer: { select: { id: true, firstName: true, lastName: true, company: true } }, hsnTsnRecord: true },
   });
   if (!vehicle) throw notFoundError('Fahrzeug');
   return vehicle;
@@ -95,7 +96,11 @@ export async function updateVehicle(user: AuthUser, id: string, raw: unknown) {
   return db.$transaction(async (tx) => {
     const before = await tx.vehicle.findFirst({ where: { id, deletedAt: null } });
     if (!before) throw notFoundError('Fahrzeug');
+    // Weicht HSN/TSN vom verknüpften Datensatz ab, wird die Verknüpfung gelöst (die Werte bleiben als manuell bestätigt)
+    if (next.hsnTsnId === undefined && before.hsnTsnId && ((next.hsn !== undefined && next.hsn !== before.hsn) || (next.tsn !== undefined && next.tsn !== before.tsn))) next.hsnTsnId = null;
+    if (next.hsnTsnId && !(await tx.vehicleHsnTsn.findFirst({ where: { id: next.hsnTsnId, deletedAt: null }, select: { id: true } }))) next.hsnTsnId = null;
     await tx.vehicle.update({ where: { id }, data: next });
+    await recordManualChanges(tx, id, user.id, before as unknown as Record<string, unknown>, next as Record<string, unknown>);
     const keys = changedKeys(before as unknown as Record<string, unknown>, next);
     if (keys.length) await writeAudit({ actorId: user.id, action: 'vehicle.update', entityType: 'Vehicle', entityId: id, summary: `Fahrzeug bearbeitet (${keys.join(', ')})`, after: { changed: keys } }, tx);
     return { keys, warning: data.vinWarning };

@@ -9,7 +9,16 @@ export const customerFields = (fd: FormData) => ({
 export const vehicleFields = (fd: FormData) => ({
   manufacturer: str(fd, 'manufacturer'), model: str(fd, 'model'), variant: str(fd, 'variant'), licensePlate: str(fd, 'licensePlate'), vin: str(fd, 'vin'),
   firstRegistration: str(fd, 'firstRegistration'), mileage: str(fd, 'mileage'), fuelType: str(fd, 'fuelType'), color: str(fd, 'color'),
+  ...techFields(fd),
 });
+
+const TECH_KEYS = ['hsn', 'tsn', 'hsnTsnId', 'engineName', 'engineCode', 'bodyStyle', 'driveType', 'transmission', 'vehicleClass', 'powerKw', 'powerHp', 'displacementCc', 'seats'] as const;
+/** Technische Fahrzeugfelder nur, wenn das Formular sie wirklich gesendet hat – so überschreibt ein altes Formular nie vorhandene Daten. */
+function techFields(fd: FormData): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const k of TECH_KEYS) if (fd.has(k)) out[k] = str(fd, k);
+  return out;
+}
 
 const CASE_KEYS = [
   'serviceType', 'assignedExpertId', 'damageDate', 'accidentDate', 'inspectionLocation', 'insuranceName', 'insuranceClaimNumber',

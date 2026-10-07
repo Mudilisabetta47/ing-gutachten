@@ -6,6 +6,7 @@ import { ConfirmModal, useDrawerClose } from './Overlay';
 import { useToast } from './Toast';
 import type { FormState } from '@/server/admin/form';
 import { CLAIM_LABELS, FUEL_LABELS, PRIORITY_LABELS, SERVICE_LABELS } from '@/lib/workflow';
+import { VehicleIdentify, recordToVehicleValues } from './VehicleIdentify';
 
 export type Act = (prev: FormState, fd: FormData) => Promise<FormState>;
 
@@ -101,38 +102,73 @@ export function CustomerForm({ action, initial = {}, hidden = {}, submitLabel }:
 }
 
 /* ------------------------------------------------------------------ Fahrzeug ------------------------------------------------------------------ */
-export function VehicleForm({ action, initial = {}, hidden = {}, submitLabel }: { action: Act; initial?: Vals; hidden?: Record<string, string>; submitLabel: string }) {
+export function VehicleForm({ action, initial = {}, hidden = {}, submitLabel, canIdentify = false }: { action: Act; initial?: Vals; hidden?: Record<string, string>; submitLabel: string; canIdentify?: boolean }) {
   const [state, run, pending] = useActionState<FormState, FormData>(action, {});
   useFormFeedback(state);
-  const inp = useInp(state, initial);
-  const v = useVals(state, initial);
   const f = state.fields ?? {};
+  // Übernahme aus der HSN/TSN-Identifikation überschreibt die Anzeigewerte; `stamp` erzwingt das Neuzeichnen der Felder
+  const [ov, setOv] = useState<Vals>({});
+  const [stamp, setStamp] = useState(0);
+  const v = (k: string) => ov[k] ?? state.values?.[k] ?? initial[k] ?? '';
+  const inp = (name: string, label: string, extra: Record<string, unknown> & { hint?: string; mono?: boolean } = {}) => {
+    const { hint, mono, ...rest } = extra;
+    return (
+      <Field label={label} error={f[name]} hint={hint}>
+        <input key={`${name}-${stamp}`} name={name} defaultValue={v(name)} className={`adm-input ${mono ? 'mono' : ''}`} aria-invalid={Boolean(f[name])} autoComplete="off" {...rest} />
+      </Field>
+    );
+  };
+  const applied = ov.hsnTsnId ? `${ov.manufacturer} ${ov.model} (${ov.hsn}/${ov.tsn})` : null;
   return (
-    <form action={run} className="adm-panel" style={{ maxWidth: 820 }} noValidate>
-      {Object.entries(hidden).map(([k, val]) => <input key={k} type="hidden" name={k} value={val} />)}
-      <Group title="Fahrzeug">
-        {inp('manufacturer', 'Hersteller', { required: true })}
-        {inp('model', 'Modell', { required: true })}
-        {inp('variant', 'Variante')}
-        {inp('color', 'Farbe')}
-      </Group>
-      <Group title="Kennzeichen und Identifikation" hint="Das Kennzeichen wird in jeder Schreibweise gefunden. Die FIN ist optional und wird großzügig geprüft (historische Fahrzeuge).">
-        {inp('licensePlate', 'Kennzeichen', { placeholder: 'H-AB 123', autoCapitalize: 'characters', mono: true })}
-        {inp('vin', 'Fahrgestellnummer (FIN)', { autoCapitalize: 'characters', maxLength: 30, mono: true })}
-      </Group>
-      <Group title="Zustand und Antrieb">
-        {inp('firstRegistration', 'Erstzulassung', { type: 'date' })}
-        {inp('mileage', 'Kilometerstand', { inputMode: 'numeric', placeholder: '123.456' })}
-        <Field label="Antrieb" error={f.fuelType}>
-          <select name="fuelType" defaultValue={v('fuelType')} className="adm-input">
-            <option value="">Unbekannt</option>
-            {Object.entries(FUEL_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-          </select>
-        </Field>
-      </Group>
-      <FormError state={state} />
-      <SubmitRow pending={pending} label={submitLabel} />
-    </form>
+    <>
+      {canIdentify && (
+        <div style={{ maxWidth: 820, marginBottom: 16 }}>
+          <details className="vi-embedded" open={!initial.hsn && !initial.model}>
+            <summary><span aria-hidden>🔎</span> Fahrzeug per HSN/TSN, FIN oder Fahrzeugschein identifizieren {applied ? <span className="adm-badge adm-badge-ok">übernommen: {applied}</span> : null}</summary>
+            <VehicleIdentify variant="embedded" onApply={(r) => { setOv((cur) => ({ ...cur, ...recordToVehicleValues(r) })); setStamp((n) => n + 1); }} />
+          </details>
+        </div>
+      )}
+      <form action={run} className="adm-panel" style={{ maxWidth: 820 }} noValidate>
+        {Object.entries(hidden).map(([k, val]) => <input key={k} type="hidden" name={k} value={val} />)}
+        <input key={`hid-${stamp}`} type="hidden" name="hsnTsnId" defaultValue={v('hsnTsnId')} />
+        <Group title="Fahrzeug">
+          {inp('manufacturer', 'Hersteller', { required: true })}
+          {inp('model', 'Modell', { required: true })}
+          {inp('variant', 'Variante')}
+          {inp('color', 'Farbe')}
+        </Group>
+        <Group title="Kennzeichen und Identifikation" hint="Das Kennzeichen wird in jeder Schreibweise gefunden. Die FIN ist optional und wird großzügig geprüft (historische Fahrzeuge).">
+          {inp('licensePlate', 'Kennzeichen', { placeholder: 'H-AB 123', autoCapitalize: 'characters', mono: true })}
+          {inp('vin', 'Fahrgestellnummer (FIN)', { autoCapitalize: 'characters', maxLength: 30, mono: true })}
+          {inp('hsn', 'HSN (Feld 2.1)', { maxLength: 4, mono: true, placeholder: '0588', autoCapitalize: 'characters' })}
+          {inp('tsn', 'TSN (Feld 2.2)', { maxLength: 4, mono: true, placeholder: 'ABC', autoCapitalize: 'characters' })}
+        </Group>
+        <Group title="Technische Daten" hint="Leere Felder bleiben „nicht verfügbar“ – es wird nichts geschätzt. Eigene Eingaben gelten als vom Gutachter bestätigt.">
+          {inp('powerKw', 'Leistung (kW)', { inputMode: 'numeric' })}
+          {inp('powerHp', 'Leistung (PS)', { inputMode: 'numeric' })}
+          {inp('displacementCc', 'Hubraum (cm³)', { inputMode: 'numeric' })}
+          {inp('engineName', 'Motor')}
+          {inp('bodyStyle', 'Karosserie')}
+          {inp('driveType', 'Antriebsart (z. B. Allrad)')}
+          {inp('transmission', 'Getriebe')}
+          {inp('vehicleClass', 'Fahrzeugklasse')}
+          {inp('seats', 'Sitzplätze', { inputMode: 'numeric' })}
+        </Group>
+        <Group title="Zustand und Kraftstoff">
+          {inp('firstRegistration', 'Erstzulassung', { type: 'date' })}
+          {inp('mileage', 'Kilometerstand', { inputMode: 'numeric', placeholder: '123.456' })}
+          <Field label="Kraftstoff" error={f.fuelType}>
+            <select key={`fuel-${stamp}`} name="fuelType" defaultValue={v('fuelType')} className="adm-input">
+              <option value="">Unbekannt</option>
+              {Object.entries(FUEL_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+          </Field>
+        </Group>
+        <FormError state={state} />
+        <SubmitRow pending={pending} label={submitLabel} />
+      </form>
+    </>
   );
 }
 

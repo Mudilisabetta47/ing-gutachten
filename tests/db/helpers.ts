@@ -11,7 +11,15 @@ export async function resetDb(): Promise<void> {
   assertTestDb();
   await db.$executeRawUnsafe(
     'TRUNCATE TABLE organizations, inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters, ' +
-      'audit_logs, login_attempts, sessions, user_permissions, employees, system_settings, users RESTART IDENTITY CASCADE',
+      'audit_logs, login_attempts, sessions, user_permissions, employees, system_settings, users, ' +
+      'vehicle_data_conflicts, vehicle_import_rows, vehicle_import_jobs, vehicle_provider_logs, vehicle_data_history, vehicle_data_points, vehicle_hsn_tsn, ' +
+      'vehicle_variants, vehicle_generations, vehicle_models, vehicle_makes RESTART IDENTITY CASCADE',
+  );
+  // Anbieter zurück auf den Auslieferungszustand (externe Anbieter aus, ohne Freigabe)
+  await db.$executeRawUnsafe(
+    `UPDATE vehicle_providers SET enabled = (key IN ('OWN','MANUAL','IMPORT_FILE')), auto_lookup = false, mass_import = false, paused_until = NULL, pause_reason = NULL, config = NULL, ` +
+      `request_count = 0, error_count = 0, last_connected_at = NULL, last_success_at = NULL, last_error_at = NULL, last_error_category = NULL, rate_limit_per_min = 10, ` +
+      `license_status = (CASE WHEN key IN ('OWN','MANUAL','IMPORT_FILE') THEN 'LICENSED' WHEN key = 'HSN_TSN' THEN 'REVIEW_REQUIRED' ELSE 'UNKNOWN' END)::"ProviderLicense"`,
   );
 }
 

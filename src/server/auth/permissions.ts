@@ -38,6 +38,8 @@ export const PERMISSIONS = [
   'reports.review', 'reports.approve',
   'masterdata.read', 'masterdata.write', 'locations.write', 'dunning.write',
   'integrations.read', 'integrations.write',
+  // Fahrzeugdaten: identifizieren/suchen · eigene Datensätze und Übernahme · Anbieter, Import, Konflikte
+  'vehicledata.read', 'vehicledata.write', 'vehicledata.manage',
   'users.read', 'users.write', 'users.write.owner', 'settings.read', 'settings.write',
   'audit.read', 'audit.read.own', 'data.export', 'data.anonymize', 'search.global',
 ] as const;
@@ -48,7 +50,7 @@ const ALL: readonly Permission[] = PERMISSIONS;
 
 const OFFICE: Permission[] = [
   'leads.read', 'leads.write', 'leads.convert',
-  'customers.read', 'customers.write', 'vehicles.read', 'vehicles.write',
+  'customers.read', 'customers.write', 'vehicles.read', 'vehicles.write', 'vehicledata.read', 'vehicledata.write',
   'cases.read.all', 'cases.write.all', 'cases.assign', 'cases.status',
   'appointments.read.all', 'appointments.write.all',
   'photos.read.all', 'photos.write.all', 'documents.read.all', 'documents.write.all',
@@ -61,7 +63,7 @@ const OFFICE: Permission[] = [
 ];
 
 const EXPERT: Permission[] = [
-  'customers.read.own', 'vehicles.read', 'vehicles.write',
+  'customers.read.own', 'vehicles.read', 'vehicles.write', 'vehicledata.read', 'vehicledata.write',
   'cases.read.own', 'cases.write.own',
   'appointments.read.own', 'appointments.write.own',
   'photos.read.own', 'photos.write.own',
@@ -83,7 +85,7 @@ const ACCOUNTING: Permission[] = [
 
 /** Prüfer: liest den ganzen Fall und gibt Gutachten frei (Vier-Augen-Prinzip), schreibt aber nichts am Fall. */
 const REVIEWER: Permission[] = [
-  'customers.read', 'vehicles.read', 'cases.read.all',
+  'customers.read', 'vehicles.read', 'vehicledata.read', 'cases.read.all',
   'appointments.read.all', 'photos.read.all', 'documents.read.all',
   'reports.read.all', 'reports.review', 'reports.approve',
   'calculations.read.all', 'valuations.read.all', 'masterdata.read',

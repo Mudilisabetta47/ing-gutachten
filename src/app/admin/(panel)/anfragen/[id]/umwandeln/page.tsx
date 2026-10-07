@@ -43,6 +43,7 @@ export default async function ConvertPage({ params }: { params: Promise<{ id: st
         <Notice tone="error">Diese Anfrage hat den Status „{lead.status}“ und kann nicht umgewandelt werden. Bitte zuerst den Status ändern (z. B. Spam-Markierung aufheben).</Notice>
       ) : (
         <ConvertWizard
+          canIdentify={user.permissions.has('vehicledata.read')}
           leadId={id}
           existing={existing}
           experts={experts.map((e) => ({ id: e.id, name: `${e.firstName} ${e.lastName}` }))}

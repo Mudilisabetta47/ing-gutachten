@@ -5,6 +5,7 @@ import { Field, Notice } from '@/components/admin/ui';
 import type { FormState } from '@/server/admin/form';
 import { CLAIM_LABELS, FUEL_LABELS, PRIORITY_LABELS, SERVICE_LABELS } from '@/lib/workflow';
 import { convertLeadAction } from '../actions';
+import { VehicleIdentify, recordToVehicleValues } from '@/components/admin/VehicleIdentify';
 
 type Existing = { id: string; label: string; vehicles: { id: string; label: string }[] };
 const STEPS = ['Kunde', 'Fahrzeug', 'Fall', 'Prüfen', 'Umwandeln'] as const;
@@ -24,7 +25,7 @@ function Step({ n, current, children }: { n: number; current: number; children: 
  * Abgesendet wird erst im letzten Schritt – über startTransition statt <form action>, damit React
  * das Formular nach einem Fehler nicht zurücksetzt (sonst gingen alle Eingaben verloren).
  */
-export function ConvertWizard({ leadId, existing, experts, canAssign, init, refs }: { leadId: string; existing: Existing[]; experts: { id: string; name: string }[]; canAssign: boolean; init: Record<string, string>; refs: { locations: { id: string; name: string }[]; insurances: { id: string; name: string }[] } }) {
+export function ConvertWizard({ leadId, existing, experts, canAssign, init, refs, canIdentify = false }: { canIdentify?: boolean; leadId: string; existing: Existing[]; experts: { id: string; name: string }[]; canAssign: boolean; init: Record<string, string>; refs: { locations: { id: string; name: string }[]; insurances: { id: string; name: string }[] } }) {
   const [state, action, pending] = useActionState<FormState, FormData>(convertLeadAction, {});
   const [, startTransition] = useTransition();
   const form = useRef<HTMLFormElement>(null);
@@ -33,6 +34,9 @@ export function ConvertWizard({ leadId, existing, experts, canAssign, init, refs
   const [vehicleMode, setVehicleMode] = useState<'new' | 'existing'>('new');
   const [customerId, setCustomerId] = useState(existing[0]?.id ?? '');
   const [summary, setSummary] = useState<[string, string][]>([]);
+  // Übernahme aus der HSN/TSN-Identifikation (füllt die Fahrzeugfelder; `stamp` baut die Felder neu auf)
+  const [ov, setOv] = useState<Record<string, string>>({});
+  const [stamp, setStamp] = useState(0);
   const f = state.fields ?? {};
 
   // Fehler vom Server → zum ersten betroffenen Schritt springen.
@@ -76,10 +80,10 @@ export function ConvertWizard({ leadId, existing, experts, canAssign, init, refs
     setStep((s) => Math.min(5, s + 1));
   };
 
-  const val = (k: string) => state.values?.[k] ?? init[k] ?? '';
+  const val = (k: string) => (k.startsWith('v_') && ov[k.slice(2)] !== undefined ? ov[k.slice(2)] : undefined) ?? state.values?.[k] ?? init[k] ?? '';
   const text = (name: string, label: string, extra: Record<string, unknown> = {}) => (
     <Field label={label} error={f[name]}>
-      <input name={name} defaultValue={val(name)} className="adm-input" aria-invalid={Boolean(f[name])} autoComplete="off" {...extra} />
+      <input key={`${name}-${stamp}`} name={name} defaultValue={val(name)} className="adm-input" aria-invalid={Boolean(f[name])} autoComplete="off" {...extra} />
     </Field>
   );
   return (
@@ -161,7 +165,16 @@ export function ConvertWizard({ leadId, existing, experts, canAssign, init, refs
             </fieldset>
           )}
           <fieldset disabled={vehicleMode === 'existing'} className="m-0 grid gap-4 border-0 p-0 disabled:opacity-40">
+            {canIdentify && vehicleMode === 'new' && (
+              <details className="vi-embedded" open>
+                <summary><span aria-hidden>🔎</span> Fahrzeug per HSN/TSN, FIN oder Fahrzeugschein identifizieren{ov.hsnTsnId ? <span className="adm-badge adm-badge-ok">übernommen: {ov.manufacturer} {ov.model}</span> : null}</summary>
+                <VehicleIdentify variant="embedded" onApply={(r) => { setOv((cur) => ({ ...cur, ...recordToVehicleValues(r) })); setStamp((n) => n + 1); }} />
+              </details>
+            )}
+            {(['hsnTsnId', 'powerKw', 'powerHp', 'displacementCc', 'engineName', 'bodyStyle', 'driveType', 'transmission', 'vehicleClass'] as const).map((k) => <input key={`${k}-${stamp}`} type="hidden" name={`v_${k}`} defaultValue={val(`v_${k}`)} />)}
             <div className="grid gap-4 sm:grid-cols-2">
+              {text('v_hsn', 'HSN (Feld 2.1)', { maxLength: 4, placeholder: '0588', autoCapitalize: 'characters' })}
+              {text('v_tsn', 'TSN (Feld 2.2)', { maxLength: 4, placeholder: 'ABC', autoCapitalize: 'characters' })}
               {text('v_manufacturer', 'Hersteller', { required: true })}
               {text('v_model', 'Modell', { required: true })}
               {text('v_variant', 'Variante')}
@@ -170,7 +183,7 @@ export function ConvertWizard({ leadId, existing, experts, canAssign, init, refs
               {text('v_firstRegistration', 'Erstzulassung', { type: 'date' })}
               {text('v_mileage', 'Kilometerstand', { inputMode: 'numeric' })}
               <Field label="Antrieb" error={f.v_fuelType}>
-                <select name="v_fuelType" defaultValue={val('v_fuelType')} className="adm-input">
+                <select key={`fuel-${stamp}`} name="v_fuelType" defaultValue={val('v_fuelType')} className="adm-input">
                   <option value="">Unbekannt</option>
                   {Object.entries(FUEL_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
                 </select>
