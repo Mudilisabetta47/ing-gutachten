@@ -10,7 +10,7 @@ import { Menu, Popover } from './Overlay';
 import { ThemeMenu, type Theme } from './ThemeMenu';
 import { ToastProvider } from './Toast';
 
-export type ShellNavItem = { href: string; label: string; icon: IconName; group: NavGroup; ready: boolean; phase: number; count?: number };
+export type ShellNavItem = { href: string; label: string; icon: IconName; group: NavGroup; ready: boolean; phase: number; count?: number; note?: string };
 export type ShellAction = { id: string; label: string; href: string; icon: IconName };
 export type ShellNotice = { id: string; label: string; href: string; count: number; tone: 'info' | 'warn' | 'danger' };
 
@@ -38,6 +38,20 @@ export function AdminShell({
   const [sheet, setSheet] = useState(false);
   const [palette, setPalette] = useState(false);
   const [collapsed, setCollapsed] = useState(collapsedInitially);
+  // Gruppen: Standard offen sind Übersicht, Arbeit, Stammdaten und die Gruppe der aktuellen Seite; die Wahl wird im Browser gemerkt.
+  const [closed, setClosed] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('ing_nav_groups');
+      if (raw) setClosed(JSON.parse(raw) as Record<string, boolean>);
+    } catch { /* ohne Speicher: Standard */ }
+  }, []);
+  const toggleGroup = (g: string, openNow: boolean) =>
+    setClosed((c) => {
+      const next = { ...c, [g]: openNow };
+      try { localStorage.setItem('ing_nav_groups', JSON.stringify(next)); } catch { /* egal */ }
+      return next;
+    });
 
   useEffect(() => setSheet(false), [pathname]);
   useEffect(() => {
@@ -67,29 +81,40 @@ export function AdminShell({
   const noticeTotal = notices.reduce((a, n) => a + n.count, 0);
   const mainNav = nav.filter((n) => n.ready && ['/admin', '/admin/heute', '/admin/anfragen', '/admin/faelle', '/admin/kunden'].includes(n.href)).slice(0, 5);
 
+  const DEFAULT_CLOSED = new Set<string>(['Kalkulation & Bewertung', 'Dokumente', 'Finanzen', 'Website', 'System']);
   const NavList = (
     <nav aria-label="Hauptnavigation" className="adm-nav">
       {groups.map((g) => {
         const items = nav.filter((n) => n.group === g);
         if (!items.length) return null;
+        const hasActive = items.some((n) => n.ready && !n.href.includes('?') && active(n.href));
+        const isClosed = hasActive ? false : closed[g] !== undefined ? closed[g] : DEFAULT_CLOSED.has(g);
+        const sum = items.reduce((a, n) => a + (n.count ?? 0), 0);
+        const gid = `nav-g-${g.replace(/\W+/g, '-')}`;
         return (
           <div key={g} style={{ display: 'contents' }}>
-            <p className="adm-nav-group">{g}</p>
-            {items.map((n) =>
-              n.ready ? (
-                <Link key={n.href} href={n.href} className="adm-nav-item" aria-current={active(n.href) ? 'page' : undefined} title={collapsed ? n.label : undefined}>
-                  <AdminIcon name={n.icon} />
-                  <span className="label">{n.label}</span>
-                  {n.count ? <span className="count" aria-label={`${n.count} neu`}>{n.count}</span> : null}
-                </Link>
-              ) : (
-                <span key={n.href} className="adm-nav-item" aria-disabled="true" title={`${n.label} folgt in Phase ${n.phase}`}>
-                  <AdminIcon name={n.icon} />
-                  <span className="label">{n.label}</span>
-                  <span className="soon">Phase {n.phase}</span>
-                </span>
-              ),
-            )}
+            <button type="button" className="adm-nav-group" aria-expanded={!isClosed} aria-controls={gid} onClick={() => toggleGroup(g, !isClosed)}>
+              <span>{g}</span>
+              {isClosed && sum > 0 ? <span className="count" style={{ marginLeft: 6 }}>{sum}</span> : null}
+              <AdminIcon name="chevronDown" className="chev" />
+            </button>
+            <div id={gid} className="adm-nav-groupbody" data-closed={isClosed} style={{ display: isClosed ? 'none' : 'contents' }}>
+              {items.map((n) =>
+                n.ready ? (
+                  <Link key={n.href} href={n.href} className="adm-nav-item" aria-current={!n.href.includes('?') && active(n.href) ? 'page' : undefined} title={collapsed ? n.label : undefined}>
+                    <AdminIcon name={n.icon} />
+                    <span className="label">{n.label}</span>
+                    {n.count ? <span className="count" aria-label={`${n.count} offen`}>{n.count}</span> : null}
+                  </Link>
+                ) : (
+                  <span key={n.href} className="adm-nav-item" aria-disabled="true" title={n.note ? `${n.label}: ${n.note}` : `${n.label} – in Entwicklung`}>
+                    <AdminIcon name={n.icon} />
+                    <span className="label">{n.label}</span>
+                    <span className="soon">{n.note ?? 'bald'}</span>
+                  </span>
+                ),
+              )}
+            </div>
           </div>
         );
       })}

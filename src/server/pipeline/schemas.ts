@@ -72,6 +72,8 @@ export type VehicleInput = z.infer<typeof vehicleSchema>;
 
 const service = z.enum(['ACCIDENT_REPORT', 'DAMAGE_REPORT', 'VALUATION', 'COST_ESTIMATE', 'ACCIDENT_ANALYSIS', 'RECONSTRUCTION', 'OTHER']);
 
+const id = z.string().trim().optional().nullable().transform((v) => (v ? v : null));
+
 export const caseSchema = z.object({
   serviceType: service.default('ACCIDENT_REPORT'),
   assignedExpertId: z.string().trim().optional().nullable().transform((v) => (v ? v : null)),
@@ -85,6 +87,22 @@ export const caseSchema = z.object({
   lawyer: opt(200),
   repairShop: opt(200),
   description: opt(5000),
+  // Phase 4
+  priority: z.enum(['NORMAL', 'HIGH', 'URGENT']).default('NORMAL'),
+  claimType: z.union([z.enum(['LIABILITY', 'COMPREHENSIVE', 'PARTIAL_COMPREHENSIVE', 'OWN_DAMAGE', 'VALUATION', 'EVIDENCE', 'OTHER']), z.literal('')]).optional().nullable().transform((v) => (v ? v : null)),
+  accidentPlace: opt(200),
+  locationId: id,
+  insuranceOrgId: id,
+  lawyerOrgId: id,
+  workshopOrgId: id,
+  dealershipOrgId: id,
+  partnerOrgId: id,
+  insurancePolicyNumber: opt(80),
+  adjusterName: opt(120),
+  adjusterPhone: opt(40),
+  adjusterEmail: optEmail,
+  lawyerReference: opt(80),
+  pinnedNote: opt(500),
 });
 export type CaseInput = z.infer<typeof caseSchema>;
 

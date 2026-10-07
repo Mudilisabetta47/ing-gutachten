@@ -127,7 +127,7 @@ test('Umwandlung: Kunde + Fahrzeug + Fall in EINER Transaktion; Lead & Inquiry b
   const u = await office();
   const { leadId, inquiryId } = await makeLead();
   const r = await convertLead(u, leadId, convertInput());
-  assert.match(r.caseNumber, /^ING-\d{4}-000001$/);
+  assert.match(r.caseNumber, /^ING-\d{4}-00001$/);
   const lead = await db.lead.findUniqueOrThrow({ where: { id: leadId } });
   assert.equal(lead.status, 'CONVERTED');
   assert.equal(lead.convertedCaseId, r.caseId);
@@ -188,7 +188,7 @@ test('Rollback: scheitert der Fall nach Kunde+Fahrzeug, bleibt NICHTS zurück �
   assert.equal(await db.auditLog.count({ where: { action: { in: ['customer.create', 'vehicle.create', 'case.create', 'lead.convert'] } } }), 0, 'kein Audit für Nicht-Geschehenes');
   // und danach klappt es sauber mit Nummer 1
   const ok = await convertLead(u, leadId, convertInput());
-  assert.match(ok.caseNumber, /-000001$/);
+  assert.match(ok.caseNumber, /-00001$/);
 });
 
 test('Gleichzeitige Umwandlung desselben Leads: genau eine gewinnt', async () => {
@@ -227,9 +227,9 @@ test('Fallnummern: neues Jahr beginnt wieder bei 1; Präfix/Stellen kommen aus d
   const veh = await createVehicle(u, cust.id, VEHICLE);
   const mk = (when: string) =>
     db.$transaction((tx) => createCaseTx(tx, u.id, { customerId: cust.id, vehicleId: veh.id, data: caseData(), now: new Date(when) }));
-  assert.equal((await mk('2026-06-01T10:00:00Z')).caseNumber, 'ING-2026-000001');
-  assert.equal((await mk('2026-12-31T23:30:00Z')).caseNumber, 'ING-2027-000001', 'Silvester-Nacht zählt in Berlin schon 2027');
-  assert.equal((await mk('2026-06-02T10:00:00Z')).caseNumber, 'ING-2026-000002');
+  assert.equal((await mk('2026-06-01T10:00:00Z')).caseNumber, 'ING-2026-00001');
+  assert.equal((await mk('2026-12-31T23:30:00Z')).caseNumber, 'ING-2027-00001', 'Silvester-Nacht zählt in Berlin schon 2027');
+  assert.equal((await mk('2026-06-02T10:00:00Z')).caseNumber, 'ING-2026-00002');
 });
 
 /* ------------------------------------------------------------ Fall: Status */
@@ -238,7 +238,7 @@ test('Fallstatus: zentrale Prüfung, Pflichtbegründung, Historie, closedAt, Wie
   const u = await office();
   const { leadId } = await makeLead();
   const r = await convertLead(u, leadId, convertInput());
-  await assert.rejects(changeCaseStatus(u, r.caseId, 'REPORT_SENT'), DomainError, 'Überspringen verboten');
+  await assert.rejects(changeCaseStatus(u, r.caseId, 'SENT'), DomainError, 'Überspringen verboten');
   await assert.rejects(changeCaseStatus(u, r.caseId, 'CANCELLED'), /Begründung/);
   await assert.rejects(changeCaseStatus(u, r.caseId, 'APPOINTMENT_SET'), /Termin anlegen/, '„Termin vereinbart“ gibt es nur mit einem echten Termin');
   const expert = await makeUser({ role: 'EXPERT' });

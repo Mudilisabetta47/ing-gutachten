@@ -5,7 +5,7 @@ import { Alert, Field } from './ui';
 import { ConfirmModal, useDrawerClose } from './Overlay';
 import { useToast } from './Toast';
 import type { FormState } from '@/server/admin/form';
-import { FUEL_LABELS, SERVICE_LABELS } from '@/lib/workflow';
+import { CLAIM_LABELS, FUEL_LABELS, PRIORITY_LABELS, SERVICE_LABELS } from '@/lib/workflow';
 
 export type Act = (prev: FormState, fd: FormData) => Promise<FormState>;
 
@@ -137,19 +137,46 @@ export function VehicleForm({ action, initial = {}, hidden = {}, submitLabel }: 
 }
 
 /* ------------------------------------------------------------------ Fall ------------------------------------------------------------------ */
-export function CaseForm({ action, initial = {}, hidden = {}, experts, canAssign, submitLabel, internals = true, bare = false }: { action: Act; initial?: Vals; hidden?: Record<string, string>; experts: { id: string; name: string }[]; canAssign: boolean; submitLabel: string; internals?: boolean; bare?: boolean }) {
+export type CaseRefsView = {
+  locations: { id: string; name: string }[]; insurances: { id: string; name: string }[]; lawyers: { id: string; name: string }[];
+  workshops: { id: string; name: string }[]; dealerships: { id: string; name: string }[]; partners: { id: string; name: string }[];
+};
+
+function RefSelect({ name, label, options, value, hint }: { name: string; label: string; options: { id: string; name: string }[]; value: string; hint?: string }) {
+  return (
+    <Field label={label} hint={hint}>
+      <select name={name} defaultValue={value} className="adm-input">
+        <option value="">Keine Auswahl</option>
+        {options.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+      </select>
+    </Field>
+  );
+}
+
+export function CaseForm({ action, initial = {}, hidden = {}, experts, canAssign, submitLabel, internals = true, bare = false, refs }: { action: Act; initial?: Vals; hidden?: Record<string, string>; experts: { id: string; name: string }[]; canAssign: boolean; submitLabel: string; internals?: boolean; bare?: boolean; refs?: CaseRefsView }) {
   const [state, run, pending] = useActionState<FormState, FormData>(action, {});
   useFormFeedback(state);
   const inp = useInp(state, initial);
   const v = useVals(state, initial);
   const f = state.fields ?? {};
   return (
-    <form action={run} className={bare ? '' : 'adm-panel'} style={bare ? undefined : { maxWidth: 820 }} noValidate>
+    <form action={run} className={bare ? '' : 'adm-panel'} style={bare ? undefined : { maxWidth: 860 }} noValidate>
       {Object.entries(hidden).map(([k, val]) => <input key={k} type="hidden" name={k} value={val} />)}
       <Group title="Auftrag">
         <Field label="Gutachtenart" error={f.serviceType}>
           <select name="serviceType" defaultValue={v('serviceType') || 'ACCIDENT_REPORT'} className="adm-input">
             {Object.entries(SERVICE_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+        </Field>
+        <Field label="Schadenart">
+          <select name="claimType" defaultValue={v('claimType')} className="adm-input">
+            <option value="">Nicht festgelegt</option>
+            {Object.entries(CLAIM_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+        </Field>
+        <Field label="Priorität">
+          <select name="priority" defaultValue={v('priority') || 'NORMAL'} className="adm-input">
+            {Object.entries(PRIORITY_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
         </Field>
         {canAssign ? (
@@ -160,12 +187,14 @@ export function CaseForm({ action, initial = {}, hidden = {}, experts, canAssign
             </select>
           </Field>
         ) : null}
+        {refs && refs.locations.length > 0 && <RefSelect name="locationId" label="Standort" options={refs.locations} value={v('locationId')} hint="Leer = Standort des Sachverständigen bzw. Hauptstandort" />}
         <div className="span-2">{inp('inspectionLocation', 'Besichtigungsort', { placeholder: 'Adresse oder Ort des Fahrzeugs' })}</div>
       </Group>
       {internals && (
         <Group title="Schaden">
           {inp('damageDate', 'Schadendatum', { type: 'date' })}
           {inp('accidentDate', 'Unfalldatum', { type: 'date' })}
+          <div className="span-2">{inp('accidentPlace', 'Unfallort')}</div>
           <div className="span-2">
             <Field label="Beschreibung / Unfallhergang" error={f.description}>
               <textarea name="description" rows={4} defaultValue={v('description')} className="adm-input" maxLength={5000} />
@@ -173,9 +202,14 @@ export function CaseForm({ action, initial = {}, hidden = {}, experts, canAssign
           </div>
         </Group>
       )}
-      <Group title="Versicherung">
-        {inp('insuranceName', 'Versicherung')}
+      <Group title="Versicherung" hint={refs && refs.insurances.length ? 'Aus den Stammdaten wählen. Der Freitext gilt nur, wenn die Versicherung dort fehlt.' : undefined}>
+        {refs && refs.insurances.length > 0 && <RefSelect name="insuranceOrgId" label="Versicherung (Stammdaten)" options={refs.insurances} value={v('insuranceOrgId')} />}
+        {inp('insuranceName', refs && refs.insurances.length ? 'Versicherung (Freitext)' : 'Versicherung')}
+        {inp('insurancePolicyNumber', 'Versicherungsnummer', { mono: true })}
         {inp('insuranceClaimNumber', 'Schadennummer', { mono: true })}
+        {inp('adjusterName', 'Sachbearbeiter')}
+        {inp('adjusterPhone', 'Telefon Sachbearbeiter', { type: 'tel' })}
+        {inp('adjusterEmail', 'E-Mail Sachbearbeiter', { type: 'email' })}
         {internals && (
           <>
             {inp('opposingInsurance', 'Gegnerische Versicherung')}
@@ -185,8 +219,18 @@ export function CaseForm({ action, initial = {}, hidden = {}, experts, canAssign
       </Group>
       {internals && (
         <Group title="Beteiligte">
-          {inp('lawyer', 'Rechtsanwalt')}
-          {inp('repairShop', 'Werkstatt')}
+          {refs && refs.lawyers.length > 0 ? <RefSelect name="lawyerOrgId" label="Rechtsanwalt (Stammdaten)" options={refs.lawyers} value={v('lawyerOrgId')} /> : null}
+          {inp('lawyer', refs && refs.lawyers.length ? 'Rechtsanwalt (Freitext)' : 'Rechtsanwalt')}
+          {inp('lawyerReference', 'Aktenzeichen Kanzlei')}
+          {refs && refs.workshops.length > 0 ? <RefSelect name="workshopOrgId" label="Werkstatt (Stammdaten)" options={refs.workshops} value={v('workshopOrgId')} /> : null}
+          {inp('repairShop', refs && refs.workshops.length ? 'Werkstatt (Freitext)' : 'Werkstatt')}
+          {refs && refs.dealerships.length > 0 ? <RefSelect name="dealershipOrgId" label="Autohaus" options={refs.dealerships} value={v('dealershipOrgId')} /> : null}
+          {refs && refs.partners.length > 0 ? <RefSelect name="partnerOrgId" label="Vermittler / Partner" options={refs.partners} value={v('partnerOrgId')} hint="Nur zur Herkunftsnachverfolgung" /> : null}
+        </Group>
+      )}
+      {internals && (
+        <Group title="Angeheftete Information" hint="Bleibt oben im Fall sichtbar, z. B. „Kunde nur nach 16 Uhr erreichbar“.">
+          <div className="span-2">{inp('pinnedNote', 'Hinweis', { maxLength: 500 })}</div>
         </Group>
       )}
       <FormError state={state} />

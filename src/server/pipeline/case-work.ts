@@ -17,7 +17,7 @@ export async function caseWorkSummary(user: AuthUser, caseId: string) {
     mayAppts ? db.appointment.count({ where: { caseId } }) : 0,
     canSeeCaseInternals(user) ? db.damage.count({ where: { caseId, deletedAt: null } }) : 0,
     mayAppts
-      ? db.appointment.findFirst({ where: { caseId, status: { in: ['PLANNED', 'CONFIRMED'] }, endsAt: { gt: new Date() } }, orderBy: { startsAt: 'asc' }, select: { id: true, startsAt: true, kind: true } })
+      ? db.appointment.findFirst({ where: { caseId, status: { in: ['PLANNED', 'CONFIRMED'] }, endsAt: { gt: new Date() } }, orderBy: { startsAt: 'asc' }, select: { id: true, startsAt: true, endsAt: true, kind: true, location: true } })
       : null,
   ]);
   return {

@@ -5,12 +5,17 @@ import { requirePagePermission } from '@/server/auth/guards';
 import { orNotFound } from '@/server/admin/safe';
 import { caseNotes, getCase, listExperts } from '@/server/pipeline/cases';
 import { caseActivity } from '@/server/pipeline/activity';
-import { CASE_EXPERT_TARGETS, CASE_LABELS, CASE_TRANSITIONS, FUEL_LABELS, SERVICE_LABELS, caseReasonRequired } from '@/lib/workflow';
+import { CASE_EXPERT_TARGETS, CASE_LABELS, CASE_TRANSITIONS, FUEL_LABELS, SERVICE_LABELS, caseReasonRequired, normalizeCaseStatus } from '@/lib/workflow';
 import { AdminIcon } from '@/components/admin/AdminIcon';
 import { DrawerHost, Menu, OpenDrawer, type MenuEntry } from '@/components/admin/Overlay';
 import { FlashToast } from '@/components/admin/Toast';
 import { AsideBlock, Alert, Badge, DetailHeader, EmptyState, Rows, Section, StatusPill, SummaryBar, Tabs, Timeline, fmtDate, fmtWhen, mapsHref, phoneHref, qp } from '@/components/admin/ui';
 import { CaseForm, ConfirmForm, NoteForm } from '@/components/admin/forms';
+import { CaseProgress, PriorityBadge } from '@/components/admin/case-ui';
+import { caseChecklist } from '@/server/pipeline/case-checklist';
+import { caseRefOptions } from '@/server/pipeline/masterdata';
+import { OverviewTab } from './tabs/OverviewTab';
+import { CLAIM_LABELS, type ClaimTypeKey, type PriorityKey } from '@/lib/workflow';
 import { CaseStatusForm, AssignForm } from './CaseForms';
 import { archiveCaseAction, caseNoteAction, restoreCaseAction, updateCaseAction } from '../actions';
 import { appointmentStatusAction, createAppointmentAction, rescheduleAppointmentAction, addDamageAction, deleteDamageAction, deletePhotoAction, deleteDocumentAction, updateDamageAction, updatePhotoAction } from '../work-actions';
@@ -24,14 +29,16 @@ import { AppointmentForm, AppointmentStatusForm, DamageForm, MediaUploader, Phot
 export const metadata: Metadata = { title: 'Fall' };
 
 const TABS = [
-  ['uebersicht', 'Übersicht'], ['fahrzeug', 'Fahrzeug'], ['schaden', 'Schaden'], ['fotos', 'Fotos'], ['dokumente', 'Dokumente'],
-  ['termine', 'Termine'], ['gutachten', 'Gutachten'], ['rechnung', 'Rechnung'], ['kommunikation', 'Kommunikation'], ['historie', 'Historie'],
+  ['uebersicht', 'Übersicht'], ['fahrzeug', 'Fahrzeug'], ['schaden', 'Schaden'], ['fotos', 'Fotos'], ['kalkulation', 'Kalkulation'], ['bewertung', 'Bewertung'],
+  ['gutachten', 'Gutachten'], ['dokumente', 'Dokumente'], ['termine', 'Termine'], ['kommunikation', 'Kommunikation'], ['rechnung', 'Rechnung'], ['historie', 'Verlauf'],
 ] as const;
 
 const LATER: Record<string, [string, string]> = {
-  gutachten: ['Gutachten folgen in Phase 3', 'Die Gutachten-Erstellung mit Versionierung und PDF kommt in Phase 3.'],
-  rechnung: ['Rechnungen folgen in Phase 4', 'Rechnungen, Zahlungen und Mahnwesen werden in Phase 4 gebaut.'],
-  kommunikation: ['Kommunikation folgt in Phase 4', 'E-Mail-Vorlagen und der Kommunikationsverlauf werden in Phase 4 gebaut.'],
+  kalkulation: ['Kalkulation in Entwicklung', 'Die Schadenkalkulation mit Positionen, Arbeitswerten und Versionen wird als Nächstes gebaut.'],
+  bewertung: ['Bewertung in Entwicklung', 'Wiederbeschaffungswert, Restwert, Wertminderung und Nutzungsausfall werden als Nächstes gebaut.'],
+  gutachten: ['Gutachten in Entwicklung', 'Der Gutachten-Editor mit Prüfung und PDF folgt nach Kalkulation und Bewertung.'],
+  rechnung: ['Rechnungen in Entwicklung', 'Rechnungen, Zahlungen und Mahnwesen folgen.'],
+  kommunikation: ['Kommunikation in Entwicklung', 'E-Mail-Vorlagen, Telefonnotizen und der Kommunikationsverlauf folgen.'],
 };
 
 export default async function CaseDetailPage({ params, searchParams }: { params: Promise<{ caseNumber: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -46,7 +53,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
   const canWrite = user.permissions.has('cases.write.all') || (user.permissions.has('cases.write.own') && isOwn);
   const canStatus = user.permissions.has('cases.status');
   const canAssign = user.permissions.has('cases.assign') && !c.deletedAt;
-  const statusOptions = CASE_TRANSITIONS[c.status]
+  const statusOptions = CASE_TRANSITIONS[normalizeCaseStatus(c.status)]
     .filter((s) => canStatus || (user.permissions.has('cases.write.own') && isOwn && CASE_EXPERT_TARGETS.includes(s)))
     .map((s) => ({ value: s, label: CASE_LABELS[s], needsReason: caseReasonRequired(c.status, s) }));
   const canSeeCustomer = user.permissions.has('customers.read') || user.permissions.has('customers.read.own');
@@ -67,6 +74,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
     tab === 'termine' || tab === 'uebersicht' ? (work.can.apptsRead ? caseAppointments(user, c.id) : Promise.resolve([])) : Promise.resolve([]),
     tab === 'schaden' || tab === 'fotos' ? listDamages(user, c.id) : Promise.resolve([]),
   ]);
+  const [checklist, refs] = await Promise.all([caseChecklist(user, c.id), caseRefOptions(user)]);
   const photoLabels: [string, string][] = PHOTO_CATEGORIES.map((k) => [k, PHOTO_LABELS[k]]);
   const docLabels: [string, string][] = DOCUMENT_CATEGORIES.map((k) => [k, DOCUMENT_LABELS[k]]);
   const damageOptions = damages.map((d) => ({ id: d.id, label: `${AREA_LABELS[d.area]}: ${d.component}` }));
@@ -81,10 +89,10 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
     ...(canAssign ? [{ id: 'assign', title: 'Sachverständigen zuweisen', content: <AssignForm id={c.id} caseNumber={caseNumber} current={c.assignedExpert?.id ?? null} experts={expertList} /> }] : []),
     ...(c.internalsVisible && canWrite && !c.deletedAt ? [
       { id: 'note', title: 'Notiz hinzufügen', content: <NoteForm action={caseNoteAction} id={c.id} extra={{ caseNumber }} /> },
-      { id: 'edit', title: 'Schaden und Versicherung bearbeiten', content: (
+      { id: 'edit', title: 'Falldaten bearbeiten', content: (
         <CaseForm
-          bare action={updateCaseAction} hidden={{ id: c.id, caseNumber }} experts={[]} canAssign={false} submitLabel="Speichern"
-          initial={{ serviceType: c.serviceType, damageDate: iso(c.damageDate), accidentDate: iso(c.accidentDate), inspectionLocation: c.inspectionLocation, insuranceName: c.insuranceName, insuranceClaimNumber: c.insuranceClaimNumber, opposingInsurance: c.opposingInsurance, opposingClaimNumber: c.opposingClaimNumber, lawyer: c.lawyer, repairShop: c.repairShop, description: c.description }}
+          bare action={updateCaseAction} hidden={{ id: c.id, caseNumber }} experts={[]} canAssign={false} submitLabel="Speichern" refs={refs}
+          initial={{ priority: c.priority, claimType: c.claimType ?? '', accidentPlace: c.accidentPlace, locationId: c.locationId ?? '', insuranceOrgId: c.insuranceOrgId ?? '', lawyerOrgId: c.lawyerOrgId ?? '', workshopOrgId: c.workshopOrgId ?? '', dealershipOrgId: c.dealershipOrgId ?? '', partnerOrgId: c.partnerOrgId ?? '', insurancePolicyNumber: c.insurancePolicyNumber, adjusterName: c.adjusterName, adjusterPhone: c.adjusterPhone, adjusterEmail: c.adjusterEmail, lawyerReference: c.lawyerReference, pinnedNote: c.pinnedNote, serviceType: c.serviceType, damageDate: iso(c.damageDate), accidentDate: iso(c.accidentDate), inspectionLocation: c.inspectionLocation, insuranceName: c.insuranceName, insuranceClaimNumber: c.insuranceClaimNumber, opposingInsurance: c.opposingInsurance, opposingClaimNumber: c.opposingClaimNumber, lawyer: c.lawyer, repairShop: c.repairShop, description: c.description }}
         />
       ) },
     ] : []),
@@ -118,22 +126,8 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
     ...(user.permissions.has('vehicles.read') ? [{ kind: 'link' as const, label: 'Fahrzeug öffnen', href: `/admin/fahrzeuge/${c.vehicle.id}/`, icon: 'car' as const }] : []),
   ];
 
-  const Main = (): ReactNode => {
-    if (tab === 'uebersicht')
-      return (
-        <>
-          <Section title="Auftrag">
-            <Rows items={[
-              ['Gutachtenart', SERVICE_LABELS[c.serviceType]],
-              ['Besichtigungsort', c.inspectionLocation ? <a href={mapsHref(c.inspectionLocation)} className="adm-link" target="_blank" rel="noreferrer">{c.inspectionLocation}</a> : null],
-              ['Versicherung', c.insuranceName],
-              ['Schadennummer', c.insuranceClaimNumber ? <span className="mono">{c.insuranceClaimNumber}</span> : null],
-              ['Angelegt', `${fmtWhen(c.createdAt)}${c.createdBy ? ` · ${c.createdBy.firstName} ${c.createdBy.lastName}` : ''}`],
-              ['Abgeschlossen', c.closedAt ? fmtWhen(c.closedAt) : null],
-              ['Anfrage', c.lead && user.permissions.has('leads.read') ? <Link href={`/admin/anfragen/${c.lead.id}/`} className="adm-link">Ursprüngliche Anfrage öffnen</Link> : null],
-            ]} />
-          </Section>
-          {c.internalsVisible && (
+  const notesSection: ReactNode = (
+    c.internalsVisible && (
             <Section id="notiz" title="Notizen" aside={canWrite && !c.deletedAt ? <OpenDrawer id="note" icon="plus" className="adm-btn adm-btn-secondary adm-btn-sm">Notiz</OpenDrawer> : undefined}>
               {notes.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Noch keine Notizen.</p> : (
                 <ul className="adm-list">{notes.map((n) => (
@@ -146,9 +140,12 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
                 ))}</ul>
               )}
             </Section>
-          )}
-        </>
-      );
+          )
+  );
+
+  const Main = (): ReactNode => {
+    if (tab === 'uebersicht')
+      return <OverviewTab c={c} checklist={checklist} work={work} base={base} canEdit={canWrite && !c.deletedAt && c.internalsVisible} canSeeCustomer={canSeeCustomer} canSeeVehicle={user.permissions.has('vehicles.read')} notes={notesSection} />;
     if (tab === 'fahrzeug')
       return (
         <Section title="Fahrzeug" aside={user.permissions.has('vehicles.read') ? <Link href={`/admin/fahrzeuge/${c.vehicle.id}/`} className="adm-link">Fahrzeug öffnen</Link> : undefined}>
@@ -165,7 +162,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
         <Section title="Schaden und Beteiligte" aside={canWrite && !c.deletedAt ? <OpenDrawer id="edit" icon="edit" className="adm-btn adm-btn-secondary adm-btn-sm">Bearbeiten</OpenDrawer> : undefined}>
           <Rows items={[
             ['Schadendatum', fmtDate(c.damageDate)], ['Unfalldatum', fmtDate(c.accidentDate)], ['Besichtigungsort', c.inspectionLocation],
-            ['Versicherung', c.insuranceName], ['Schadennummer', c.insuranceClaimNumber ? <span className="mono">{c.insuranceClaimNumber}</span> : null],
+            ['Versicherung', c.insuranceOrg?.name ?? c.insuranceName], ['Schadennummer', c.insuranceClaimNumber ? <span className="mono">{c.insuranceClaimNumber}</span> : null],
             ['Gegnerische Versicherung', c.opposingInsurance], ['Gegnerische Schadennr.', c.opposingClaimNumber ? <span className="mono">{c.opposingClaimNumber}</span> : null],
             ['Rechtsanwalt', c.lawyer], ['Werkstatt', c.repairShop],
           ]} />
@@ -304,10 +301,12 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
       <DetailHeader
         crumbs={[{ label: 'Fälle', href: '/admin/faelle' }, { label: c.caseNumber }]}
         title={<span><span className="mono" style={{ fontSize: '.78em', fontWeight: 600 }}>{c.caseNumber}</span></span>}
-        badge={<StatusPill kind="case" status={c.status} label={CASE_LABELS[c.status]} large />}
+        badge={<><StatusPill kind="case" status={c.status} label={CASE_LABELS[c.status]} large /><PriorityBadge priority={c.priority as PriorityKey} /></>}
         meta={[
           <span key="v"><b style={{ fontWeight: 600 }}>{vehicleName}</b>{c.vehicle.licensePlate ? <> · <span className="mono">{c.vehicle.licensePlate}</span></> : null}</span>,
           canSeeCustomer ? <Link key="c" href={`/admin/kunden/${c.customer.id}/`} className="adm-link">{name}</Link> : <span key="c">{name}</span>,
+          ...(c.claimType ? [<span key="ct">{CLAIM_LABELS[c.claimType as ClaimTypeKey]}</span>] : []),
+          ...(checklist.missing.length > 0 && !c.deletedAt ? [<Link key="md" href={`${base}?tab=dokumente`}><Badge tone="warn">{checklist.missing.length} {checklist.missing.length === 1 ? 'Unterlage fehlt' : 'Unterlagen fehlen'}</Badge></Link>] : []),
           ...(c.deletedAt ? [<Badge key="a" tone="danger">Archiviert</Badge>] : []),
         ]}
         actions={
@@ -320,6 +319,9 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
           </>
         }
       />
+
+      {c.pinnedNote && <div style={{ marginTop: 14 }}><Alert tone="info" icon="pin"><b>Angeheftet:</b> {c.pinnedNote}</Alert></div>}
+      <CaseProgress status={c.status} />
 
       <SummaryBar
         items={[

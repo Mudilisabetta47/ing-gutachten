@@ -4,6 +4,7 @@ import { requirePagePermission } from '@/server/auth/guards';
 import { orNotFound } from '@/server/admin/safe';
 import { getCustomer, customerVehicles } from '@/server/pipeline/customers';
 import { listExperts } from '@/server/pipeline/cases';
+import { caseRefOptions } from '@/server/pipeline/masterdata';
 import { EmptyState, PageHeader, qp } from '@/components/admin/ui';
 import { NewCaseForm } from './NewCaseForm';
 
@@ -23,7 +24,7 @@ export default async function NewCasePage({ searchParams }: { searchParams: Prom
     );
   }
   const customer = await orNotFound(getCustomer(user, customerId));
-  const [vehicles, experts] = await Promise.all([customerVehicles(user, customerId), listExperts(user)]);
+  const [vehicles, experts, refs] = await Promise.all([customerVehicles(user, customerId), listExperts(user), caseRefOptions(user)]);
   const name = customer.company || `${customer.firstName} ${customer.lastName}`;
 
   return (
@@ -39,6 +40,7 @@ export default async function NewCasePage({ searchParams }: { searchParams: Prom
           vehicles={vehicles.map((v) => ({ id: v.id, label: `${v.licensePlate ?? 'ohne Kennzeichen'} · ${v.manufacturer} ${v.model}` }))}
           experts={experts.map((e) => ({ id: e.id, name: `${e.firstName} ${e.lastName}` }))}
           canAssign={user.permissions.has('cases.assign')}
+          refs={refs}
         />
       )}
     </>

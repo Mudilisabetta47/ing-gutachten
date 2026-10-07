@@ -9,6 +9,7 @@ const ROLE_OPTIONS = [
   ['OFFICE', 'Büro'],
   ['EXPERT', 'Sachverständiger'],
   ['ACCOUNTING', 'Buchhaltung'],
+  ['REVIEWER', 'Prüfer'],
   ['CONTENT_MANAGER', 'Website & Inhalte'],
   ['ADMIN', 'Administrator'],
   ['OWNER', 'Inhaber'],

@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition, type ReactNode } from 'react';
 import { Field, Notice } from '@/components/admin/ui';
 import type { FormState } from '@/server/admin/form';
-import { SERVICE_LABELS, FUEL_LABELS } from '@/lib/workflow';
+import { CLAIM_LABELS, FUEL_LABELS, PRIORITY_LABELS, SERVICE_LABELS } from '@/lib/workflow';
 import { convertLeadAction } from '../actions';
 
 type Existing = { id: string; label: string; vehicles: { id: string; label: string }[] };
@@ -24,7 +24,7 @@ function Step({ n, current, children }: { n: number; current: number; children: 
  * Abgesendet wird erst im letzten Schritt – über startTransition statt <form action>, damit React
  * das Formular nach einem Fehler nicht zurücksetzt (sonst gingen alle Eingaben verloren).
  */
-export function ConvertWizard({ leadId, existing, experts, canAssign, init }: { leadId: string; existing: Existing[]; experts: { id: string; name: string }[]; canAssign: boolean; init: Record<string, string> }) {
+export function ConvertWizard({ leadId, existing, experts, canAssign, init, refs }: { leadId: string; existing: Existing[]; experts: { id: string; name: string }[]; canAssign: boolean; init: Record<string, string>; refs: { locations: { id: string; name: string }[]; insurances: { id: string; name: string }[] } }) {
   const [state, action, pending] = useActionState<FormState, FormData>(convertLeadAction, {});
   const [, startTransition] = useTransition();
   const form = useRef<HTMLFormElement>(null);
@@ -196,6 +196,22 @@ export function ConvertWizard({ leadId, existing, experts, canAssign, init }: { 
                 </select>
               </Field>
             ) : <input type="hidden" name="k_assignedExpertId" value="" />}
+            <Field label="Schadenart" error={f.k_claimType}>
+              <select name="k_claimType" defaultValue={val('k_claimType')} className="adm-input"><option value="">Nicht festgelegt</option>{Object.entries(CLAIM_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
+            </Field>
+            <Field label="Priorität" error={f.k_priority}>
+              <select name="k_priority" defaultValue={val('k_priority') || 'NORMAL'} className="adm-input">{Object.entries(PRIORITY_LABELS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
+            </Field>
+            {refs.locations.length > 0 && (
+              <Field label="Standort" error={f.k_locationId}>
+                <select name="k_locationId" defaultValue={val('k_locationId')} className="adm-input"><option value="">Automatisch</option>{refs.locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select>
+              </Field>
+            )}
+            {refs.insurances.length > 0 && (
+              <Field label="Versicherung (Stammdaten)" error={f.k_insuranceOrgId}>
+                <select name="k_insuranceOrgId" defaultValue={val('k_insuranceOrgId')} className="adm-input"><option value="">Keine Auswahl</option>{refs.insurances.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select>
+              </Field>
+            )}
             {text('k_inspectionLocation', 'Besichtigungsort')}
             {text('k_damageDate', 'Schadendatum', { type: 'date' })}
             {text('k_accidentDate', 'Unfalldatum', { type: 'date' })}

@@ -65,14 +65,17 @@ test('Fall-Workflow: lückenlos, Ziele existieren, kein Selbstübergang', () => 
     }
   }
   assert.ok(canCaseTransition('NEW', 'APPOINTMENT_SET'));
-  assert.equal(canCaseTransition('NEW', 'REPORT_SENT'), false, 'kein Überspringen');
-  assert.equal(canCaseTransition('INVOICED', 'NEW'), false);
-  assert.ok(canCaseTransition('CLOSED', 'IN_PROGRESS'), 'Wiederöffnen möglich');
+  assert.equal(canCaseTransition('NEW', 'SENT'), false, 'kein Überspringen');
+  assert.equal(canCaseTransition('BILLING', 'NEW'), false);
+  assert.ok(canCaseTransition('CLOSED', 'REPORT_DRAFT'), 'Wiederöffnen möglich');
+  assert.equal(canCaseTransition('REVIEW', 'SENT'), false, 'ohne Freigabe kein Versand');
+  assert.ok(canCaseTransition('REVIEW', 'APPROVED') && canCaseTransition('REVIEW', 'REPORT_DRAFT'), 'Prüfung: freigeben oder zur Korrektur zurück');
+  assert.ok(canCaseTransition('IN_PROGRESS', 'REVIEW'), 'Alt-Status verhält sich wie sein neues Gegenstück (Gutachten in Bearbeitung)');
 });
 
 test('Pflichtbegründung: Storno und Wiederöffnen', () => {
   assert.ok(caseReasonRequired('NEW', 'CANCELLED'));
-  assert.ok(caseReasonRequired('CLOSED', 'IN_PROGRESS'));
+  assert.ok(caseReasonRequired('CLOSED', 'REPORT_DRAFT'));
   assert.ok(caseReasonRequired('CANCELLED', 'NEW'));
   assert.equal(caseReasonRequired('NEW', 'APPOINTMENT_SET'), false);
 });
@@ -87,8 +90,8 @@ test('Umwandlung: Startstatus des Falls und Gutachtenart', () => {
 });
 
 test('Fallnummer-Format und Berliner Jahr', () => {
-  assert.equal(formatCaseNumber('ING', 2026, 1, 6), 'ING-2026-000001');
-  assert.equal(formatCaseNumber('ING', 2026, 1234567, 6), 'ING-2026-1234567', 'läuft über, statt abzuschneiden');
+  assert.equal(formatCaseNumber('ING', 2026, 1, 5), 'ING-2026-00001');
+  assert.equal(formatCaseNumber('ING', 2026, 1234567, 5), 'ING-2026-1234567', 'läuft über, statt abzuschneiden');
   assert.equal(berlinYear(new Date('2026-12-31T23:30:00Z')), 2027, 'Silvester 23:30 UTC ist in Berlin schon Neujahr');
   assert.equal(berlinYear(new Date('2026-06-15T12:00:00Z')), 2026);
 });
@@ -126,4 +129,22 @@ test('Schemas: Fahrzeug normalisiert Kennzeichen/FIN, Kunde verlangt Firma bei B
   assert.throws(() => vehicleSchema.parse({ manufacturer: 'VW', model: 'Golf', vin: 'ab$%' }));
   assert.throws(() => customerSchema.parse({ type: 'BUSINESS', lastName: 'X' }));
   assert.equal(customerSchema.parse({ lastName: 'X', email: '' }).email, null);
+});
+
+test('Fortschrittsanzeige und Altstatus-Abbildung', async () => {
+  const { CASE_PROGRESS, LEGACY_CASE_STATUSES, caseProgressIndex, normalizeCaseStatus, orgKindFromSlug, CASE_STATUSES } = await import('@/lib/workflow');
+  assert.deepEqual([...CASE_PROGRESS], ['Anfrage', 'Termin', 'Besichtigung', 'Kalkulation', 'Gutachten', 'Versand', 'Abrechnung']);
+  assert.equal(caseProgressIndex('NEW'), 0);
+  assert.equal(caseProgressIndex('APPOINTMENT_SET'), 1);
+  assert.equal(caseProgressIndex('INSPECTED'), 2);
+  assert.equal(caseProgressIndex('CALCULATION'), 3);
+  assert.equal(caseProgressIndex('REVIEW'), 4);
+  assert.equal(caseProgressIndex('SENT'), 5);
+  assert.equal(caseProgressIndex('BILLING'), 6);
+  assert.equal(caseProgressIndex('CLOSED'), CASE_PROGRESS.length, 'abgeschlossen = alles erledigt');
+  assert.equal(normalizeCaseStatus('REPORT_READY'), 'APPROVED');
+  assert.equal(normalizeCaseStatus('INVOICED'), 'BILLING');
+  for (const l of LEGACY_CASE_STATUSES) assert.ok((CASE_STATUSES as readonly string[]).includes(normalizeCaseStatus(l)), l);
+  assert.equal(orgKindFromSlug('werkstaetten'), 'WORKSHOP');
+  assert.equal(orgKindFromSlug('quatsch'), null);
 });

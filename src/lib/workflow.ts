@@ -35,53 +35,123 @@ export function canLeadTransition(from: LeadStatusKey, to: LeadStatusKey): boole
 
 /* ---------------------------------------------------------------- Fälle */
 
+/** Aktive Status des Fall-Workflows (Phase 4). */
 export const CASE_STATUSES = [
-  'NEW', 'APPOINTMENT_PENDING', 'APPOINTMENT_SET', 'INSPECTED', 'DOCUMENTS_MISSING', 'IN_PROGRESS',
-  'REPORT_READY', 'REPORT_SENT', 'INVOICED', 'CLOSED', 'CANCELLED',
+  'NEW', 'APPOINTMENT_PENDING', 'APPOINTMENT_SET', 'INSPECTED', 'CALCULATION', 'REPORT_DRAFT', 'REVIEW', 'APPROVED', 'SENT', 'BILLING', 'CLOSED', 'CANCELLED',
 ] as const;
-export type CaseStatusKey = (typeof CASE_STATUSES)[number];
+/** Veraltete Status aus Phase 2/3: nur noch lesbar (Historie), werden nicht mehr vergeben. */
+export const LEGACY_CASE_STATUSES = ['DOCUMENTS_MISSING', 'IN_PROGRESS', 'REPORT_READY', 'REPORT_SENT', 'INVOICED'] as const;
+export type CaseStatusActive = (typeof CASE_STATUSES)[number];
+export type CaseStatusKey = CaseStatusActive | (typeof LEGACY_CASE_STATUSES)[number];
 
 export const CASE_LABELS: Record<CaseStatusKey, string> = {
   NEW: 'Neu',
   APPOINTMENT_PENDING: 'Termin offen',
   APPOINTMENT_SET: 'Termin vereinbart',
   INSPECTED: 'Besichtigt',
-  DOCUMENTS_MISSING: 'Unterlagen fehlen',
-  IN_PROGRESS: 'In Bearbeitung',
-  REPORT_READY: 'Gutachten fertig',
-  REPORT_SENT: 'Gutachten versendet',
-  INVOICED: 'Berechnet',
+  CALCULATION: 'Kalkulation',
+  REPORT_DRAFT: 'Gutachten in Bearbeitung',
+  REVIEW: 'In Prüfung',
+  APPROVED: 'Freigegeben',
+  SENT: 'Versendet',
+  BILLING: 'Abrechnung',
   CLOSED: 'Abgeschlossen',
   CANCELLED: 'Storniert',
+  DOCUMENTS_MISSING: 'Unterlagen fehlen (alt)',
+  IN_PROGRESS: 'In Bearbeitung (alt)',
+  REPORT_READY: 'Gutachten fertig (alt)',
+  REPORT_SENT: 'Gutachten versendet (alt)',
+  INVOICED: 'Berechnet (alt)',
 };
 
-export const CASE_TRANSITIONS: Record<CaseStatusKey, readonly CaseStatusKey[]> = {
+/** Kurze Beschriftungen für die Pipeline-Leiste. */
+export const CASE_SHORT: Record<CaseStatusActive, string> = {
+  NEW: 'Neu', APPOINTMENT_PENDING: 'Termin offen', APPOINTMENT_SET: 'Termin', INSPECTED: 'Besichtigt', CALCULATION: 'Kalkulation',
+  REPORT_DRAFT: 'Gutachten', REVIEW: 'Prüfung', APPROVED: 'Freigegeben', SENT: 'Versendet', BILLING: 'Abrechnung', CLOSED: 'Geschlossen', CANCELLED: 'Storniert',
+};
+
+export const CASE_TRANSITIONS: Record<CaseStatusActive, readonly CaseStatusActive[]> = {
   NEW: ['APPOINTMENT_PENDING', 'APPOINTMENT_SET', 'CANCELLED'],
   APPOINTMENT_PENDING: ['APPOINTMENT_SET', 'CANCELLED'],
   APPOINTMENT_SET: ['APPOINTMENT_PENDING', 'INSPECTED', 'CANCELLED'],
-  INSPECTED: ['DOCUMENTS_MISSING', 'IN_PROGRESS', 'CANCELLED'],
-  DOCUMENTS_MISSING: ['INSPECTED', 'IN_PROGRESS', 'CANCELLED'],
-  IN_PROGRESS: ['DOCUMENTS_MISSING', 'REPORT_READY', 'CANCELLED'],
-  REPORT_READY: ['IN_PROGRESS', 'REPORT_SENT'],
-  REPORT_SENT: ['IN_PROGRESS', 'INVOICED', 'CLOSED'],
-  INVOICED: ['CLOSED'],
-  CLOSED: ['IN_PROGRESS'],
+  INSPECTED: ['CALCULATION', 'REPORT_DRAFT', 'CANCELLED'],
+  CALCULATION: ['INSPECTED', 'REPORT_DRAFT', 'CANCELLED'],
+  REPORT_DRAFT: ['CALCULATION', 'REVIEW', 'CANCELLED'],
+  REVIEW: ['REPORT_DRAFT', 'APPROVED'],
+  APPROVED: ['REPORT_DRAFT', 'SENT'],
+  SENT: ['REPORT_DRAFT', 'BILLING', 'CLOSED'],
+  BILLING: ['SENT', 'CLOSED'],
+  CLOSED: ['REPORT_DRAFT', 'BILLING'],
   CANCELLED: ['NEW'],
 };
 
-/** Zielstatus, die der zugewiesene Sachverständige selbst setzen darf (Rest: Büro/Leitung). */
-export const CASE_EXPERT_TARGETS: readonly CaseStatusKey[] = ['INSPECTED', 'DOCUMENTS_MISSING', 'IN_PROGRESS', 'REPORT_READY'];
+/** Zielstatus, die der zugewiesene Sachverständige selbst setzen darf (Rest: Büro/Leitung/Prüfer). */
+export const CASE_EXPERT_TARGETS: readonly CaseStatusActive[] = ['INSPECTED', 'CALCULATION', 'REPORT_DRAFT', 'REVIEW'];
 
 export const CASE_TERMINAL: readonly CaseStatusKey[] = ['CLOSED', 'CANCELLED'];
 
+/** Alte Status werden wie ihr neues Gegenstück behandelt (falls noch irgendwo ein alter Wert auftaucht). */
+export function normalizeCaseStatus(s: CaseStatusKey): CaseStatusActive {
+  switch (s) {
+    case 'DOCUMENTS_MISSING': return 'INSPECTED';
+    case 'IN_PROGRESS': return 'REPORT_DRAFT';
+    case 'REPORT_READY': return 'APPROVED';
+    case 'REPORT_SENT': return 'SENT';
+    case 'INVOICED': return 'BILLING';
+    default: return s;
+  }
+}
+
 export function canCaseTransition(from: CaseStatusKey, to: CaseStatusKey): boolean {
-  return CASE_TRANSITIONS[from].includes(to);
+  return (CASE_TRANSITIONS[normalizeCaseStatus(from)] as readonly CaseStatusKey[]).includes(to);
 }
 
 /** Begründung ist Pflicht bei Storno und beim Wiederöffnen abgeschlossener/stornierter Fälle. */
 export function caseReasonRequired(from: CaseStatusKey, to: CaseStatusKey): boolean {
   return to === 'CANCELLED' || CASE_TERMINAL.includes(from);
 }
+
+/** Schritte der Fortschrittsanzeige im Fallkopf: Anfrage → Termin → Besichtigung → Kalkulation → Gutachten → Versand → Abrechnung. */
+export const CASE_PROGRESS = ['Anfrage', 'Termin', 'Besichtigung', 'Kalkulation', 'Gutachten', 'Versand', 'Abrechnung'] as const;
+/** Index des AKTUELLEN Schritts (== CASE_PROGRESS.length bedeutet: alles erledigt). */
+export function caseProgressIndex(status: CaseStatusKey): number {
+  switch (normalizeCaseStatus(status)) {
+    case 'NEW': return 0;
+    case 'APPOINTMENT_PENDING':
+    case 'APPOINTMENT_SET': return 1;
+    case 'INSPECTED': return 2;
+    case 'CALCULATION': return 3;
+    case 'REPORT_DRAFT':
+    case 'REVIEW':
+    case 'APPROVED': return 4;
+    case 'SENT': return 5;
+    case 'BILLING': return 6;
+    case 'CLOSED': return CASE_PROGRESS.length;
+    default: return 0; // Storniert: Fortschritt wird nicht gezeigt
+  }
+}
+
+export const PRIORITIES = ['NORMAL', 'HIGH', 'URGENT'] as const;
+export type PriorityKey = (typeof PRIORITIES)[number];
+export const PRIORITY_LABELS: Record<PriorityKey, string> = { NORMAL: 'Normal', HIGH: 'Hoch', URGENT: 'Dringend' };
+
+export const CLAIM_TYPES = ['LIABILITY', 'COMPREHENSIVE', 'PARTIAL_COMPREHENSIVE', 'OWN_DAMAGE', 'VALUATION', 'EVIDENCE', 'OTHER'] as const;
+export type ClaimTypeKey = (typeof CLAIM_TYPES)[number];
+export const CLAIM_LABELS: Record<ClaimTypeKey, string> = {
+  LIABILITY: 'Haftpflichtschaden', COMPREHENSIVE: 'Vollkaskoschaden', PARTIAL_COMPREHENSIVE: 'Teilkaskoschaden', OWN_DAMAGE: 'Eigenschaden',
+  VALUATION: 'Wertgutachten', EVIDENCE: 'Beweissicherung', OTHER: 'Sonstiges',
+};
+
+export const ORG_KINDS = ['INSURANCE', 'LAWYER', 'WORKSHOP', 'DEALERSHIP', 'PARTNER'] as const;
+export type OrgKindKey = (typeof ORG_KINDS)[number];
+export const ORG_LABELS: Record<OrgKindKey, { one: string; many: string; slug: string }> = {
+  INSURANCE: { one: 'Versicherung', many: 'Versicherungen', slug: 'versicherungen' },
+  LAWYER: { one: 'Kanzlei', many: 'Rechtsanwälte', slug: 'rechtsanwaelte' },
+  WORKSHOP: { one: 'Werkstatt', many: 'Werkstätten', slug: 'werkstaetten' },
+  DEALERSHIP: { one: 'Autohaus', many: 'Autohäuser', slug: 'autohaeuser' },
+  PARTNER: { one: 'Partner', many: 'Vermittler / Partner', slug: 'partner' },
+};
+export const orgKindFromSlug = (slug: string): OrgKindKey | null => ORG_KINDS.find((k) => ORG_LABELS[k].slug === slug) ?? null;
 
 /**
  * Aus dem Anfragestatus abgeleiteter Startstatus des Falls bei der Umwandlung.

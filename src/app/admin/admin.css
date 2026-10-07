@@ -267,7 +267,13 @@ a.adm-pill:hover { filter: brightness(1.15); }
 .adm-brand-text b { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
 .adm-brand-text span { font-size: 11px; color: rgb(var(--a-text-3)); }
 .adm-nav { flex: 1; overflow-y: auto; padding: 10px 8px; display: grid; align-content: start; gap: 2px; scrollbar-width: thin; }
-.adm-nav-group { margin: 14px 0 4px; padding: 0 10px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: rgb(var(--a-text-3)); white-space: nowrap; }
+.adm-nav-group { display: flex; align-items: center; width: 100%; margin: 12px 0 2px; padding: 4px 10px; border: 0; background: transparent; font: inherit; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: rgb(var(--a-text-3)); white-space: nowrap; cursor: pointer; border-radius: var(--r-md); text-align: left; }
+.adm-nav-group:hover { color: rgb(var(--a-text-2)); }
+.adm-nav-group .chev { width: 13px; height: 13px; margin-left: auto; transition: transform .15s; }
+.adm-nav-group[aria-expanded='false'] .chev { transform: rotate(-90deg); }
+.adm-nav-group .count { font-size: 10.5px; font-weight: 700; min-width: 18px; height: 16px; padding: 0 5px; display: inline-grid; place-items: center; border-radius: 999px; background: rgb(var(--a-blue) / .2); color: rgb(var(--a-blue-text)); letter-spacing: 0; }
+/* Eingeklappte Seitenleiste: Gruppen-Zustand ignorieren, nur Icons zeigen */
+.adm-shell[data-collapsed='true'] .adm-nav-groupbody { display: contents !important; }
 .adm-nav-group:first-child { margin-top: 2px; }
 .adm-nav-item { position: relative; display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 10px; border-radius: var(--r-md); color: rgb(var(--a-text-2)); font-size: var(--fs-base); font-weight: 500; white-space: nowrap; transition: background-color .12s, color .12s; }
 .adm-nav-item svg { width: 17px; height: 17px; flex: none; color: rgb(var(--a-text-3)); transition: color .12s; }
@@ -668,3 +674,45 @@ dialog.adm-lightbox[open] { display: grid; grid-template-columns: minmax(0, 1fr)
 .wf-check li[data-ok='false'] svg { color: rgb(var(--a-warning)); }
 .wf-foot { position: sticky; bottom: calc(66px + env(safe-area-inset-bottom)); display: flex; gap: 8px; padding: 10px 0; background: linear-gradient(to top, rgb(var(--a-bg)) 70%, transparent); }
 .wf-foot .adm-btn { flex: 1; min-height: 48px; }
+
+/* ------------------------------ Fallfortschritt, Mini-Panels, Checkliste ------------------------------ */
+.adm-progress { display: flex; align-items: flex-start; margin: 16px 0 0; padding: 0; list-style: none; overflow-x: auto; scrollbar-width: none; }
+.adm-progress::-webkit-scrollbar { display: none; }
+.adm-progress li { position: relative; flex: 1 0 84px; display: grid; justify-items: center; gap: 6px; padding-top: 2px; font-size: var(--fs-xs); font-weight: 500; color: rgb(var(--a-text-3)); text-align: center; }
+.adm-progress li::before { content: ''; position: absolute; top: 11px; left: -50%; width: 100%; height: 2px; background: rgb(var(--a-s3)); z-index: 0; }
+.adm-progress li:first-child::before { display: none; }
+.adm-progress .dot { position: relative; z-index: 1; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: rgb(var(--a-s2)); border: 2px solid rgb(var(--a-s3)); color: transparent; }
+.adm-progress .dot svg { width: 12px; height: 12px; }
+.adm-progress li[data-s='done'] { color: rgb(var(--a-text-2)); }
+.adm-progress li[data-s='done']::before, .adm-progress li[data-s='current']::before { background: rgb(var(--a-blue)); }
+.adm-progress li[data-s='done'] .dot { background: rgb(var(--a-blue)); border-color: rgb(var(--a-blue)); color: #fff; }
+.adm-progress li[data-s='current'] { color: rgb(var(--a-text)); font-weight: 700; }
+.adm-progress li[data-s='current'] .dot { border-color: rgb(var(--a-blue)); background: rgb(var(--a-s1)); box-shadow: 0 0 0 4px rgb(var(--a-blue) / .16); }
+.adm-progress[data-cancelled='true'] { opacity: .45; }
+
+.adm-minis { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 760px) { .adm-minis { grid-template-columns: minmax(0, 1fr); } }
+.adm-mini { background: rgb(var(--a-s1)); border: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); border-radius: var(--r-lg); padding: 14px 16px; min-width: 0; }
+.adm-mini h3 { margin: 0 0 6px; font-size: var(--fs-xs); font-weight: 700; color: rgb(var(--a-text-3)); letter-spacing: .04em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.adm-mini .adm-row { padding: 5px 0; grid-template-columns: minmax(78px, 112px) minmax(0, 1fr); font-size: var(--fs-sm); }
+.adm-mini.span-2 { grid-column: 1 / -1; }
+.adm-checks { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.adm-checks li { display: flex; align-items: center; gap: 10px; min-height: 30px; font-size: var(--fs-sm); }
+.adm-checks li a { display: contents; color: inherit; }
+.adm-checks .ic { width: 18px; height: 18px; flex: none; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid rgb(var(--a-s3)); color: transparent; }
+.adm-checks .ic svg { width: 11px; height: 11px; }
+.adm-checks li[data-s='done'] .ic { background: rgb(var(--a-success)); border-color: rgb(var(--a-success)); color: #fff; }
+.adm-checks li[data-s='open'] .ic { border-color: rgb(var(--a-warning) / .7); color: rgb(var(--a-warning)); }
+.adm-checks li[data-s='warn'] .ic { border-color: rgb(var(--a-warning)); background: rgb(var(--a-warning) / .15); color: rgb(var(--a-warning)); }
+.adm-checks li[data-s='na'] { color: rgb(var(--a-text-3)); }
+.adm-checks li[data-s='na'] .ic { border-style: dashed; }
+.adm-checks .hint { margin-left: auto; font-size: var(--fs-xs); color: rgb(var(--a-text-3)); text-align: right; }
+.adm-bar { height: 6px; border-radius: 999px; background: rgb(var(--a-s3)); overflow: hidden; margin: 4px 0 10px; }
+.adm-bar > i { display: block; height: 100%; background: rgb(var(--a-blue)); border-radius: 999px; }
+
+/* Spaltenauswahl: data-hide-<key> am Tabellen-Wrapper blendet Spalten (th + td mit .col-<key>) aus */
+.dt-cols[data-hide-prio] .col-prio, .dt-cols[data-hide-kennzeichen] .col-kennzeichen, .dt-cols[data-hide-schadenart] .col-schadenart,
+.dt-cols[data-hide-versicherung] .col-versicherung, .dt-cols[data-hide-schadennr] .col-schadennr, .dt-cols[data-hide-gutachter] .col-gutachter,
+.dt-cols[data-hide-standort] .col-standort, .dt-cols[data-hide-termin] .col-termin, .dt-cols[data-hide-erstellt] .col-erstellt,
+.dt-cols[data-hide-aktiv] .col-aktiv, .dt-cols[data-hide-fahrzeug] .col-fahrzeug { display: none; }
+@media (max-width: 1279px) { .dt tbody td[data-slot]:has(> .t-3:only-child) { display: none; } }

@@ -34,6 +34,8 @@ enum Role {
   EXPERT
   ACCOUNTING
   CONTENT_MANAGER
+  /// Prüfer: gibt Gutachten frei (Vier-Augen-Prinzip)
+  REVIEWER
 }
 
 model User {
@@ -47,11 +49,11 @@ model User {
   isActive     Boolean @default(true) @map("is_active")
 
   /// Brute-Force-Schutz pro Konto (zusätzlich zur Drosselung je IP in LoginAttempt).
-  failedLogins Int       @default(0) @map("failed_logins")
-  lockedUntil  DateTime? @map("locked_until")
-  lastLoginAt  DateTime? @map("last_login_at")
+  failedLogins       Int       @default(0) @map("failed_logins")
+  lockedUntil        DateTime? @map("locked_until")
+  lastLoginAt        DateTime? @map("last_login_at")
   /// Erzwingt Passwortwechsel (z. B. nach Anlage durch den Inhaber).
-  mustChangePassword Boolean @default(false) @map("must_change_password")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
 
   /// Für TOTP vorbereitet, noch nicht aktiv.
   mfaSecret    String?   @map("mfa_secret")
@@ -66,16 +68,18 @@ model User {
   permissions UserPermission[]
   auditLogs   AuditLog[]
 
-  leadsAssigned   Lead[]              @relation("LeadAssignee")
-  casesAssigned   Case[]              @relation("CaseExpert")
-  casesCreated    Case[]              @relation("CaseCreator")
-  appointments    Appointment[]       @relation("AppointmentExpert")
-  appointmentsCreated Appointment[]   @relation("AppointmentCreator")
-  mediaUploaded   Media[]
-  damagesCreated  Damage[]
-  notesAuthored   Note[]
-  leadHistory     LeadStatusHistory[]
-  caseHistory     CaseStatusHistory[]
+  leadsAssigned       Lead[]              @relation("LeadAssignee")
+  locationId          String?             @map("location_id")
+  location            Location?           @relation(fields: [locationId], references: [id])
+  casesAssigned       Case[]              @relation("CaseExpert")
+  casesCreated        Case[]              @relation("CaseCreator")
+  appointments        Appointment[]       @relation("AppointmentExpert")
+  appointmentsCreated Appointment[]       @relation("AppointmentCreator")
+  mediaUploaded       Media[]
+  damagesCreated      Damage[]
+  notesAuthored       Note[]
+  leadHistory         LeadStatusHistory[]
+  caseHistory         CaseStatusHistory[]
 
   @@index([role, isActive])
   @@index([deletedAt])
@@ -85,13 +89,13 @@ model User {
 /// Mitarbeiterprofil (1:1 zum Benutzer). Hier liegt, was ein Mitarbeiter ist,
 /// nicht womit er sich anmeldet.
 model Employee {
-  id        String  @id @default(cuid())
-  userId    String  @unique @map("user_id")
-  initials  String? // Kürzel für Fallnummern/Protokolle
-  phone     String?
+  id       String  @id @default(cuid())
+  userId   String  @unique @map("user_id")
+  initials String? // Kürzel für Fallnummern/Protokolle
+  phone    String?
   /// Darf als Sachverständiger Fällen/Terminen zugewiesen werden.
-  isExpert  Boolean @default(false) @map("is_expert")
-  jobTitle  String? @map("job_title")
+  isExpert Boolean @default(false) @map("is_expert")
+  jobTitle String? @map("job_title")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -103,16 +107,16 @@ model Employee {
 }
 
 model Session {
-  id        String    @id @default(cuid())
-  userId    String    @map("user_id")
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
   /// Nur der SHA-256-Hash des Tokens. Wer die Datenbank liest, kann sich nicht anmelden.
-  tokenHash String    @unique @map("token_hash")
-  ip        String?
-  userAgent String?   @map("user_agent")
-  createdAt DateTime  @default(now()) @map("created_at")
-  lastSeenAt DateTime @default(now()) @map("last_seen_at")
-  expiresAt DateTime  @map("expires_at")
-  revokedAt DateTime? @map("revoked_at")
+  tokenHash  String    @unique @map("token_hash")
+  ip         String?
+  userAgent  String?   @map("user_agent")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at")
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -125,7 +129,7 @@ model Session {
 model UserPermission {
   id         String   @id @default(cuid())
   userId     String   @map("user_id")
-  permission String   // z. B. "invoices.read" (siehe src/server/auth/permissions.ts)
+  permission String // z. B. "invoices.read" (siehe src/server/auth/permissions.ts)
   granted    Boolean  @default(true)
   createdAt  DateTime @default(now()) @map("created_at")
 
@@ -260,13 +264,21 @@ enum CaseStatus {
   APPOINTMENT_PENDING
   APPOINTMENT_SET
   INSPECTED
+  /// Neues Statusmodell (Phase 4): Kalkulation → Gutachten-Entwurf → Prüfung → Freigabe → Versand → Abrechnung
+  CALCULATION
+  REPORT_DRAFT
+  REVIEW
+  APPROVED
+  SENT
+  BILLING
+  CLOSED
+  CANCELLED
+  /// Veraltet (Phase 2/3). Bleiben im Typ, damit alte Historie lesbar bleibt; werden nicht mehr vergeben.
   DOCUMENTS_MISSING
   IN_PROGRESS
   REPORT_READY
   REPORT_SENT
   INVOICED
-  CLOSED
-  CANCELLED
 }
 
 /// Ursprüngliche Website-Anfrage. UNVERÄNDERLICH: ein Datenbank-Trigger verhindert UPDATEs
@@ -422,7 +434,7 @@ model Customer {
   vehicles       Vehicle[]
   cases          Case[]
   notes          Note[]
-  convertedLeads Lead[]    @relation("LeadConvertedCustomer")
+  convertedLeads Lead[]     @relation("LeadConvertedCustomer")
   documents      Document[]
 
   @@index([lastName, firstName])
@@ -452,13 +464,39 @@ model Vehicle {
   fuelType          FuelType? @map("fuel_type")
   color             String?
 
+  // Fahrzeugdaten (Phase 4 / Fahrzeugidentifikation) – alles optional, nie geschätzt
+  hsn               String?
+  tsn               String?
+  hsnTsnId          String?           @map("hsn_tsn_id")
+  engineName        String?           @map("engine_name")
+  engineCode        String?           @map("engine_code")
+  powerKw           Int?              @map("power_kw")
+  powerHp           Int?              @map("power_hp")
+  displacementCc    Int?              @map("displacement_cc")
+  bodyStyle         String?           @map("body_style")
+  driveType         String?           @map("drive_type")
+  transmission      String?
+  seats             Int?
+  vehicleClass      String?           @map("vehicle_class")
+  // Zulassung / Typgenehmigung (nur das, was belegt ist)
+  approvalKind      TypeApprovalKind? @map("approval_kind")
+  approvalNumber    String?           @map("approval_number")
+  typeCode          String?           @map("type_code")
+  variantCode       String?           @map("variant_code")
+  versionCode       String?           @map("version_code")
+  /// Ergebnis des letzten Abgleichs Fahrzeugschein ↔ Datenbank (Feld → Werte, Status)
+  registrationCheck Json?             @map("registration_check")
+
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  customer       Customer @relation(fields: [customerId], references: [id])
+  customer       Customer             @relation(fields: [customerId], references: [id])
+  hsnTsnRecord   VehicleHsnTsn?       @relation(fields: [hsnTsnId], references: [id], onDelete: SetNull)
   cases          Case[]
-  convertedLeads Lead[]   @relation("LeadConvertedVehicle")
+  convertedLeads Lead[]               @relation("LeadConvertedVehicle")
+  dataPoints     VehicleDataPoint[]
+  dataHistory    VehicleDataHistory[]
 
   @@index([customerId])
   @@index([licensePlateNorm])
@@ -466,34 +504,53 @@ model Vehicle {
   @@index([deletedAt])
   @@index([licensePlateNorm(ops: raw("gin_trgm_ops"))], type: Gin, map: "vehicles_plate_trgm")
   @@index([vin(ops: raw("gin_trgm_ops"))], type: Gin, map: "vehicles_vin_trgm")
+  @@index([hsn, tsn])
+  @@index([hsnTsnId])
   @@map("vehicles")
 }
 
 model Case {
-  id                String      @id @default(cuid())
+  id          String      @id @default(cuid())
   /// z. B. ING-2026-000123 – vergeben über CaseCounter, race-condition-sicher.
-  caseNumber        String      @unique @map("case_number")
-  status            CaseStatus  @default(NEW)
-  serviceType       ServiceType @default(ACCIDENT_REPORT) @map("service_type")
+  caseNumber  String      @unique @map("case_number")
+  status      CaseStatus  @default(NEW)
+  serviceType ServiceType @default(ACCIDENT_REPORT) @map("service_type")
 
-  customerId        String      @map("customer_id")
-  vehicleId         String      @map("vehicle_id")
-  assignedExpertId  String?     @map("assigned_expert_id")
-  createdById       String?     @map("created_by_id")
+  customerId       String  @map("customer_id")
+  vehicleId        String  @map("vehicle_id")
+  assignedExpertId String? @map("assigned_expert_id")
+  createdById      String? @map("created_by_id")
 
-  damageDate        DateTime?   @map("damage_date") @db.Date
-  accidentDate      DateTime?   @map("accident_date") @db.Date
-  inspectionLocation String?    @map("inspection_location")
+  damageDate         DateTime? @map("damage_date") @db.Date
+  accidentDate       DateTime? @map("accident_date") @db.Date
+  inspectionLocation String?   @map("inspection_location")
 
-  insuranceName         String? @map("insurance_name")
-  insuranceClaimNumber  String? @map("insurance_claim_number")
-  opposingInsurance     String? @map("opposing_insurance")
-  opposingClaimNumber   String? @map("opposing_claim_number")
-  lawyer                String?
-  repairShop            String? @map("repair_shop")
+  insuranceName        String? @map("insurance_name")
+  insuranceClaimNumber String? @map("insurance_claim_number")
+  opposingInsurance    String? @map("opposing_insurance")
+  opposingClaimNumber  String? @map("opposing_claim_number")
+  lawyer               String?
+  repairShop           String? @map("repair_shop")
 
-  description       String?
-  cancelledReason   String?     @map("cancelled_reason")
+  description     String?
+  cancelledReason String? @map("cancelled_reason")
+
+  priority              CasePriority @default(NORMAL)
+  claimType             ClaimType?   @map("claim_type")
+  accidentPlace         String?      @map("accident_place")
+  locationId            String?      @map("location_id")
+  insuranceOrgId        String?      @map("insurance_org_id")
+  lawyerOrgId           String?      @map("lawyer_org_id")
+  workshopOrgId         String?      @map("workshop_org_id")
+  dealershipOrgId       String?      @map("dealership_org_id")
+  partnerOrgId          String?      @map("partner_org_id")
+  insurancePolicyNumber String?      @map("insurance_policy_number")
+  adjusterName          String?      @map("adjuster_name")
+  adjusterPhone         String?      @map("adjuster_phone")
+  adjusterEmail         String?      @map("adjuster_email")
+  lawyerReference       String?      @map("lawyer_reference")
+  /// Wichtige Info, die oben im Fall angeheftet bleibt („Kunde nur nach 16 Uhr erreichbar“)
+  pinnedNote            String?      @map("pinned_note")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -504,6 +561,12 @@ model Case {
   vehicle        Vehicle             @relation(fields: [vehicleId], references: [id])
   assignedExpert User?               @relation("CaseExpert", fields: [assignedExpertId], references: [id])
   createdBy      User?               @relation("CaseCreator", fields: [createdById], references: [id])
+  location       Location?           @relation(fields: [locationId], references: [id])
+  insuranceOrg   Organization?       @relation("CaseInsurance", fields: [insuranceOrgId], references: [id])
+  lawyerOrg      Organization?       @relation("CaseLawyer", fields: [lawyerOrgId], references: [id])
+  workshopOrg    Organization?       @relation("CaseWorkshop", fields: [workshopOrgId], references: [id])
+  dealershipOrg  Organization?       @relation("CaseDealership", fields: [dealershipOrgId], references: [id])
+  partnerOrg     Organization?       @relation("CasePartner", fields: [partnerOrgId], references: [id])
   history        CaseStatusHistory[]
   notes          Note[]
   lead           Lead?               @relation("LeadConvertedCase")
@@ -520,6 +583,9 @@ model Case {
   @@index([createdAt])
   @@index([deletedAt])
   @@index([insuranceClaimNumber])
+  @@index([priority, status])
+  @@index([locationId])
+  @@index([insuranceOrgId])
   @@index([caseNumber(ops: raw("gin_trgm_ops"))], type: Gin, map: "cases_number_trgm")
   @@map("cases")
 }
@@ -580,6 +646,7 @@ model Note {
 
 enum AppointmentKind {
   INSPECTION
+  REINSPECTION
   CONSULTATION
   OTHER
 }
@@ -610,13 +677,22 @@ enum ScanStatus {
 
 enum PhotoCategory {
   OVERVIEW
+  FRONT
+  REAR
+  LEFT
+  RIGHT
   DAMAGE
+  PRIOR_DAMAGE
   DETAIL
   PLATE
   VIN
   ODOMETER
   INTERIOR
+  ENGINE_BAY
+  TYRES
+  RIMS
   UNDERBODY
+  DOCUMENTS
   REQUEST
   OTHER
 }
@@ -626,7 +702,14 @@ enum DocumentCategory {
   INSURANCE_LETTER
   POWER_OF_ATTORNEY
   ASSIGNMENT
+  ASSIGNMENT_OF_CLAIM
+  ACCIDENT_REPORT
+  POLICE_REPORT
+  WORKSHOP_DOCUMENT
   REPAIR_INVOICE
+  RESIDUAL_OFFER
+  CALCULATION
+  INVOICE
   REPORT
   OTHER
 }
@@ -771,13 +854,441 @@ model Document {
   createdAt   DateTime         @default(now()) @map("created_at")
   deletedAt   DateTime?        @map("deleted_at")
 
-  media     Media     @relation(fields: [mediaId], references: [id])
-  case      Case?     @relation(fields: [caseId], references: [id])
-  customer  Customer? @relation(fields: [customerId], references: [id])
-  versionOf Document? @relation("DocumentVersions", fields: [versionOfId], references: [id])
+  media     Media      @relation(fields: [mediaId], references: [id])
+  case      Case?      @relation(fields: [caseId], references: [id])
+  customer  Customer?  @relation(fields: [customerId], references: [id])
+  versionOf Document?  @relation("DocumentVersions", fields: [versionOfId], references: [id])
   versions  Document[] @relation("DocumentVersions")
 
   @@index([caseId, createdAt])
   @@index([customerId, createdAt])
   @@map("documents")
+}
+
+// =====================================================================
+//  PHASE 4 / M1 — Stammdaten, Standorte, Priorität, Schadenart
+// =====================================================================
+
+enum CasePriority {
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum ClaimType {
+  LIABILITY
+  COMPREHENSIVE
+  PARTIAL_COMPREHENSIVE
+  OWN_DAMAGE
+  VALUATION
+  EVIDENCE
+  OTHER
+}
+
+enum OrganizationKind {
+  INSURANCE
+  LAWYER
+  WORKSHOP
+  DEALERSHIP
+  PARTNER
+}
+
+/// Niederlassung. Mitarbeiter und Fälle werden einem Standort zugeordnet.
+model Location {
+  id           String    @id @default(cuid())
+  name         String
+  street       String?
+  postalCode   String?   @map("postal_code")
+  city         String?
+  phone        String?
+  email        String?
+  openingHours String?   @map("opening_hours")
+  isDefault    Boolean   @default(false) @map("is_default")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  users User[]
+  cases Case[]
+
+  @@index([deletedAt])
+  @@map("locations")
+}
+
+/// Versicherung, Kanzlei, Werkstatt, Autohaus oder Vermittler – eine Tabelle mit Art, damit Listen, Suche und Zuordnung zum Fall nur einmal gebaut werden.
+model Organization {
+  id          String           @id @default(cuid())
+  kind        OrganizationKind
+  name        String
+  contactName String?          @map("contact_name")
+  street      String?
+  postalCode  String?          @map("postal_code")
+  city        String?
+  phone       String?
+  fax         String?
+  email       String?
+  /// Schadenservice / zentrale Schadenmeldung
+  claimsEmail String?          @map("claims_email")
+  portalUrl   String?          @map("portal_url")
+  notes       String?
+
+  // Nur Werkstätten: Stundensätze (Cent je Stunde) und Zuschläge (Basispunkte: 1000 = 10 %)
+  rateMechanicCents Int? @map("rate_mechanic_cents")
+  rateBodyCents     Int? @map("rate_body_cents")
+  rateElectricCents Int? @map("rate_electric_cents")
+  ratePaintCents    Int? @map("rate_paint_cents")
+  shippingCents     Int? @map("shipping_cents")
+  partsMarkupBp     Int? @map("parts_markup_bp")
+  paintMaterialBp   Int? @map("paint_material_bp")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  casesInsurance  Case[] @relation("CaseInsurance")
+  casesLawyer     Case[] @relation("CaseLawyer")
+  casesWorkshop   Case[] @relation("CaseWorkshop")
+  casesDealership Case[] @relation("CaseDealership")
+  casesPartner    Case[] @relation("CasePartner")
+
+  @@index([kind, name])
+  @@index([deletedAt])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "organizations_name_trgm")
+  @@map("organizations")
+}
+
+/**
+ * ============================================================ Fahrzeugdaten (HSN/TSN) ============================================================
+ */
+
+enum VehicleVerification {
+  VERIFIED
+  PARTIAL
+  UNVERIFIED
+  OUTDATED
+  CONFLICT
+}
+
+enum ProviderLicense {
+  UNKNOWN
+  REVIEW_REQUIRED
+  APPROVED
+  LICENSED
+  DISABLED
+}
+
+enum ImportJobStatus {
+  PREVIEW
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ImportRowOutcome {
+  NEW
+  EXISTS
+  CONFLICT
+  INVALID
+  IMPORTED
+}
+
+enum ConflictStatus {
+  OPEN
+  MERGED
+  KEPT_OWN
+  TOOK_EXTERNAL
+  MANUAL
+}
+
+enum TypeApprovalKind {
+  EC_TYPE_APPROVAL
+  ABE
+  INDIVIDUAL
+  UNKNOWN
+}
+
+model VehicleMake {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  /// Schreibweisen, die auf diesen Hersteller normalisiert werden (nie als Ersatz für den Originalwert)
+  aliases   String[]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  models  VehicleModel[]
+  records VehicleHsnTsn[]
+
+  @@map("vehicle_makes")
+}
+
+model VehicleModel {
+  id        String   @id @default(cuid())
+  makeId    String   @map("make_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  make        VehicleMake         @relation(fields: [makeId], references: [id])
+  generations VehicleGeneration[]
+  variants    VehicleVariant[]
+  records     VehicleHsnTsn[]
+
+  @@unique([makeId, name])
+  @@map("vehicle_models")
+}
+
+model VehicleGeneration {
+  id        String   @id @default(cuid())
+  modelId   String   @map("model_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  model    VehicleModel     @relation(fields: [modelId], references: [id])
+  variants VehicleVariant[]
+  records  VehicleHsnTsn[]
+
+  @@unique([modelId, name])
+  @@map("vehicle_generations")
+}
+
+model VehicleVariant {
+  id           String   @id @default(cuid())
+  modelId      String   @map("model_id")
+  generationId String?  @map("generation_id")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  model      VehicleModel       @relation(fields: [modelId], references: [id])
+  generation VehicleGeneration? @relation(fields: [generationId], references: [id])
+  records    VehicleHsnTsn[]
+
+  @@unique([modelId, name])
+  @@map("vehicle_variants")
+}
+
+/// Eigene Fahrzeugdatenbank: ein Datensatz je HSN/TSN und Quelle (+ optionaler Quell-ID, falls die Quelle mehrere Varianten liefert).
+model VehicleHsnTsn {
+  id                  String    @id @default(cuid())
+  hsn                 String
+  tsn                 String
+  manufacturerId      String?   @map("manufacturer_id")
+  modelId             String?   @map("model_id")
+  generationId        String?   @map("generation_id")
+  variantId           String?   @map("variant_id")
+  manufacturerNameRaw String?   @map("manufacturer_name_raw")
+  vehicleNameRaw      String?   @map("vehicle_name_raw")
+  manufacturer        String?
+  model               String?
+  generation          String?
+  variant             String?
+  bodyStyle           String?   @map("body_style")
+  engineName          String?   @map("engine_name")
+  engineCode          String?   @map("engine_code")
+  fuelType            FuelType? @map("fuel_type")
+  displacementCc      Int?      @map("displacement_cc")
+  powerKw             Int?      @map("power_kw")
+  powerHp             Int?      @map("power_hp")
+  torqueNm            Int?      @map("torque_nm")
+  transmission        String?
+  driveType           String?   @map("drive_type")
+  productionFrom      DateTime? @map("production_from") @db.Date
+  productionTo        DateTime? @map("production_to") @db.Date
+  typeApproval        String?   @map("type_approval")
+  vehicleClass        String?   @map("vehicle_class")
+
+  /// Herkunft: Provider-Schlüssel (HSN_TSN, KBA, DAT, VIN, MANUAL, IMPORT_FILE …)
+  source              String
+  sourceUrl           String?             @map("source_url")
+  sourceRecordId      String              @default("") @map("source_record_id")
+  sourceImportedAt    DateTime?           @map("source_imported_at")
+  sourceLastCheckedAt DateTime?           @map("source_last_checked_at")
+  sourceHash          String?             @map("source_hash")
+  importerVersion     String?             @map("importer_version")
+  /// Originalwerte der Quelle vor der Normalisierung (Leistung, Hubraum, Kraftstoff, Name …)
+  rawData             Json?               @map("raw_data")
+  verificationStatus  VehicleVerification @default(UNVERIFIED) @map("verification_status")
+  /// Hilfsfeld für die schnelle Suche (kleingeschrieben, mit Zahlen- und Kurzformen)
+  searchText          String              @default("") @map("search_text")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  makeRef       VehicleMake?          @relation(fields: [manufacturerId], references: [id])
+  modelRef      VehicleModel?         @relation(fields: [modelId], references: [id])
+  generationRef VehicleGeneration?    @relation(fields: [generationId], references: [id])
+  variantRef    VehicleVariant?       @relation(fields: [variantId], references: [id])
+  vehicles      Vehicle[]
+  conflicts     VehicleDataConflict[]
+
+  @@index([hsn, tsn])
+  @@index([hsn])
+  @@index([manufacturer])
+  @@index([model])
+  @@index([source])
+  @@index([verificationStatus])
+  @@index([deletedAt])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin, map: "vehicle_hsn_tsn_search_trgm")
+  @@map("vehicle_hsn_tsn")
+}
+
+/// Provider-Verwaltung (keine Zugangsdaten hier – die gehören in Umgebungsvariablen).
+model VehicleProvider {
+  key               String          @id
+  name              String
+  /// internal | external
+  kind              String
+  description       String?
+  enabled           Boolean         @default(false)
+  licenseStatus     ProviderLicense @default(UNKNOWN) @map("license_status")
+  autoLookup        Boolean         @default(false) @map("auto_lookup")
+  massImport        Boolean         @default(false) @map("mass_import")
+  /// Max. Anfragen pro Minute (hartes Limit, serverweit)
+  rateLimitPerMin   Int             @default(10) @map("rate_limit_per_min")
+  pausedUntil       DateTime?       @map("paused_until")
+  pauseReason       String?         @map("pause_reason")
+  lastConnectedAt   DateTime?       @map("last_connected_at")
+  lastSuccessAt     DateTime?       @map("last_success_at")
+  lastErrorAt       DateTime?       @map("last_error_at")
+  lastErrorCategory String?         @map("last_error_category")
+  requestCount      Int             @default(0) @map("request_count")
+  errorCount        Int             @default(0) @map("error_count")
+  /// nicht geheime Einstellungen (z. B. URL-Vorlagen)
+  config            Json?
+  notes             String?
+  updatedById       String?         @map("updated_by_id")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  logs VehicleProviderLog[]
+  jobs VehicleImportJob[]
+
+  @@map("vehicle_providers")
+}
+
+/// Request-Protokoll je Provider – bewusst ohne personenbezogene Daten (kein Kennzeichen, keine FIN, keine Benutzer-IP).
+model VehicleProviderLog {
+  id            String   @id @default(cuid())
+  providerKey   String   @map("provider_key")
+  at            DateTime @default(now())
+  requestType   String   @map("request_type")
+  status        String
+  durationMs    Int      @map("duration_ms")
+  httpStatus    Int?     @map("http_status")
+  recordsFound  Int?     @map("records_found")
+  errorCategory String?  @map("error_category")
+
+  provider VehicleProvider @relation(fields: [providerKey], references: [key])
+
+  @@index([providerKey, at])
+  @@map("vehicle_provider_logs")
+}
+
+model VehicleImportJob {
+  id            String          @id @default(cuid())
+  providerKey   String          @map("provider_key")
+  mode          String
+  label         String
+  params        Json?
+  status        ImportJobStatus @default(PREVIEW)
+  total         Int             @default(0)
+  countNew      Int             @default(0) @map("count_new")
+  countExists   Int             @default(0) @map("count_exists")
+  countConflict Int             @default(0) @map("count_conflict")
+  countInvalid  Int             @default(0) @map("count_invalid")
+  countImported Int             @default(0) @map("count_imported")
+  /// Fortsetzungspunkt (Index der nächsten zu verarbeitenden Zeile)
+  cursor        Int             @default(0)
+  pausedUntil   DateTime?       @map("paused_until")
+  message       String?
+  createdById   String?         @map("created_by_id")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  finishedAt    DateTime?       @map("finished_at")
+
+  provider VehicleProvider    @relation(fields: [providerKey], references: [key])
+  rows     VehicleImportRow[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("vehicle_import_jobs")
+}
+
+model VehicleImportRow {
+  id       String           @id @default(cuid())
+  jobId    String           @map("job_id")
+  position Int
+  hsn      String?
+  tsn      String?
+  payload  Json
+  outcome  ImportRowOutcome
+  error    String?
+  recordId String?          @map("record_id")
+
+  job VehicleImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, position])
+  @@index([jobId, outcome])
+  @@map("vehicle_import_rows")
+}
+
+/// HSN/TSN identisch, Inhalt abweichend → nie überschreiben, sondern hier zur Entscheidung vorlegen.
+model VehicleDataConflict {
+  id             String         @id @default(cuid())
+  recordId       String         @map("record_id")
+  hsn            String
+  tsn            String
+  incoming       Json
+  incomingSource String         @map("incoming_source")
+  /// Liste der abweichenden Felder
+  fields         String[]
+  status         ConflictStatus @default(OPEN)
+  resolvedById   String?        @map("resolved_by_id")
+  resolvedAt     DateTime?      @map("resolved_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  record VehicleHsnTsn @relation(fields: [recordId], references: [id])
+
+  @@index([status])
+  @@index([recordId])
+  @@map("vehicle_data_conflicts")
+}
+
+/// Aktueller Stand je Fahrzeugfeld mit Herkunft (Datenherkunft) – Grundlage der Prioritätslogik.
+model VehicleDataPoint {
+  id            String              @id @default(cuid())
+  vehicleId     String              @map("vehicle_id")
+  field         String
+  value         String?
+  /// 100 manuell bestätigt · 80 offiziell/lizenziert · 70 VIN · 60 KBA · 50 HSN/TSN-Dritt · 20 unverifiziert
+  priority      Int
+  source        String
+  sourceUrl     String?             @map("source_url")
+  status        VehicleVerification @default(UNVERIFIED)
+  retrievedAt   DateTime            @default(now()) @map("retrieved_at")
+  confirmedById String?             @map("confirmed_by_id")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, field])
+  @@map("vehicle_data_points")
+}
+
+/// Lückenlose Änderungshistorie der Fahrzeugdaten (wer, wann, alt, neu, Quelle).
+model VehicleDataHistory {
+  id        String   @id @default(cuid())
+  vehicleId String   @map("vehicle_id")
+  at        DateTime @default(now())
+  actorId   String?  @map("actor_id")
+  field     String
+  oldValue  String?  @map("old_value")
+  newValue  String?  @map("new_value")
+  source    String
+  note      String?
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, at])
+  @@map("vehicle_data_history")
 }

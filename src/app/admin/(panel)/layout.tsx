@@ -18,7 +18,8 @@ export default async function PanelLayout({ children }: { children: ReactNode })
 
   // Hinweise und Zähler: echte Daten, nur soweit die Rolle sie sehen darf.
   const c = user.mustChangePassword ? null : await dashboardCounts(user);
-  const nav = navFor(has).map(({ href, label, icon, group, ready, phase }) => ({ href, label, icon, group, ready, phase, count: href === '/admin/anfragen' && c?.newLeads ? c.newLeads : undefined }));
+  const badge: Record<string, number | null | undefined> = { leads: c?.newLeads, reports: null, invoices: null, reminders: c?.followUpsDue };
+  const nav = navFor(has).map(({ href, label, icon, group, ready, phase, note, badge: b }) => ({ href, label, icon, group, ready, phase, note, count: (b && badge[b]) || undefined }));
   const notices: ShellNotice[] = [];
   if (c?.newLeads) notices.push({ id: 'new', label: 'Neue Anfragen', href: '/admin/anfragen?status=NEW', count: c.newLeads, tone: 'info' });
   if (c?.failedMail) notices.push({ id: 'mail', label: 'Ohne Mail-Benachrichtigung', href: '/admin/anfragen?mail=failed', count: c.failedMail, tone: 'warn' });

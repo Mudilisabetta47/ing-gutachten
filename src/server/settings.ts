@@ -27,7 +27,7 @@ export type SettingKey = keyof typeof SETTINGS;
 export type SettingValue<K extends SettingKey> = z.infer<(typeof SETTINGS)[K]>;
 
 export const SETTING_DEFAULTS: { [K in SettingKey]: SettingValue<K> } = {
-  numbering: { casePrefix: 'ING', caseDigits: 6, invoicePrefix: 'RE', invoiceDigits: 6 },
+  numbering: { casePrefix: 'ING', caseDigits: 5, invoicePrefix: 'RE', invoiceDigits: 5 },
   uploads: { maxPhotoMb: 15, maxDocumentMb: 25, maxFilesPerUpload: 20 },
 };
 

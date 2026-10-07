@@ -59,6 +59,17 @@ export async function assertAssignableExpert(tx: Tx, userId: string) {
   if (!u) throw new DomainError('Dieser Sachverständige ist nicht verfügbar.');
 }
 
+const REF_KIND = { insuranceOrgId: 'INSURANCE', lawyerOrgId: 'LAWYER', workshopOrgId: 'WORKSHOP', dealershipOrgId: 'DEALERSHIP', partnerOrgId: 'PARTNER' } as const;
+
+/** Verweise auf Stammdaten prüfen: existiert, nicht archiviert, und die Art passt (Versicherung ist wirklich eine Versicherung). */
+export async function validateCaseRefs(tx: Tx, data: Partial<CaseInput>) {
+  for (const [field, kind] of Object.entries(REF_KIND)) {
+    const id = (data as Record<string, string | null | undefined>)[field];
+    if (id && !(await tx.organization.findFirst({ where: { id, kind, deletedAt: null }, select: { id: true } }))) throw new DomainError('Die gewählte Stammdaten-Auswahl ist nicht verfügbar.');
+  }
+  if (data.locationId && !(await tx.location.findFirst({ where: { id: data.locationId, deletedAt: null }, select: { id: true } }))) throw new DomainError('Der gewählte Standort ist nicht verfügbar.');
+}
+
 export async function createCaseTx(
   tx: Tx,
   actorId: string | null,
@@ -70,11 +81,16 @@ export async function createCaseTx(
   const customer = await tx.customer.findFirst({ where: { id: args.customerId, deletedAt: null }, select: { id: true } });
   if (!customer) throw notFoundError('Kunde');
   if (args.data.assignedExpertId) await assertAssignableExpert(tx, args.data.assignedExpertId);
+  await validateCaseRefs(tx, args.data);
 
   const status = args.status ?? 'NEW';
+  // Standort: gewählter, sonst der des Sachverständigen, sonst der Hauptstandort
+  let locationId = args.data.locationId ?? null;
+  if (!locationId && args.data.assignedExpertId) locationId = (await tx.user.findUnique({ where: { id: args.data.assignedExpertId }, select: { locationId: true } }))?.locationId ?? null;
+  if (!locationId) locationId = (await tx.location.findFirst({ where: { deletedAt: null, isDefault: true }, select: { id: true } }))?.id ?? null;
   const caseNumber = await nextCaseNumber(tx, args.now);
   const created = await tx.case.create({
-    data: { ...args.data, caseNumber, status, customerId: args.customerId, vehicleId: args.vehicleId, createdById: actorId },
+    data: { ...args.data, locationId, caseNumber, status, customerId: args.customerId, vehicleId: args.vehicleId, createdById: actorId },
   });
   await tx.caseStatusHistory.create({ data: { caseId: created.id, fromStatus: null, toStatus: status, actorId, reason: args.fromLeadId ? 'Aus Anfrage umgewandelt' : 'Fall angelegt' } });
   await writeAudit(

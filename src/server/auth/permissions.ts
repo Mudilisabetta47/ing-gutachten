@@ -32,6 +32,12 @@ export const PERMISSIONS = [
   // Auswertungen
   'kpi.all', 'kpi.own', 'kpi.revenue',
   // Verwaltung
+  // Kalkulation, Bewertung, Stammdaten, Integrationen (Phase 4)
+  'calculations.read.all', 'calculations.read.own', 'calculations.write.all', 'calculations.write.own',
+  'valuations.read.all', 'valuations.read.own', 'valuations.write.all', 'valuations.write.own',
+  'reports.review', 'reports.approve',
+  'masterdata.read', 'masterdata.write', 'locations.write', 'dunning.write',
+  'integrations.read', 'integrations.write',
   'users.read', 'users.write', 'users.write.owner', 'settings.read', 'settings.write',
   'audit.read', 'audit.read.own', 'data.export', 'data.anonymize', 'search.global',
 ] as const;
@@ -48,6 +54,7 @@ const OFFICE: Permission[] = [
   'photos.read.all', 'photos.write.all', 'documents.read.all', 'documents.write.all',
   'reports.read.all', 'reports.send',
   'invoices.read',
+  'calculations.read.all', 'valuations.read.all', 'masterdata.read', 'masterdata.write',
   'tasks.read.all', 'tasks.write.all',
   'communication.read.all', 'communication.write.all',
   'kpi.all', 'audit.read.own', 'search.global',
@@ -60,6 +67,7 @@ const EXPERT: Permission[] = [
   'photos.read.own', 'photos.write.own',
   'documents.read.own', 'documents.write.own',
   'reports.read.own', 'reports.write.own',
+  'calculations.read.own', 'calculations.write.own', 'valuations.read.own', 'valuations.write.own', 'masterdata.read',
   'tasks.read.own', 'tasks.write.own',
   'communication.read.own', 'communication.write.own',
   'kpi.own', 'audit.read.own', 'search.global',
@@ -67,10 +75,20 @@ const EXPERT: Permission[] = [
 
 const ACCOUNTING: Permission[] = [
   'customers.read', 'cases.read.all',
-  'invoices.read', 'invoices.write', 'payments.write', 'invoices.export',
+  'invoices.read', 'invoices.write', 'payments.write', 'invoices.export', 'dunning.write', 'masterdata.read',
   'documents.read.own',
   'tasks.read.own', 'tasks.write.own',
   'kpi.revenue', 'audit.read.own', 'search.global',
+];
+
+/** Prüfer: liest den ganzen Fall und gibt Gutachten frei (Vier-Augen-Prinzip), schreibt aber nichts am Fall. */
+const REVIEWER: Permission[] = [
+  'customers.read', 'vehicles.read', 'cases.read.all',
+  'appointments.read.all', 'photos.read.all', 'documents.read.all',
+  'reports.read.all', 'reports.review', 'reports.approve',
+  'calculations.read.all', 'valuations.read.all', 'masterdata.read',
+  'tasks.read.own', 'tasks.write.own', 'communication.read.all',
+  'kpi.own', 'audit.read.own', 'search.global',
 ];
 
 const CONTENT_MANAGER: Permission[] = [
@@ -85,6 +103,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   EXPERT,
   ACCOUNTING,
   CONTENT_MANAGER,
+  REVIEWER,
 };
 
 export const ROLE_LABELS: Record<Role, string> = {
@@ -94,6 +113,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   EXPERT: 'Sachverständiger',
   ACCOUNTING: 'Buchhaltung',
   CONTENT_MANAGER: 'Website & Inhalte',
+  REVIEWER: 'Prüfer',
 };
 
 export type PermissionOverride = { permission: string; granted: boolean };

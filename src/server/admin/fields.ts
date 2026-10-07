@@ -11,13 +11,19 @@ export const vehicleFields = (fd: FormData) => ({
   firstRegistration: str(fd, 'firstRegistration'), mileage: str(fd, 'mileage'), fuelType: str(fd, 'fuelType'), color: str(fd, 'color'),
 });
 
-export const caseFields = (fd: FormData) => ({
-  serviceType: str(fd, 'serviceType') || 'ACCIDENT_REPORT', assignedExpertId: str(fd, 'assignedExpertId'),
-  damageDate: str(fd, 'damageDate'), accidentDate: str(fd, 'accidentDate'), inspectionLocation: str(fd, 'inspectionLocation'),
-  insuranceName: str(fd, 'insuranceName'), insuranceClaimNumber: str(fd, 'insuranceClaimNumber'),
-  opposingInsurance: str(fd, 'opposingInsurance'), opposingClaimNumber: str(fd, 'opposingClaimNumber'),
-  lawyer: str(fd, 'lawyer'), repairShop: str(fd, 'repairShop'), description: str(fd, 'description'),
-});
+const CASE_KEYS = [
+  'serviceType', 'assignedExpertId', 'damageDate', 'accidentDate', 'inspectionLocation', 'insuranceName', 'insuranceClaimNumber',
+  'opposingInsurance', 'opposingClaimNumber', 'lawyer', 'repairShop', 'description',
+  'priority', 'claimType', 'accidentPlace', 'locationId', 'insuranceOrgId', 'lawyerOrgId', 'workshopOrgId', 'dealershipOrgId', 'partnerOrgId',
+  'insurancePolicyNumber', 'adjusterName', 'adjusterPhone', 'adjusterEmail', 'lawyerReference', 'pinnedNote',
+] as const;
+
+/** Nur Felder, die das Formular wirklich gesendet hat – so überschreibt ein Teilformular nie fremde Felder. */
+export const caseFields = (fd: FormData): Record<string, string> => {
+  const out: Record<string, string> = {};
+  for (const k of CASE_KEYS) if (fd.has(k)) out[k] = str(fd, k);
+  return out;
+};
 
 import { berlinLocalToDate } from '@/lib/berlin';
 
@@ -43,3 +49,10 @@ export const damageFields = (fd: FormData) => ({
 });
 
 export const inspectionFields = (fd: FormData) => ({ weather: str(fd, 'weather'), odometer: str(fd, 'odometer'), note: str(fd, 'note') });
+
+const ORG_KEYS = ['name', 'contactName', 'street', 'postalCode', 'city', 'phone', 'fax', 'email', 'claimsEmail', 'portalUrl', 'notes', 'rateMechanicCents', 'rateBodyCents', 'rateElectricCents', 'ratePaintCents', 'shippingCents', 'partsMarkupBp', 'paintMaterialBp'] as const;
+export const orgFields = (fd: FormData): Record<string, string> => Object.fromEntries(ORG_KEYS.map((k) => [k, str(fd, k)]));
+export const locationFields = (fd: FormData) => ({
+  name: str(fd, 'name'), street: str(fd, 'street'), postalCode: str(fd, 'postalCode'), city: str(fd, 'city'), phone: str(fd, 'phone'), email: str(fd, 'email'),
+  openingHours: str(fd, 'openingHours'), isDefault: fd.get('isDefault') === 'on',
+});

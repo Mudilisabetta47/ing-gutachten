@@ -49,10 +49,11 @@ test('Sachverständiger: sieht NUR eigene Fälle – Liste, Detail, Suche, Statu
   // eigener Fall: fachliche Schritte ja, Verwaltungs-Schritte nein
   await makeAppointment(w.office, w.a.k.id, w.expA.id); // Termin → „Termin vereinbart"
   await changeCaseStatus(w.expA, w.a.k.id, 'INSPECTED');
-  await changeCaseStatus(w.expA, w.a.k.id, 'IN_PROGRESS');
+  await changeCaseStatus(w.expA, w.a.k.id, 'CALCULATION');
+  await changeCaseStatus(w.expA, w.a.k.id, 'REPORT_DRAFT');
   await assert.rejects(changeCaseStatus(w.expA, w.a.k.id, 'CANCELLED', 'will nicht'), ForbiddenError);
-  await changeCaseStatus(w.expA, w.a.k.id, 'REPORT_READY');
-  await assert.rejects(changeCaseStatus(w.expA, w.a.k.id, 'REPORT_SENT'), ForbiddenError, 'Versand ist Büro-Sache');
+  await changeCaseStatus(w.expA, w.a.k.id, 'REVIEW'); // zur Prüfung geben darf der Gutachter
+  await assert.rejects(changeCaseStatus(w.expA, w.a.k.id, 'APPROVED'), ForbiddenError, 'Freigabe ist Sache des Prüfers/der Leitung');
   await addCaseNote(w.expA, w.a.k.id, { body: 'Besichtigt, Heck links' });
   assert.equal((await caseNotes(w.expA, w.a.k.id)).length, 1);
   await assert.rejects(assignExpert(w.expA, w.a.k.id, null), ForbiddenError, 'Zuweisen nur Leitung/Büro');
@@ -140,7 +141,7 @@ test('Globale Suche: gleiche Regeln wie die Seiten, gruppiert nach Fälle/Kunden
   assert.equal(byName.customers.length, 1);
   assert.equal(byName.cases.length, 1);
   assert.equal(byName.leads.length, 0);
-  assert.match(byName.cases[0].href, /^\/admin\/faelle\/ING-\d{4}-\d{6}\/$/);
+  assert.match(byName.cases[0].href, /^\/admin\/faelle\/ING-\d{4}-\d{5}\/$/);
   const plate = await globalSearch(w.office, 'h-cd 222');
   assert.equal(plate.vehicles.length, 1);
   assert.equal(plate.cases.length, 1);

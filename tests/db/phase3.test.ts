@@ -157,7 +157,7 @@ test('Auslieferung: Originalabruf wird protokolliert, Vorschau nicht; signierte 
   assert.equal(t.signedUrl, null);
   assert.equal(await db.auditLog.count({ where: { action: 'media.download' } }), 0, 'Vorschauen fluten das Protokoll nicht');
   const f = await readMedia(w.expA, photo.mediaId, 'full');
-  assert.match(f.fileName, /^ING-\d{4}-\d{6}-foto\.jpg$/);
+  assert.match(f.fileName, /^ING-\d{4}-\d{5}-foto\.jpg$/);
   assert.equal(await db.auditLog.count({ where: { action: 'media.download', actorId: w.eA.id } }), 1);
 });
 

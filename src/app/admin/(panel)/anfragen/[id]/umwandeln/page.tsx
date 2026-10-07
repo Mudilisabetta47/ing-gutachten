@@ -6,6 +6,7 @@ import { orNotFound } from '@/server/admin/safe';
 import { findLeadDuplicates, getLead } from '@/server/pipeline/leads';
 import { customerVehicles } from '@/server/pipeline/customers';
 import { listExperts } from '@/server/pipeline/cases';
+import { caseRefOptions } from '@/server/pipeline/masterdata';
 import { LEAD_CONVERTIBLE, serviceFromReason } from '@/lib/workflow';
 import { splitName } from '@/lib/normalize';
 import { Notice, PageHeader } from '@/components/admin/ui';
@@ -21,7 +22,7 @@ export default async function ConvertPage({ params }: { params: Promise<{ id: st
   if (lead.status === 'CONVERTED') redirect(`/admin/anfragen/${id}/`);
 
   const convertible = LEAD_CONVERTIBLE.includes(lead.status);
-  const [dups, experts] = await Promise.all([findLeadDuplicates(user, id), listExperts(user)]);
+  const [dups, experts, refs] = await Promise.all([findLeadDuplicates(user, id), listExperts(user), caseRefOptions(user)]);
   const existing = await Promise.all(
     dups.customers.map(async (c) => ({
       id: c.id,
@@ -46,6 +47,7 @@ export default async function ConvertPage({ params }: { params: Promise<{ id: st
           existing={existing}
           experts={experts.map((e) => ({ id: e.id, name: `${e.firstName} ${e.lastName}` }))}
           canAssign={user.permissions.has('cases.assign')}
+          refs={refs}
           init={{
             c_firstName: name.firstName, c_lastName: name.lastName, c_email: lead.email ?? '', c_phone: lead.phone ?? '',
             v_licensePlate: lead.licensePlate ?? '', k_serviceType: serviceFromReason(lead.reason), k_inspectionLocation: lead.location ?? '', k_description: lead.message ?? '',

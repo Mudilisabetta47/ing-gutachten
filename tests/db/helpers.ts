@@ -10,12 +10,12 @@ export function assertTestDb(): void {
 export async function resetDb(): Promise<void> {
   assertTestDb();
   await db.$executeRawUnsafe(
-    'TRUNCATE TABLE inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters, ' +
+    'TRUNCATE TABLE organizations, inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters, ' +
       'audit_logs, login_attempts, sessions, user_permissions, employees, system_settings, users RESTART IDENTITY CASCADE',
   );
 }
 
-export async function makeUser(over: Partial<{ email: string; isExpert: boolean; role: 'OWNER' | 'ADMIN' | 'OFFICE' | 'EXPERT' | 'ACCOUNTING' | 'CONTENT_MANAGER'; password: string; isActive: boolean }> = {}) {
+export async function makeUser(over: Partial<{ email: string; isExpert: boolean; role: 'OWNER' | 'ADMIN' | 'OFFICE' | 'EXPERT' | 'ACCOUNTING' | 'CONTENT_MANAGER' | 'REVIEWER'; password: string; isActive: boolean }> = {}) {
   const { hashPassword } = await import('@/server/auth/password');
   const password = over.password ?? 'Sehr-Langes-Testpasswort-1';
   const user = await db.user.create({

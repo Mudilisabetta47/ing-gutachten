@@ -9,7 +9,7 @@ import { revokeAllSessions } from '@/server/auth/session';
 import type { AuthUser } from '@/server/auth/session-types';
 import { normalizeEmail } from '@/server/auth/login';
 
-export const ROLES = ['OWNER', 'ADMIN', 'OFFICE', 'EXPERT', 'ACCOUNTING', 'CONTENT_MANAGER'] as const satisfies readonly Role[];
+export const ROLES = ['OWNER', 'ADMIN', 'OFFICE', 'EXPERT', 'ACCOUNTING', 'REVIEWER', 'CONTENT_MANAGER'] as const satisfies readonly Role[];
 
 export const createUserSchema = z.object({
   email: z.string().trim().toLowerCase().email('Bitte eine gültige E-Mail-Adresse angeben.').max(200),
