@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { motion, useInView, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { useReducedMotion } from '@/components/motion/use-reduced-motion';
 import { useRef, useState } from 'react';
 import { SETTLEMENT_STEPS, SETTLEMENT_VIDEO, SETTLEMENT_WEEKS, VEHICLE_CATEGORIES } from '@/lib/content';
 import { Icon, Arrow } from '@/components/ui/Icon';

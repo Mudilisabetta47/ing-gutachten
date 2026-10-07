@@ -1,6 +1,7 @@
 'use client';
 
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useReducedMotion } from '@/components/motion/use-reduced-motion';
 import { useRef, type ReactNode } from 'react';
 
 /**

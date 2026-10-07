@@ -1,6 +1,7 @@
 'use client';
 
-import { motion, useInView, useReducedMotion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
+import { useReducedMotion } from '@/components/motion/use-reduced-motion';
 import { useRef, useState } from 'react';
 import { SENSOR_POINTS } from '@/lib/content';
 

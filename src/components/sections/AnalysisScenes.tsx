@@ -1,6 +1,7 @@
 'use client';
 
-import { motion, useInView, useReducedMotion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
+import { useReducedMotion } from '@/components/motion/use-reduced-motion';
 import { useRef } from 'react';
 import { DATA_READOUTS, EDR_STEPS } from '@/lib/content';
 

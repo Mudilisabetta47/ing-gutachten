@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion';
+import { useMotionValueEvent, useScroll } from 'framer-motion';
+import { useReducedMotion } from '@/components/motion/use-reduced-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Arrow } from '@/components/ui/Icon';
 import { applyRetreat, retreatT } from '@/components/motion/stage-retreat';
@@ -446,15 +447,9 @@ export function CrashSequence() {
     return () => ro.disconnect();
   }, [render, reduced, scrollYProgress, mobile]);
 
-  const track = reduced ? 'auto' : mobile ? '480vh' : '660vh';
-
   return (
-    <section ref={section} id="kollision" aria-labelledby="crash-h" className="theme-light relative" style={{ height: track }}>
-      <div
-        ref={stage}
-        className={`theme-dark stage-retreat relative overflow-hidden ${reduced ? '' : 'sticky top-0'}`}
-        style={reduced ? { height: 'min(78vh, 680px)' } : { height: '100svh' }}
-      >
+    <section ref={section} id="kollision" aria-labelledby="crash-h" className="theme-light film-track relative">
+      <div ref={stage} className="theme-dark stage-retreat film-stage relative overflow-hidden">
         <svg
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
           className="absolute inset-0 h-full w-full"
@@ -636,11 +631,9 @@ export function CrashSequence() {
         </div>
 
         {/* Hinweis */}
-        {!reduced && (
-          <div className="pointer-events-none absolute bottom-14 left-1/2 hidden -translate-x-1/2 font-mono text-[.58rem] uppercase tracking-[.24em] text-fg-mute/70 sm:block" aria-hidden="true">
-            Scrollen steuert den Film
-          </div>
-        )}
+        <div className="film-hint pointer-events-none absolute bottom-14 left-1/2 hidden -translate-x-1/2 font-mono text-[.58rem] uppercase tracking-[.24em] text-fg-mute/70 sm:block" aria-hidden="true">
+          Scrollen steuert den Film
+        </div>
 
         {/* Screenreader: Inhalt der Szene als Text */}
         <p className="sr-only">
@@ -649,18 +642,16 @@ export function CrashSequence() {
         </p>
       </div>
 
-      {/* Reduced Motion: informativer statischer Zustand mit erreichbarem CTA */}
-      {reduced && (
-        <div className="theme-dark">
-          <div className="shell grid gap-4 py-10">
-            <p className="display text-[clamp(1.8rem,1rem+3vw,3.2rem)] uppercase leading-none tracking-[-.04em]">Aus dem Unfall wird ein Gutachten.</p>
-            <p className="lead">Aufnahme, Messung, Analyse – Beispielwerte, kein realer Fall.</p>
-            <Link href="#anfrage" className="btn w-fit">
-              Schaden melden <Arrow />
-            </Link>
-          </div>
+      {/* Reduced Motion: informativer statischer Zustand mit erreichbarem CTA (per CSS nur dort sichtbar) */}
+      <div className="film-static theme-dark">
+        <div className="shell grid gap-4 py-10">
+          <p className="display text-[clamp(1.8rem,1rem+3vw,3.2rem)] uppercase leading-none tracking-[-.04em]">Aus dem Unfall wird ein Gutachten.</p>
+          <p className="lead">Aufnahme, Messung, Analyse – Beispielwerte, kein realer Fall.</p>
+          <Link href="#anfrage" className="btn w-fit">
+            Schaden melden <Arrow />
+          </Link>
         </div>
-      )}
+      </div>
     </section>
   );
 }

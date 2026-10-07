@@ -557,6 +557,19 @@
   .ablauf-progress { display: block; }
 }
 
+/* Unfall-Film: Scrollstrecke + Sticky-Bühne (Standard) · statischer Zustand bei Reduced Motion.
+   Rein CSS, damit Server-HTML und erster Client-Render identisch sind (keine Hydration-Differenz). */
+.film-track { height: 480vh; }
+.film-stage { position: sticky; top: 0; height: 100svh; }
+.film-static { display: none; }
+@media (min-width: 768px) { .film-track { height: 660vh; } }
+@media (prefers-reduced-motion: reduce) {
+  .film-track { height: auto; }
+  .film-stage { position: relative; height: min(78vh, 680px); }
+  .film-hint { display: none; }
+  .film-static { display: block; }
+}
+
 /* Reduzierte Bewegung: alles bleibt lesbar, nichts bewegt sich. */
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal],
