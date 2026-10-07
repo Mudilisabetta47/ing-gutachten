@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { SplitLines } from '@/components/ui/SplitLines';
+import { Lines } from '@/components/ui/Split';
 
 export type Crumb = { name: string; href: string };
 
@@ -25,7 +25,7 @@ export function PageHero({
               const last = i === trail.length - 1;
               return (
                 <li key={c.href} className="flex items-center gap-2">
-                  {i > 0 && <span className="text-[#3b454f]">/</span>}
+                  {i > 0 && <span className="text-fg-mute/50">/</span>}
                   {last ? (
                     <span aria-current="page">{c.name}</span>
                   ) : (
@@ -40,10 +40,12 @@ export function PageHero({
         </nav>
 
         <p className="eyebrow mt-7">{eyebrow}</p>
-        <h1 className="display my-6 max-w-[20ch] text-h1">
-          <SplitLines lines={[title]} />
+        <h1 className="display my-6 max-w-[18ch] text-h1">
+          <Lines enter lines={[title]} />
         </h1>
-        <p className="lead max-w-[58ch]">{lead}</p>
+        <p className="lead enter-up max-w-[58ch]" style={{ ['--d' as string]: '.5s' }}>
+          {lead}
+        </p>
 
         {chips && chips.length > 0 && (
           <div className="mt-7 flex flex-wrap gap-2">
@@ -51,7 +53,7 @@ export function PageHero({
               <span
                 key={c}
                 className="rounded-full px-[.8rem] py-[.4rem] font-mono text-[.66rem] uppercase tracking-[.14em] text-fg-mute"
-                style={{ boxShadow: 'inset 0 0 0 1px #232b33' }}
+                style={{ boxShadow: 'inset 0 0 0 1px rgb(var(--c-line))' }}
               >
                 {c}
               </span>

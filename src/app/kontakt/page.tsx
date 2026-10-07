@@ -21,7 +21,7 @@ export default function Page() {
     <Landing
       eyebrow="Kontakt & Termin"
       title="Ein Anruf reicht."
-      lead="Rufen Sie an oder stellen Sie die Anfrage in vier Schritten – inklusive Fotoupload. Wir melden uns in der Regel innerhalb weniger Stunden mit einem Terminvorschlag."
+      lead="Rufen Sie an oder stellen Sie die Anfrage in vier Schritten – inklusive Fotoupload. Wir melden uns mit einem Terminvorschlag."
       chips={[BIZ.phoneDisplay, BIZ.mobileDisplay, 'Vor-Ort-Service']}
       trail={[{ name: 'Kontakt', href: '/kontakt' }]}
       related={[
@@ -45,8 +45,7 @@ export default function Page() {
             <div className="grid content-start gap-6">
               <p className="eyebrow">So finden Sie uns</p>
               <p className="lead">
-                Das Büro liegt an der Hildesheimer Straße in Hannover-Döhren – gut erreichbar über die B6 und mit
-                der Stadtbahn. Parkmöglichkeiten sind vorhanden.
+                Das Büro liegt in der Hildesheimer Straße in Hannover.
               </p>
               <p className="text-fg-mute">
                 Für die Begutachtung selbst müssen Sie nicht zu uns kommen: In Hannover und Umgebung sind

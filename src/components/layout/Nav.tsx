@@ -214,7 +214,7 @@ export function Nav() {
 <CallButton variant="nav" />
             <Magnetic strength={0.22} className="hidden sm:inline-block">
               <Link href={ctaHref} className="btn btn-sm">
-                Gutachten anfordern <Arrow />
+                Schaden melden <Arrow />
               </Link>
             </Magnetic>
             <button
@@ -342,7 +342,7 @@ export function Nav() {
               transition={{ delay: 0.5 }}
             >
               <Link href={ctaHref} onClick={() => setOpen(false)} className="btn justify-center">
-                Gutachten anfordern <Arrow />
+                Schaden melden <Arrow />
               </Link>
               <CallButton variant="block" />
               <div className="flex flex-wrap gap-x-6 gap-y-[.4rem] font-mono text-[.78rem] text-fg-mute">

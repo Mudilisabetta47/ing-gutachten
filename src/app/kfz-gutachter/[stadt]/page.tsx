@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Landing } from '@/components/layout/Landing';
 import { TwoCol } from '@/components/sections/TwoCol';
-import { Stats } from '@/components/sections/Stats';
-import { FAQS, REGION_PAGES } from '@/lib/content';
+import { BIZ, FAQS, REGION_PAGES, REGION_PROFILES } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 type Params = { stadt: string };
@@ -16,10 +16,11 @@ export function generateStaticParams(): Params[] {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { stadt } = await params;
   const region = REGION_PAGES.find((r) => r.slug === stadt);
-  if (!region) return {};
+  const profile = REGION_PROFILES[stadt];
+  if (!region || !profile) return {};
   return buildMetadata({
-    title: `Kfz-Gutachter ${region.name} | Unfallgutachten & Kfz-Sachverständiger`,
-    description: `Kfz-Gutachter für ${region.name}: unabhängige Unfallgutachten, Schadengutachten und Wertgutachten mit Vor-Ort-Service. Termin in 24–48 Stunden. ☎ 0511 543 00 976`,
+    title: `Kfz-Gutachter ${region.name} | Unfallgutachten`,
+    description: `Kfz-Gutachter für ${profile.areas.slice(0, 3).join(', ')}: Besichtigung vor Ort, Unfall- und Schadengutachten. Schaden melden oder anrufen: ${BIZ.phoneDisplay}.`,
     path: `/kfz-gutachter/${region.slug}`,
   });
 }
@@ -27,59 +28,57 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 export default async function Page({ params }: { params: Promise<Params> }) {
   const { stadt } = await params;
   const region = REGION_PAGES.find((r) => r.slug === stadt);
-  if (!region) notFound();
+  const profile = REGION_PROFILES[stadt];
+  if (!region || !profile) notFound();
 
-  const others = REGION_PAGES.filter((r) => r.slug !== region.slug).slice(0, 3);
+  const neighbours = profile.near
+    .map((slug) => REGION_PAGES.find((r) => r.slug === slug))
+    .filter((r): r is NonNullable<typeof r> => Boolean(r));
 
   return (
     <Landing
-      eyebrow={`Standort · ${region.name}`}
+      eyebrow={`Vor Ort · ${region.name}`}
       title={`Kfz-Gutachter ${region.name}`}
-      lead={`Unabhängige Kfz-Gutachten in ${region.name} und der Region Hannover – mit Vor-Ort-Besichtigung und kurzfristiger Terminvergabe.`}
-      chips={['Unfallgutachten', 'Wertgutachten', 'Vor-Ort-Service', '24–48 h Termin']}
+      lead={`Unabhängige Kfz-Gutachten für ${region.name}: Wir besichtigen das Fahrzeug dort, wo es steht.`}
+      chips={profile.areas}
       trail={[
-        { name: 'Einsatzgebiet', href: '/einsatzgebiet' },
+        { name: 'Kfz-Gutachter Hannover', href: '/kfz-gutachter-hannover' },
         { name: `Kfz-Gutachter ${region.name}`, href: `/kfz-gutachter/${region.slug}` },
       ]}
-      faqs={[FAQS[0], FAQS[1], FAQS[2], FAQS[6]]}
-      related={others.map((o) => ({
-        title: `Kfz-Gutachter ${o.name}`,
-        text: o.note,
-        href: `/kfz-gutachter/${o.slug}`,
-      }))}
+      faqs={[FAQS[0], FAQS[1], FAQS[2]]}
+      related={[
+        { title: 'Kfz-Gutachter Hannover', text: 'Unser Büro und das gesamte Einsatzgebiet.', href: '/kfz-gutachter-hannover' },
+        ...neighbours.map((o) => ({ title: `Kfz-Gutachter ${o.name}`, text: o.note, href: `/kfz-gutachter/${o.slug}` })),
+        { title: 'Unfallgutachten', text: 'Beweissichere Dokumentation nach dem Unfall.', href: '/unfallgutachten' },
+      ]}
     >
       <TwoCol
-        eyebrow={`Vor Ort in ${region.name}`}
-        heading={`Kfz-Gutachten in ${region.name} – ohne Umwege.`}
-        asideTitle={`Leistungen in ${region.name}`}
-        asideItems={[
-          'Unfall- und Schadengutachten',
-          'Wertgutachten und Fahrzeugbewertung',
-          'Kostenvoranschlag bei kleineren Schäden',
-          'Elektro-, Hybrid- und Nutzfahrzeuge',
-          'Motorrad und Oldtimer',
-          'Achs- und Karosserievermessung',
-        ]}
+        eyebrow={`Einsatzgebiet ${region.name}`}
+        heading={`Gutachten in ${region.name}.`}
+        asideTitle="Abgedeckte Gebiete"
+        asideItems={profile.areas}
         icon="pin"
       >
         <p>
-          Als unabhängiges Kfz-Sachverständigenbüro aus Hannover sind wir regelmäßig in {region.name} im Einsatz.{' '}
-          {region.note} Wir kommen zum Fahrzeug: nach Hause, in die Werkstatt, auf den Betriebshof oder an den
-          Unfallort – die Anfahrt innerhalb des Einsatzgebiets berechnen wir nicht extra.
+          {profile.where} {region.note}
         </p>
         <p>
-          Nach einem unverschuldeten Unfall wählen Sie den Sachverständigen selbst. Die Kosten des Gutachtens
-          trägt bei Haftpflichtschäden die gegnerische Versicherung. Wir dokumentieren den Schaden beweissicher,
-          beziffern Wertminderung und Nutzungsausfall und übermitteln das Gutachten auf Wunsch direkt an
-          Versicherung und Anwalt.
+          Besichtigt wird, wo das Fahrzeug steht: {profile.places}. Nach einem unverschuldeten Unfall wählen Sie den
+          Sachverständigen selbst; mehr dazu in den{' '}
+          <Link href="/faq" className="text-signal-bright underline underline-offset-4">
+            häufigen Fragen
+          </Link>
+          .
         </p>
         <p>
-          Für kleinere Schäden in {region.name} erstellen wir einen Kostenvoranschlag – schneller und günstiger
-          als ein vollständiges Gutachten. Was in Ihrem Fall sinnvoll ist, klären wir vorab am Telefon.
+          Unser Büro finden Sie in der {BIZ.street}, {BIZ.zip} {BIZ.city}. Alle Leistungen und den Ablauf erklären wir
+          auf der Seite{' '}
+          <Link href="/kfz-gutachter-hannover" className="text-signal-bright underline underline-offset-4">
+            Kfz-Gutachter Hannover
+          </Link>
+          .
         </p>
       </TwoCol>
-
-      <Stats />
     </Landing>
   );
 }

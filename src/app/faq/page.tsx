@@ -33,10 +33,9 @@ export default function Page() {
         asideItems={[
           'Sachverständigen wählen Sie selbst',
           'Kosten trägt bei Haftpflichtschäden die Gegenseite',
-          'Termin meist in 24–48 Stunden',
-          'Gutachten in 1–2 Werktagen',
-          'Bagatellgrenze bei rund 750–1.000 Euro',
-          'Vor-Ort-Service ohne Anfahrtskosten',
+          'Termin nach Absprache',
+          'Bei sehr kleinen Schäden reicht oft ein Kostenvoranschlag',
+          'Vor-Ort-Service in Hannover und Umgebung',
         ]}
         icon="doc"
       >
@@ -46,8 +45,8 @@ export default function Page() {
           einhält, verliert später keine Ansprüche.
         </p>
         <p>
-          Alles Weitere steht unten. Wenn Ihre Frage nicht dabei ist, rufen Sie an – eine kurze Einschätzung am
-          Telefon kostet nichts.
+          Alles Weitere steht unten. Wenn Ihre Frage nicht dabei ist, rufen Sie an – wir geben Ihnen gern eine kurze Einschätzung am
+          Telefon.
         </p>
       </TwoCol>
     </Landing>

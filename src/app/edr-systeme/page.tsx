@@ -28,7 +28,7 @@ export default function Page() {
         { name: 'EDR-Systeme', href: '/edr-systeme' },
       ]}
       service={{ name: 'Auswertung ereignisbezogener Fahrzeugdaten', description: DESCRIPTION, path: '/edr-systeme' }}
-      faqs={[FAQS[7], FAQS[0], FAQS[5]]}
+      faqs={[FAQS[7], FAQS[3], FAQS[4]]}
       related={[
         { title: 'Unfallanalyse', text: 'Technische Auswertung von Schadenbild und Fahrzeugzustand.', href: '/unfallanalyse' },
         { title: 'Unfallrekonstruktion', text: 'Rekonstruktion des Ablaufs aus Positionen und Vektoren.', href: '/unfallrekonstruktion' },

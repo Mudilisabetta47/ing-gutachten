@@ -25,7 +25,7 @@ export default function Page() {
         { name: 'Motorrad', href: '/motorrad-gutachten' },
       ]}
       service={{ name: 'Motorrad-Gutachten', description: DESCRIPTION, path: '/motorrad-gutachten' }}
-      faqs={[FAQS[2], FAQS[4], FAQS[6]]}
+      faqs={[FAQS[2], FAQS[5], FAQS[6]]}
       related={[
         { title: 'PKW-Gutachten', text: 'Schadenaufnahme und Kalkulation für Pkw und Transporter.', href: '/pkw-gutachten' },
         { title: 'Wertgutachten', text: 'Marktwert für Verkauf oder Versicherung.', href: '/wertgutachten' },

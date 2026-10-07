@@ -11,7 +11,7 @@ import { buildMetadata } from '@/lib/seo';
 export const metadata: Metadata = buildMetadata({
   title: 'Ablauf der Schadenabwicklung | Kfz-Gutachten Hannover',
   description:
-    'So läuft die Schadenabwicklung mit ING Gutachten in Hannover: Kontakt, Vor-Ort-Besichtigung, Gutachtenerstellung, Übermittlung an Versicherung und Anwalt, Regulierung. Fünf Schritte, klar erklärt.',
+    'So läuft die Schadenabwicklung mit ING Gutachten in Hannover: Anfrage, Vor-Ort-Besichtigung, Gutachten, Regulierung. Vier Schritte, klar erklärt.',
   path: '/ablauf',
 });
 
@@ -19,11 +19,11 @@ export default function Page() {
   return (
     <Landing
       eyebrow="Ablauf"
-      title="Fünf Schritte. Kein Papierkrieg."
-      lead="Von der ersten Nachricht bis zur Auszahlung: Hier steht, was wann passiert, wie lange es dauert und was Sie dafür tun müssen – nämlich sehr wenig."
-      chips={['Termin in 24–48 h', 'Gutachten in 1–2 Werktagen', 'Vor-Ort-Service']}
+      title="Vier Schritte. Kein Papierkrieg."
+      lead="Von der ersten Nachricht bis zur Auszahlung: Hier steht, was wann passiert und was Sie dafür tun müssen – nämlich wenig."
+      chips={['Vier Schritte', 'Vor-Ort-Service', 'Begleitung bis zur Regulierung']}
       trail={[{ name: 'Ablauf', href: '/ablauf' }]}
-      faqs={[FAQS[2], FAQS[3], FAQS[9]]}
+      faqs={[FAQS[2], FAQS[10], FAQS[9]]}
       related={[
         { title: 'Unfallgutachten', text: 'Rechte, Fristen und Positionen im Detail.', href: '/unfallgutachten' },
         { title: 'FAQ', text: 'Antworten auf die häufigsten Fragen.', href: '/faq' },
@@ -98,8 +98,8 @@ export default function Page() {
             </Reveal>
             <Reveal delay={0.08}>
               <p className="lead">
-                Je nach Einzelfall und Versicherung kann die Schadenregulierung mehrere Wochen dauern. Ein
-                Bearbeitungszeitraum von rund vier Wochen ist nicht ungewöhnlich.
+                Je nach Einzelfall und Versicherung kann die Schadenregulierung mehrere Wochen dauern. Der
+                Zeitraum hängt vom Versicherer ab und lässt sich nicht zusichern.
               </p>
             </Reveal>
           </div>
@@ -145,8 +145,7 @@ export default function Page() {
           reparieren lassen, ein Ersatzfahrzeug beschaffen oder auf Gutachtenbasis abrechnen.
         </p>
         <p>
-          Kürzt die Versicherung Positionen, nehmen wir dazu fachlich Stellung. Das ist Teil des Auftrags und
-          kostet Sie nichts extra.
+          Kürzt die Versicherung Positionen, nehmen wir dazu fachlich Stellung. Das ist Teil unserer Begleitung bis zur Regulierung.
         </p>
       </TwoCol>
     </Landing>

@@ -29,7 +29,7 @@ export default function Page() {
         { name: 'Unfallanalyse', href: '/unfallanalyse' },
       ]}
       service={{ name: 'Unfallanalyse', description: DESCRIPTION, path: '/unfallanalyse' }}
-      faqs={[FAQS[0], FAQS[9], FAQS[5]]}
+      faqs={[FAQS[3], FAQS[9], FAQS[4]]}
       related={[
         { title: 'EDR-Systeme', text: 'Ereignisbezogene Fahrzeugdaten und ihre Grenzen.', href: '/edr-systeme' },
         { title: 'Unfallrekonstruktion', text: 'Rekonstruktion des Ablaufs aus Positionen und Vektoren.', href: '/unfallrekonstruktion' },

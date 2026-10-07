@@ -39,7 +39,7 @@ export default function Page() {
         { name: 'PKW-Gutachten', href: '/pkw-gutachten' },
       ]}
       service={{ name: 'PKW-Gutachten', description: DESCRIPTION, path: '/pkw-gutachten' }}
-      faqs={[FAQS[5], FAQS[1], FAQS[4], FAQS[8]]}
+      faqs={[FAQS[4], FAQS[1], FAQS[5], FAQS[8]]}
       related={[
         { title: 'Unfallgutachten', text: 'Rechte, Fristen und Positionen nach dem Unfall.', href: '/unfallgutachten' },
         { title: 'Unfallanalyse', text: 'Technische Auswertung von Schadenbild und Fahrzeugdaten.', href: '/unfallanalyse' },

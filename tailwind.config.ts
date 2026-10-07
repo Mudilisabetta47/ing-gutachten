@@ -5,18 +5,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: { 900: '#08090b', 850: '#0b0d10', 800: '#0e1116', 700: '#13181e', 600: '#1a2027' },
-        line: { DEFAULT: '#232b33', soft: 'rgba(255,255,255,.075)' },
-        fg: { DEFAULT: '#edf1f4', dim: '#c3ccd4', mute: '#8b98a4' },
-        signal: {
-          DEFAULT: '#1f6fe0',   // Flaechen: weisser Text erreicht darauf 5.1:1
-          bright: '#6ba8ff',    // Linien und Text auf Graphit: 7.9:1
-          pale: '#bcd9ff',
-          soft: 'rgba(31,111,224,.16)',
-          line: 'rgba(107,168,255,.42)',
+        /* Farb-Tokens laufen über CSS-Variablen (globals.css), damit helle
+           Sektionen (.theme-light) dieselben Utilities ohne Umbau nutzen. */
+        ink: {
+          900: 'rgb(var(--c-ink-900) / <alpha-value>)',
+          850: 'rgb(var(--c-ink-850) / <alpha-value>)',
+          800: 'rgb(var(--c-ink-800) / <alpha-value>)',
+          700: 'rgb(var(--c-ink-700) / <alpha-value>)',
+          600: 'rgb(var(--c-ink-600) / <alpha-value>)',
         },
-        measure: { DEFAULT: '#7fa6c0', soft: 'rgba(127,166,192,.18)' },
-        danger: '#ff6a5e',
+        line: { DEFAULT: 'rgb(var(--c-line) / <alpha-value>)', soft: 'var(--c-line-soft)' },
+        fg: {
+          DEFAULT: 'rgb(var(--c-fg) / <alpha-value>)',
+          dim: 'rgb(var(--c-fg-dim) / <alpha-value>)',
+          mute: 'rgb(var(--c-fg-mute) / <alpha-value>)',
+        },
+        signal: {
+          DEFAULT: 'rgb(var(--c-signal) / <alpha-value>)',
+          bright: 'rgb(var(--c-signal-bright) / <alpha-value>)',
+          pale: '#bcd9ff',
+          soft: 'var(--c-signal-soft)',
+          line: 'var(--c-signal-line)',
+        },
+        measure: { DEFAULT: 'rgb(var(--c-measure) / <alpha-value>)', soft: 'rgba(127,166,192,.18)' },
+        danger: 'rgb(var(--c-danger) / <alpha-value>)',
         ok: '#5fd6a4',
       },
       fontFamily: {

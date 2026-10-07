@@ -42,13 +42,13 @@ export default function Page() {
     <Landing
       eyebrow="Leistungsübersicht"
       title="Alle Gutachten aus einer Hand."
-      lead="Ob Unfallschaden, Wertermittlung oder Kostenvoranschlag: Wir begutachten jedes Fahrzeug nach derselben Systematik – vollständig dokumentiert, unabhängig kalkuliert und kurzfristig verfügbar."
+      lead="Ob Unfallschaden, Wertermittlung oder Kostenvoranschlag: Wir begutachten jedes Fahrzeug nach derselben Systematik – vollständig dokumentiert, unabhängig kalkuliert und mit Vor-Ort-Service."
       chips={['PKW & Transporter', 'LKW & Nutzfahrzeuge', 'Elektro & Hybrid', 'Motorrad', 'Oldtimer']}
       trail={[{ name: 'Leistungen', href: '/leistungen' }]}
       related={[
         { title: 'Unfallgutachten', text: 'Nach dem unverschuldeten Unfall: beweissichere Dokumentation für die gegnerische Versicherung.', href: '/unfallgutachten' },
         { title: 'Wertgutachten', text: 'Marktwert und Wiederbeschaffungswert belastbar ermittelt.', href: '/wertgutachten' },
-        { title: 'Ablauf', text: 'Fünf Schritte von der Anfrage bis zur Regulierung.', href: '/ablauf' },
+        { title: 'Ablauf', text: 'Vier Schritte von der Anfrage bis zur Regulierung.', href: '/ablauf' },
       ]}
     >
       <section className="section">

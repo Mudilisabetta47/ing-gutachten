@@ -1,48 +1,28 @@
 import type { MetadataRoute } from 'next';
-import { REGION_PAGES, SERVICES, SITE_URL } from '@/lib/content';
+import { REGION_PAGES, SERVICE_PAGES } from '@/lib/content';
+import { absoluteUrl } from '@/lib/seo';
 
-export const dynamic = 'force-static';
-
-/** Nur indexierbare Seiten – Impressum und Datenschutz sind noindex. */
+/** Nur indexierbare Seiten – Impressum/Datenschutz (noindex) und APIs fehlen bewusst. */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-  const staticPaths: { path: string; priority: number; changeFrequency: 'weekly' | 'monthly' }[] = [
+  const entries: { path: string; priority: number; changeFrequency: 'weekly' | 'monthly' }[] = [
     { path: '/', priority: 1, changeFrequency: 'weekly' },
-    { path: '/schadensgutachten', priority: 0.95, changeFrequency: 'monthly' },
+    { path: '/kfz-gutachter-hannover', priority: 0.95, changeFrequency: 'monthly' },
     { path: '/leistungen', priority: 0.9, changeFrequency: 'monthly' },
-    { path: '/pkw-gutachten', priority: 0.9, changeFrequency: 'monthly' },
-    { path: '/unfallanalyse', priority: 0.85, changeFrequency: 'monthly' },
-    { path: '/unfallrekonstruktion', priority: 0.8, changeFrequency: 'monthly' },
-    { path: '/edr-systeme', priority: 0.8, changeFrequency: 'monthly' },
-    { path: '/wertgutachten', priority: 0.9, changeFrequency: 'monthly' },
-    { path: '/ablauf', priority: 0.8, changeFrequency: 'monthly' },
-    { path: '/einsatzgebiet', priority: 0.8, changeFrequency: 'monthly' },
-    { path: '/ueber-uns', priority: 0.7, changeFrequency: 'monthly' },
-    { path: '/faq', priority: 0.7, changeFrequency: 'monthly' },
+    ...SERVICE_PAGES.map((s) => ({ path: s.href, priority: 0.85, changeFrequency: 'monthly' as const })),
+    { path: '/ablauf', priority: 0.7, changeFrequency: 'monthly' },
+    { path: '/einsatzgebiet', priority: 0.7, changeFrequency: 'monthly' },
+    ...REGION_PAGES.map((r) => ({ path: `/kfz-gutachter/${r.slug}`, priority: 0.6, changeFrequency: 'monthly' as const })),
+    { path: '/ueber-uns', priority: 0.6, changeFrequency: 'monthly' },
+    { path: '/faq', priority: 0.6, changeFrequency: 'monthly' },
     { path: '/kontakt', priority: 0.9, changeFrequency: 'monthly' },
   ];
 
-  const servicePaths = SERVICES.map((s) => ({
-    path: s.href,
-    priority: 0.85,
-    changeFrequency: 'monthly' as const,
-  }));
-
-  const regionPaths = REGION_PAGES.map((r) => ({
-    path: `/kfz-gutachter/${r.slug}`,
-    priority: 0.7,
-    changeFrequency: 'monthly' as const,
-  }));
-
-  const all = [...staticPaths, ...servicePaths, ...regionPaths];
   const seen = new Set<string>();
-
-  return all
-    .filter((entry) => (seen.has(entry.path) ? false : seen.add(entry.path)))
-    .map((entry) => ({
-      url: entry.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${entry.path}/`,
-      lastModified: now,
-      changeFrequency: entry.changeFrequency,
-      priority: entry.priority,
+  return entries
+    .filter((e) => (seen.has(e.path) ? false : (seen.add(e.path), true)))
+    .map((e) => ({
+      url: absoluteUrl(e.path),
+      changeFrequency: e.changeFrequency,
+      priority: e.priority,
     }));
 }

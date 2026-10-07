@@ -1,46 +1,33 @@
 import { BIZ } from '@/lib/content';
 import { RequestForm } from '@/components/form/RequestForm';
 import { Reveal } from '@/components/ui/Reveal';
-import { Slug } from '@/components/ui/Slug';
+import { SplitWords } from '@/components/ui/Split';
 
-export function RequestSection() {
+export function RequestSection({ title = 'Schaden melden.' }: { title?: string }) {
   return (
-    <section className="section border-y border-line bg-ink-850" id="anfrage" aria-labelledby="req-h">
-      <div className="shell">
-        <Slug left="Anfrage" right="4 Schritte · ca. 2 Minuten" />
-        <div className="grid gap-[clamp(2rem,5vw,5rem)] lg:grid-cols-[.85fr_1.15fr]">
-          <div className="grid content-start gap-6">
-            <p className="eyebrow">Gutachten anfordern</p>
-            <Reveal>
-              <h2 id="req-h" className="display text-[clamp(1.9rem,4.4vw,3.4rem)]">
-                Vier Fragen.
-                <br />
-                Dann kümmern wir uns.
-              </h2>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <p className="lead">
-                Kein Formularmarathon: Anlass, Fahrzeug, optional Fotos, Kontakt. Den Rest klären wir am Telefon.
-              </p>
-            </Reveal>
-            <div className="card mt-4">
-              <p className="eyebrow eyebrow-plain">Lieber direkt sprechen?</p>
-              <p className="font-display text-[1.35rem] tracking-[-.02em]">
-                <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal-bright">
-                  {BIZ.phoneDisplay}
-                </a>
-              </p>
-              <p className="text-[.9rem] text-fg-mute">
-                Mobil{' '}
-                <a href={`tel:${BIZ.mobileLink}`} className="transition-colors hover:text-signal-bright">
-                  {BIZ.mobileDisplay}
-                </a>{' '}
-                · {BIZ.hours}
-              </p>
-            </div>
-          </div>
-          <RequestForm />
+    <section className="theme-dark section cta-bg relative scroll-mt-16 overflow-hidden border-t border-line bg-ink-850" id="anfrage" aria-labelledby="req-h">
+      <div className="shell grid gap-[clamp(2rem,5vw,6rem)] lg:grid-cols-[.8fr_1.2fr]">
+        <div className="grid content-start gap-6">
+          <p className="eyebrow">Anfrage · 4 Schritte</p>
+          <h2 id="req-h" className="display text-[clamp(2.6rem,1.2rem+6vw,6.5rem)] uppercase leading-[.9] tracking-[-.045em]">
+            <SplitWords text={title} />
+          </h2>
+          <Reveal delay={0.1}>
+            <p className="lead">Kurz ausfüllen. Wir melden uns.</p>
+          </Reveal>
+          <Reveal delay={0.16} className="grid gap-1">
+            <span className="mono-label text-fg-mute">Lieber direkt?</span>
+            <a href={`tel:${BIZ.phoneLink}`} className="display text-[clamp(1.6rem,1rem+2vw,2.6rem)] tracking-[-.03em] transition-colors hover:text-signal-bright">
+              {BIZ.phoneDisplay}
+            </a>
+            <a href={`tel:${BIZ.mobileLink}`} className="text-fg-dim transition-colors hover:text-signal-bright">
+              Mobil {BIZ.mobileDisplay}
+            </a>
+          </Reveal>
         </div>
+        <Reveal variant="up">
+          <RequestForm />
+        </Reveal>
       </div>
     </section>
   );

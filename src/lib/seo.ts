@@ -1,5 +1,13 @@
 import type { Metadata } from 'next';
-import { BIZ, FAQS, REGIONS, SERVICES, SITE_URL, type Faq } from './content';
+import { BIZ, BIZ_VERIFIED, FAQS, GOOGLE_PROFILE_URL, REGION_PAGES, SERVICE_PAGES, SITE_URL, type Faq } from './content';
+import { IS_PREVIEW } from './site';
+
+export const OG_IMAGE = '/assets/img/og-ing-gutachten.png';
+
+/** Absolute URL einer Seite – immer auf der konfigurierten Produktivdomain, mit Trailing Slash. */
+export function absoluteUrl(path: string): string {
+  return path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path.replace(/\/+$/, '')}/`;
+}
 
 /** Baut die Standard-Metadaten einer Seite inkl. Canonical und Open Graph. */
 export function buildMetadata(opts: {
@@ -7,29 +15,33 @@ export function buildMetadata(opts: {
   description: string;
   path: string;
   noindex?: boolean;
+  /** true = Titel steht komplett für sich, ohne „| ING Gutachten“-Suffix. */
+  absoluteTitle?: boolean;
 }): Metadata {
-  const url = opts.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${opts.path}/`;
+  const url = absoluteUrl(opts.path);
+  const index = !opts.noindex && !IS_PREVIEW;
+  const fullTitle = opts.absoluteTitle ? opts.title : `${opts.title} | ING Gutachten`;
   return {
-    title: opts.title,
+    title: opts.absoluteTitle ? { absolute: opts.title } : opts.title,
     description: opts.description,
     alternates: { canonical: url },
-    robots: opts.noindex
-      ? { index: false, follow: true }
-      : { index: true, follow: true, 'max-image-preview': 'large' },
+    robots: index
+      ? { index: true, follow: true, 'max-image-preview': 'large' }
+      : { index: false, follow: true },
     openGraph: {
       type: 'website',
       locale: 'de_DE',
       siteName: 'ING Gutachten',
-      title: opts.title,
+      title: fullTitle,
       description: opts.description,
       url,
-      images: [{ url: '/assets/img/og-ing-gutachten.jpg', width: 1200, height: 630, alt: 'ING Gutachten – Kfz-Sachverständigenbüro Hannover' }],
+      images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: 'ING Gutachten – Kfz-Sachverständigenbüro Hannover' }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: opts.title,
+      title: fullTitle,
       description: opts.description,
-      images: ['/assets/img/og-ing-gutachten.jpg'],
+      images: [OG_IMAGE],
     },
   };
 }
@@ -37,7 +49,7 @@ export function buildMetadata(opts: {
 export function localBusinessSchema() {
   return {
     '@context': 'https://schema.org',
-    '@type': ['AutomotiveBusiness', 'ProfessionalService', 'LocalBusiness'],
+    '@type': ['ProfessionalService', 'LocalBusiness'],
     '@id': `${SITE_URL}/#business`,
     name: BIZ.name,
     alternateName: 'ING Gutachten',
@@ -45,9 +57,10 @@ export function localBusinessSchema() {
       'Unabhängiges Kfz-Sachverständigenbüro in Hannover: Unfallgutachten, Schadengutachten, Wertgutachten und Kostenvoranschläge für PKW, LKW, Elektro- und Hybridfahrzeuge, Motorräder und Oldtimer. Vor-Ort-Service in Hannover und Umgebung.',
     url: `${SITE_URL}/`,
     telephone: '+49 511 54300976',
-    email: BIZ.email,
-    image: `${SITE_URL}/assets/img/og-ing-gutachten.jpg`,
-    priceRange: '$$',
+    // Nur ausgeben, was verifiziert ist (siehe BIZ_VERIFIED in content.ts).
+    ...(BIZ_VERIFIED.email ? { email: BIZ.email } : {}),
+    image: `${SITE_URL}${OG_IMAGE}`,
+    logo: `${SITE_URL}/assets/img/logo.svg`,
     address: {
       '@type': 'PostalAddress',
       streetAddress: BIZ.street,
@@ -56,16 +69,19 @@ export function localBusinessSchema() {
       addressRegion: 'Niedersachsen',
       addressCountry: 'DE',
     },
-    geo: { '@type': 'GeoCoordinates', latitude: BIZ.lat, longitude: BIZ.lng },
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        opens: '08:00',
-        closes: '18:00',
-      },
+    ...(BIZ_VERIFIED.geo ? { geo: { '@type': 'GeoCoordinates', latitude: BIZ.lat, longitude: BIZ.lng } } : {}),
+    ...(BIZ_VERIFIED.hours
+      ? {
+          openingHoursSpecification: [
+            { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:00', closes: '18:00' },
+          ],
+        }
+      : {}),
+    ...(GOOGLE_PROFILE_URL ? { sameAs: [GOOGLE_PROFILE_URL], hasMap: GOOGLE_PROFILE_URL } : {}),
+    areaServed: [
+      { '@type': 'City', name: 'Hannover' },
+      ...REGION_PAGES.map((r) => ({ '@type': 'City', name: r.name })),
     ],
-    areaServed: REGIONS.map((r) => ({ '@type': 'City', name: r.name.split(' /')[0] })),
     knowsAbout: [
       'Unfallgutachten', 'Schadengutachten', 'Wertgutachten', 'Achsvermessung',
       'Karosserievermessung', 'Restwertermittlung', 'Wertminderung', 'Nutzungsausfall',
@@ -73,9 +89,9 @@ export function localBusinessSchema() {
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: 'Kfz-Gutachten',
-      itemListElement: SERVICES.map((s) => ({
+      itemListElement: SERVICE_PAGES.map((s) => ({
         '@type': 'Offer',
-        itemOffered: { '@type': 'Service', name: s.title, url: `${SITE_URL}${s.href}/` },
+        itemOffered: { '@type': 'Service', name: s.title, url: absoluteUrl(s.href) },
       })),
     },
   };
@@ -101,7 +117,7 @@ export function breadcrumbSchema(trail: { name: string; href: string }[]) {
       '@type': 'ListItem',
       position: i + 1,
       name: t.name,
-      item: `${SITE_URL}${t.href === '/' ? '/' : `${t.href}/`}`,
+      item: absoluteUrl(t.href),
     })),
   };
 }
@@ -113,7 +129,7 @@ export function serviceSchema(name: string, description: string, path: string) {
     name,
     serviceType: name,
     description,
-    url: `${SITE_URL}${path}/`,
+    url: absoluteUrl(path),
     provider: { '@id': `${SITE_URL}/#business` },
     areaServed: { '@type': 'City', name: 'Hannover' },
     audience: { '@type': 'Audience', audienceType: 'Fahrzeughalter, Geschädigte, Anwälte, Versicherungen' },
@@ -124,8 +140,10 @@ export function websiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
     name: 'ING Gutachten',
     url: `${SITE_URL}/`,
     inLanguage: 'de-DE',
+    publisher: { '@id': `${SITE_URL}/#business` },
   };
 }

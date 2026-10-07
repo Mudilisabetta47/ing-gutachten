@@ -24,7 +24,7 @@ export function FlowTimeline({ withHeading = true }: { withHeading?: boolean }) 
       <div className="shell">
         {withHeading ? (
           <>
-            <Slug left="Ablauf" right="05 Stationen" />
+            <Slug left="Ablauf" right="04 Schritte" />
             <div className="mb-[clamp(2.5rem,6vw,4.5rem)] grid max-w-4xl gap-[1.1rem]">
               <p className="eyebrow">So funktioniert es</p>
               <Reveal>
@@ -36,8 +36,7 @@ export function FlowTimeline({ withHeading = true }: { withHeading?: boolean }) 
               </Reveal>
               <Reveal delay={0.08}>
                 <p className="lead">
-                  Sie müssen nichts vorbereiten und keine Formulare ausfüllen. Wir übernehmen den technischen
-                  Teil – Sie behalten die Entscheidung.
+                  Wir übernehmen den technischen Teil – Sie behalten die Entscheidung.
                 </p>
               </Reveal>
             </div>
@@ -79,7 +78,7 @@ function Step({ step, flip }: { step: (typeof FLOW_STEPS)[number]; flip: boolean
       style={{ opacity }}
     >
       <span className="absolute left-0 top-[.2rem] z-[2] grid h-10 w-10 place-items-center rounded-full bg-ink-900 font-mono text-[.72rem] text-fg-mute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2"
-        style={{ boxShadow: 'inset 0 0 0 1px #232b33' }}
+        style={{ boxShadow: 'inset 0 0 0 1px rgb(var(--c-line))' }}
       >
         {step.num}
       </span>
@@ -89,14 +88,6 @@ function Step({ step, flip }: { step: (typeof FLOW_STEPS)[number]; flip: boolean
         <p className="max-w-[44ch] text-[.98rem] text-fg-dim">{step.text}</p>
       </div>
 
-      <div
-        className={`hidden font-mono text-[.7rem] uppercase tracking-[.18em] text-fg-mute lg:block ${
-          flip ? 'lg:col-start-1 lg:row-start-1 lg:text-right' : ''
-        }`}
-      >
-        <b className="mb-[.2rem] block font-display text-[1.6rem] tracking-[-.02em] text-measure">{step.when}</b>
-        {step.duration}
-      </div>
     </motion.article>
   );
 }

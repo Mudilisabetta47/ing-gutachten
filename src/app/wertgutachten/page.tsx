@@ -25,7 +25,7 @@ export default function Page() {
         { name: 'Wertgutachten', href: '/wertgutachten' },
       ]}
       service={{ name: 'Wertgutachten', description: DESCRIPTION, path: '/wertgutachten' }}
-      faqs={[FAQS[8], FAQS[2], FAQS[3]]}
+      faqs={[FAQS[8], FAQS[2], FAQS[10]]}
       related={[
         { title: 'Oldtimer-Gutachten', text: 'Zustandsnote und Marktwert für Klassiker.', href: '/oldtimer-gutachten' },
         { title: 'Unfallgutachten', text: 'Nach einem Schaden statt vor dem Verkauf.', href: '/unfallgutachten' },

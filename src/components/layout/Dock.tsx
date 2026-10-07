@@ -38,7 +38,7 @@ export function Dock() {
         href={pathname === '/' ? '#anfrage' : '/kontakt#anfrage'}
         className="btn btn-sm justify-center py-[.85rem]"
       >
-        Gutachten anfordern
+        Schaden melden
       </Link>
     </div>
   );

@@ -8,6 +8,8 @@ import { Dock } from '@/components/layout/Dock';
 import { CookieNotice } from '@/components/layout/CookieNotice';
 import { SmoothScroll } from '@/components/layout/SmoothScroll';
 import { CustomCursor } from '@/components/layout/CustomCursor';
+import { RevealObserver } from '@/components/layout/RevealObserver';
+import { ScrollProgress } from '@/components/layout/ScrollProgress';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { localBusinessSchema } from '@/lib/seo';
 import { SITE_URL } from '@/lib/content';
@@ -38,7 +40,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="de" className={`${archivo.variable} ${manrope.variable} ${mono.variable}`}>
+    <html lang="de" className={`${archivo.variable} ${manrope.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Schaltet die CSS-Reveals erst ein, wenn JavaScript läuft – ohne JS bleibt alles sichtbar. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
+      </head>
       <body>
         <JsonLd data={localBusinessSchema()} />
         <a
@@ -48,6 +54,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Zum Inhalt springen
         </a>
         <SmoothScroll />
+        <RevealObserver />
+        <ScrollProgress />
         <CustomCursor />
         <Nav />
         <main id="main">{children}</main>

@@ -1,48 +1,35 @@
-'use client';
+import type { CSSProperties, ElementType, ReactNode } from 'react';
 
-import { motion, useReducedMotion } from 'framer-motion';
-import type { ReactNode } from 'react';
+export type RevealVariant = 'up' | 'left' | 'right' | 'blur' | 'scale' | 'clip' | 'clip-x' | 'fade' | 'mask' | 'mask-fast' | 'soft' | 'line';
 
-type Direction = 'up' | 'left' | 'right' | 'scale';
-
-const OFFSETS: Record<Direction, { x?: number; y?: number; scale?: number }> = {
-  up: { y: 26 },
-  left: { x: -34 },
-  right: { x: 34 },
-  scale: { scale: 0.94 },
-};
+/** Rückwärtskompatibel: frühere Richtungen werden auf Varianten abgebildet. */
+const DIRECTION_MAP = { up: 'up', left: 'left', right: 'right', scale: 'scale' } as const;
 
 /**
- * Scroll-Reveal mit Blur-to-sharp. Respektiert prefers-reduced-motion:
- * dann wird der Inhalt sofort und unbewegt gezeigt.
+ * Scroll-Reveal. Server-Komponente: rendert nur ein Attribut, die Bewegung
+ * steckt komplett in CSS (globals.css) und wird vom RevealObserver ausgelöst.
+ * Ohne JavaScript und bei prefers-reduced-motion ist der Inhalt sofort sichtbar.
  */
 export function Reveal({
   children,
   delay = 0,
-  direction = 'up',
+  direction,
+  variant,
   className,
+  as: Tag = 'div',
 }: {
   children: ReactNode;
   delay?: number;
-  direction?: Direction;
+  direction?: keyof typeof DIRECTION_MAP;
+  variant?: RevealVariant;
   className?: string;
+  as?: ElementType;
 }) {
-  const reduced = useReducedMotion();
-  const from = OFFSETS[direction];
-
-  if (reduced) {
-    return <div className={className}>{children}</div>;
-  }
-
+  const v: RevealVariant = variant ?? (direction ? DIRECTION_MAP[direction] : 'up');
+  const style = delay ? ({ '--rv-delay': `${delay}s` } as CSSProperties) : undefined;
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, filter: 'blur(6px)', ...from }}
-      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin: '0px 0px -12% 0px' }}
-      transition={{ duration: 0.85, delay, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <Tag data-reveal={v} className={className} style={style}>
       {children}
-    </motion.div>
+    </Tag>
   );
 }

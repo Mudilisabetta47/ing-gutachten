@@ -1,154 +1,104 @@
-'use client';
-
 import Link from 'next/link';
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
 import { BIZ } from '@/lib/content';
-import { SplitLines } from '@/components/ui/SplitLines';
+import { Lines } from '@/components/ui/Split';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { Arrow } from '@/components/ui/Icon';
+import { HeroStage } from './HeroStage';
 
-const META = [
-  { dt: 'Erfahrung', dd: 'über 15 Jahre' },
-  { dt: 'Termin', dd: 'meist in 24–48 Stunden' },
-  { dt: 'Vor Ort', dd: 'Hannover & Umgebung' },
-];
-
+/**
+ * Startseiten-Hero.
+ * Semantik: genau eine H1 mit der klaren Suchintention („Kfz-Gutachter &
+ * Sachverständiger in Hannover") als erste, sichtbare Zeile – die große
+ * visuelle Headline folgt im selben H1. Kein versteckter Text.
+ */
 export function Hero() {
-  const ref = useRef<HTMLElement>(null);
-  const reduced = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
-
-  /* Drei Ebenen, drei Geschwindigkeiten – der Tiefeneindruck entsteht
-     aus der Differenz, nicht aus der Menge an Bewegung. */
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '22%']);
-  const carY = useTransform(scrollYProgress, [0, 1], ['0%', '-6%']);
-  const carScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
-  const contentY = useTransform(scrollYProgress, [0, 0.85], [0, 60]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.05]);
-  const contentBlur = useTransform(scrollYProgress, [0, 0.85], ['blur(0px)', 'blur(7px)']);
-
   return (
-    <section
-      ref={ref}
-      id="top"
-      className="relative isolate flex min-h-screen items-center overflow-hidden pb-[clamp(2rem,6vh,4.5rem)] lg:items-end"
-      style={{ minHeight: '100svh', paddingTop: '7.5rem' }}
-    >
-      <motion.div
-        aria-hidden="true"
-        className="hero-bg absolute inset-x-0 -top-[8%] bottom-0 -z-20"
-        style={{ y: reduced ? 0 : bgY }}
-      />
-      <div className="hero-sweep pointer-events-none absolute inset-0 -z-10 animate-sweep" aria-hidden="true" />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-[16%] top-[13%] -z-10 w-[152%] opacity-[.42] lg:bottom-[12%] lg:right-[-3%] lg:top-auto lg:w-[min(78%,980px)] lg:opacity-100"
-      >
-        <motion.img
-          src="/assets/img/car-hero.svg"
-          alt=""
-          width={1240}
-          height={620}
-          fetchPriority="high"
-          style={{ y: reduced ? 0 : carY, scale: reduced ? 1 : carScale }}
-          initial={reduced ? false : { opacity: 0, x: '9%' }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1.9, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        />
-      </div>
-
-      <motion.div
-        className="shell relative z-[2] w-full"
-        style={{ y: reduced ? 0 : contentY, opacity: reduced ? 1 : contentOpacity, filter: reduced ? 'none' : contentBlur }}
-      >
-        <div className="grid gap-9 lg:grid-cols-[1.35fr_.65fr] lg:items-end lg:gap-12">
-          <div>
-            <motion.p
-              className="eyebrow mb-6"
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            >
-              Kfz-Sachverständigenbüro · Hannover
-            </motion.p>
-
-            <h1 className="display mb-6 text-h1">
-              <SplitLines
-                lines={[
-                  'Ihr Schaden.',
-                  <span
-                    key="accent"
-                    className="inline-block bg-[linear-gradient(96deg,#6ba8ff,#dbeaff_50%,#4b93f5)] bg-clip-text text-transparent"
-                  >
-                    Unsere Expertise.
-                  </span>,
-                ]}
-              />
-            </h1>
-
-            <motion.p
-              className="lead"
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            >
-              Unabhängige Kfz-Gutachten in Hannover – schnell, präzise und auf Ihrer Seite. Wir dokumentieren
-              beweissicher, beziffern jede Schadenposition und begleiten Sie bis zur Regulierung.
-            </motion.p>
-
-            <motion.div
-              className="mt-9 flex flex-wrap gap-[.85rem]"
-              initial={false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.48, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <Magnetic strength={0.28}>
-                <Link href="#anfrage" className="btn">
-                  Jetzt Gutachten anfordern <Arrow />
-                </Link>
-              </Magnetic>
-              <Magnetic strength={0.22}>
-                <a href={`tel:${BIZ.phoneLink}`} className="btn btn-ghost">
-                  Termin vereinbaren
-                </a>
-              </Magnetic>
-            </motion.div>
-          </div>
-
-          <motion.dl
-            className="grid grid-cols-2 gap-x-6 gap-y-4 border-l border-line pl-6 sm:grid-cols-1"
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {META.map((m) => (
-              <div key={m.dt}>
-                <dt className="font-mono text-[.65rem] uppercase tracking-[.2em] text-fg-mute">{m.dt}</dt>
-                <dd className="mt-[.15rem] font-display text-[1.02rem] font-semibold">{m.dd}</dd>
-              </div>
-            ))}
-            <div>
-              <dt className="font-mono text-[.65rem] uppercase tracking-[.2em] text-fg-mute">Direkt</dt>
-              <dd className="mt-[.15rem] font-display text-[1.02rem] font-semibold">
-                <a href={`tel:${BIZ.phoneLink}`} className="transition-colors hover:text-signal-bright">
-                  {BIZ.phoneDisplay}
-                </a>
-              </dd>
-            </div>
-          </motion.dl>
+    <HeroStage
+      background={
+        <>
+          <div className="hero-bg absolute inset-0" />
+          <div className="hero-sweep absolute inset-0 animate-sweep" />
+          <div className="absolute inset-0 opacity-[.55] [background-image:linear-gradient(rgba(107,168,255,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(107,168,255,.07)_1px,transparent_1px)] [background-size:96px_96px] [mask-image:radial-gradient(80%_70%_at_70%_55%,#000,transparent_75%)]" />
+        </>
+      }
+      visual={
+        <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/img/car-hero.svg" alt="" width={1240} height={620} fetchPriority="high" decoding="async" className="w-full" />
+          <HeroGauges />
         </div>
-      </motion.div>
+      }
+    >
+      <div className="grid gap-10 lg:grid-cols-[1.5fr_.5fr] lg:items-end">
+        <div>
+          <h1 className="mb-8">
+            <span
+              className="enter-up mono-label mb-6 flex items-center gap-3 text-signal-bright"
+              style={{ ['--d' as string]: '.1s' }}
+            >
+              <span className="block h-px w-8 bg-signal-line" aria-hidden="true" />
+              Kfz-Gutachter &amp; Sachverständiger in Hannover
+            </span>
+            <Lines
+              enter
+              className="display block text-[clamp(3rem,1rem+8.6vw,9.6rem)] uppercase leading-[.86] tracking-[-.045em]"
+              lines={[
+                'Wenn es',
+                'darauf',
+                <span key="a" className="text-signal-bright">
+                  ankommt.
+                </span>,
+              ]}
+            />
+          </h1>
 
-      <div
-        className="absolute bottom-5 z-[3] hidden items-center gap-3 font-mono text-[.62rem] uppercase tracking-[.22em] text-fg-mute lg:flex"
-        style={{ left: 'var(--pad)' }}
-        aria-hidden="true"
-      >
-        <span className="block h-[42px] w-px animate-scroll-hint bg-[linear-gradient(#6ba8ff,transparent)]" />
-        <span>Scrollen</span>
+          <p className="enter-up lead mb-9 max-w-[34ch]" style={{ ['--d' as string]: '.75s' }}>
+            Unabhängige Kfz-Gutachten in Hannover.
+          </p>
+
+          <div className="enter-up flex flex-wrap items-center gap-[.85rem]" style={{ ['--d' as string]: '.9s' }}>
+            <Magnetic strength={0.28}>
+              <Link href="#anfrage" className="btn" data-cursor="link" data-cursor-label="ANFRAGEN">
+                Schaden melden <Arrow />
+              </Link>
+            </Magnetic>
+            <Magnetic strength={0.22}>
+              <a href={`tel:${BIZ.phoneLink}`} className="btn btn-ghost">
+                {BIZ.phoneDisplay}
+              </a>
+            </Magnetic>
+          </div>
+        </div>
+
+        <div
+          className="enter-up hidden items-center gap-3 font-mono text-[.62rem] uppercase tracking-[.22em] text-fg-mute lg:flex lg:justify-self-end"
+          style={{ ['--d' as string]: '1.2s' }}
+          aria-hidden="true"
+        >
+          <span className="block h-[52px] w-px animate-scroll-hint bg-[linear-gradient(#6ba8ff,transparent)]" />
+          <span>Scrollen</span>
+        </div>
       </div>
-    </section>
+    </HeroStage>
+  );
+}
+
+/** Dekorative Messmarken am Fahrzeug – rein visuell, aria-hidden. */
+function HeroGauges() {
+  return (
+    <svg viewBox="0 0 1240 620" className="pointer-events-none absolute inset-0 hidden h-full w-full lg:block" aria-hidden="true" fill="none">
+      <g stroke="#6ba8ff" strokeOpacity=".55" strokeWidth="1.2" strokeDasharray="3 6">
+        <path d="M980 250 L1100 170" />
+        <path d="M300 420 L170 500" />
+      </g>
+      <g fill="#6ba8ff">
+        <circle cx="980" cy="250" r="4" />
+        <circle cx="300" cy="420" r="4" />
+      </g>
+      <g fontFamily="monospace" fontSize="14" letterSpacing="2.6" fill="#bcd9ff" fillOpacity=".85">
+        <text x="1106" y="166">MESSPUNKT 03</text>
+        <text x="40" y="512">ACHSE · VERMESSEN</text>
+      </g>
+    </svg>
   );
 }

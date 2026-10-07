@@ -25,7 +25,7 @@ export default function Page() {
         { name: 'LKW & Nutzfahrzeuge', href: '/lkw-gutachten' },
       ]}
       service={{ name: 'LKW-Gutachten', description: DESCRIPTION, path: '/lkw-gutachten' }}
-      faqs={[FAQS[2], FAQS[3], FAQS[6]]}
+      faqs={[FAQS[2], FAQS[10], FAQS[6]]}
       related={[
         { title: 'Unfallgutachten', text: 'Grundlagen und Rechte nach dem Unfall.', href: '/unfallgutachten' },
         { title: 'Einsatzgebiet', text: 'Vor-Ort-Service in Hannover und Umgebung.', href: '/einsatzgebiet' },

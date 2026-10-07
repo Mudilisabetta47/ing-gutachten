@@ -27,7 +27,7 @@ export default function Page() {
         { name: 'Unfallgutachten', href: '/unfallgutachten' },
       ]}
       service={{ name: 'Unfallgutachten', description: DESCRIPTION, path: '/unfallgutachten' }}
-      faqs={[FAQS[0], FAQS[1], FAQS[4], FAQS[5], FAQS[8], FAQS[9]]}
+      faqs={[FAQS[3], FAQS[1], FAQS[5], FAQS[4], FAQS[8], FAQS[9]]}
       related={[
         { title: 'Unfallanalyse', text: 'Technische Auswertung von Schadenbild und Fahrzeugzustand.', href: '/unfallanalyse' },
         { title: 'Wertgutachten', text: 'Wenn es um den Fahrzeugwert statt um einen Schaden geht.', href: '/wertgutachten' },

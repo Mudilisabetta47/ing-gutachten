@@ -31,7 +31,7 @@ export function CtaBand({
           <div className="flex flex-wrap gap-[.85rem]">
             <Magnetic strength={0.25}>
               <Link href={ctaHref} className="btn">
-                Gutachten anfordern <Arrow />
+                Schaden melden <Arrow />
               </Link>
             </Magnetic>
             <Magnetic strength={0.2}>

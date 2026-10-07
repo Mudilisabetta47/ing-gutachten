@@ -2,9 +2,9 @@ import { BIZ } from '@/lib/content';
 
 const CELLS = [
   { label: 'Telefon', value: BIZ.phoneDisplay, href: `tel:${BIZ.phoneLink}`, note: 'Büro Hannover' },
-  { label: 'Mobil', value: BIZ.mobileDisplay, href: `tel:${BIZ.mobileLink}`, note: 'Auch außerhalb der Bürozeiten' },
+  { label: 'Mobil', value: BIZ.mobileDisplay, href: `tel:${BIZ.mobileLink}`, note: 'Direkt erreichbar' },
   { label: 'E-Mail', value: BIZ.email, href: `mailto:${BIZ.email}`, note: 'Fotos gern direkt anhängen' },
-  { label: 'Büro', value: BIZ.street, href: null, note: `${BIZ.zip} ${BIZ.city} · ${BIZ.hours}` },
+  { label: 'Büro', value: BIZ.street, href: null, note: `${BIZ.zip} ${BIZ.city}${BIZ.hours ? ` · ${BIZ.hours}` : ''}` },
 ];
 
 export function ContactGrid() {

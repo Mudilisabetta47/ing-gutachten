@@ -9,7 +9,7 @@ import { buildMetadata } from '@/lib/seo';
 export const metadata: Metadata = buildMetadata({
   title: 'Über uns | Kfz-Sachverständigenbüro ING Gutachten Hannover',
   description:
-    'ING Gutachten ist ein unabhängiges Kfz-Sachverständigenbüro in Hannover mit über 15 Jahren Erfahrung. Vor-Ort-Service, kurzfristige Termine, klare Gutachten für Geschädigte, Anwälte und Versicherungen.',
+    'ING Gutachten ist ein unabhängiges Kfz-Sachverständigenbüro in Hannover mit über 15 Jahren Erfahrung. Vor-Ort-Service, Achs- und Karosserievermessung, klare Gutachten für Geschädigte, Anwälte und Versicherungen.',
   path: '/ueber-uns',
 });
 
@@ -48,8 +48,8 @@ export default function Page() {
         </p>
         <p>
           Unsere Arbeitsweise ist unspektakulär und darauf ausgelegt, dass Sie nicht nachfragen müssen: erreichbar
-          bleiben, kurzfristig kommen, sauber messen, verständlich schreiben. Ein Gutachten, das eine
-          Regulierungsstelle ohne Rückfragen bearbeiten kann, ist für alle Beteiligten der schnellste Weg.
+          bleiben, zu Ihnen kommen, sauber messen, verständlich schreiben. Ein Gutachten, das eine
+          Regulierungsstelle ohne Rückfragen bearbeiten kann, erspart allen Beteiligten Zeit.
         </p>
         <p>
           Wenn wir zum Ergebnis kommen, dass ein Kostenvoranschlag genügt, sagen wir das – auch wenn das für uns
@@ -82,7 +82,7 @@ export default function Page() {
             <h2 className="display text-[clamp(1.6rem,3.4vw,2.4rem)]">Jede Position bekommt einen Beleg.</h2>
             <p className="text-fg-dim">
               Fotodokumentation, Messwerte, Kalkulationsgrundlage: Wir arbeiten so, dass eine Regulierungsstelle
-              das Gutachten ohne Rückfrage bearbeiten kann. Das ist der schnellste Weg zu Ihrem Geld.
+              das Gutachten ohne Rückfrage bearbeiten kann.
             </p>
           </div>
         </div>

@@ -34,8 +34,13 @@ export function Footer() {
                 {BIZ.email}
               </a>
               <br />
-              <br />
-              <span className="text-fg-mute">{BIZ.hours}</span>
+              {BIZ.hours ? (
+                <>
+                  <br />
+                  <br />
+                  <span className="text-fg-mute">{BIZ.hours}</span>
+                </>
+              ) : null}
             </address>
           </div>
 
@@ -45,10 +50,14 @@ export function Footer() {
                 {s.title}
               </FooterLink>
             ))}
+            <FooterLink href="/unfallgutachten">Unfallgutachten</FooterLink>
+            <FooterLink href="/schadensgutachten">Schadengutachten</FooterLink>
+            <FooterLink href="/unfallanalyse">Unfallanalyse</FooterLink>
             <FooterLink href="/wertgutachten">Wertgutachten</FooterLink>
           </FooterCol>
 
           <FooterCol title="Region">
+            <FooterLink href="/kfz-gutachter-hannover">Kfz-Gutachter Hannover</FooterLink>
             {REGION_PAGES.map((r) => (
               <FooterLink key={r.slug} href={`/kfz-gutachter/${r.slug}`}>
                 Kfz-Gutachter {r.name}

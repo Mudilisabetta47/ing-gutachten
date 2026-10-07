@@ -30,9 +30,9 @@ export default function Page() {
       chips={['Schadenaufnahme', 'Technische Bewertung', 'Unfallanalyse', 'Dokumentation']}
       trail={[{ name: 'Schadensgutachten', href: '/schadensgutachten' }]}
       service={{ name: 'Schadensgutachten', description: DESCRIPTION, path: '/schadensgutachten' }}
-      faqs={[FAQS[0], FAQS[1], FAQS[5], FAQS[2]]}
+      faqs={[FAQS[3], FAQS[1], FAQS[4], FAQS[2]]}
       related={[
-        { title: 'Ablauf', text: 'Von der Anfrage bis zur Regulierung in fünf Schritten.', href: '/ablauf' },
+        { title: 'Ablauf', text: 'Von der Anfrage bis zur Regulierung in vier Schritten.', href: '/ablauf' },
         { title: 'Einsatzgebiet', text: 'Vor-Ort-Service in Hannover und Umgebung.', href: '/einsatzgebiet' },
         { title: 'Kontakt & Termin', text: 'Unfall melden oder Gutachten anfordern.', href: '/kontakt' },
       ]}
