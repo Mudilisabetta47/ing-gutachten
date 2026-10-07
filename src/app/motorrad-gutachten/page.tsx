@@ -5,10 +5,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Motorrad-Gutachten in Hannover: Schadengutachten und Wertgutachten für Motorräder, Roller und Krafträder. Sturzschäden, Rahmenvermessung, Anbauteile und Zubehör – unabhängig bewertet.';
+  'Motorrad-Gutachten in Hannover: Sturz- und Unfallschäden an Krafträdern und Rollern dokumentiert und bewertet. Unabhängiger Kfz-Sachverständiger.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Motorrad-Gutachten Hannover | Sachverständiger für Zweiräder',
+  title: 'Motorrad-Gutachten Hannover',
   description: DESCRIPTION,
   path: '/motorrad-gutachten',
 });

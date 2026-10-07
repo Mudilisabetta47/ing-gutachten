@@ -86,9 +86,9 @@ export function Hero() {
 /** Dekorative Messmarken am Fahrzeug – rein visuell, aria-hidden. */
 function HeroGauges() {
   return (
-    <svg viewBox="0 0 1240 620" className="pointer-events-none absolute inset-0 hidden h-full w-full lg:block" aria-hidden="true" fill="none">
+    <svg viewBox="0 0 1240 620" className="pointer-events-none absolute inset-0 hidden h-full w-full xl:block" aria-hidden="true" fill="none">
       <g stroke="#6ba8ff" strokeOpacity=".55" strokeWidth="1.2" strokeDasharray="3 6">
-        <path d="M980 250 L1100 170" />
+        <path d="M980 250 L930 168" />
         <path d="M300 420 L170 500" />
       </g>
       <g fill="#6ba8ff">
@@ -96,7 +96,7 @@ function HeroGauges() {
         <circle cx="300" cy="420" r="4" />
       </g>
       <g fontFamily="monospace" fontSize="14" letterSpacing="2.6" fill="#bcd9ff" fillOpacity=".85">
-        <text x="1106" y="166">MESSPUNKT 03</text>
+        <text x="930" y="154" textAnchor="middle">MESSPUNKT 03</text>
         <text x="40" y="512">ACHSE · VERMESSEN</text>
       </g>
     </svg>

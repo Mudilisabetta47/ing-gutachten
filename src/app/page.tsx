@@ -14,7 +14,8 @@ import { HOME_FAQS } from '@/lib/content';
 import { buildMetadata, faqSchema, websiteSchema } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Kfz-Gutachter & Sachverständiger Hannover',
+  title: 'Kfz-Gutachter & Sachverständiger Hannover | ING Gutachten',
+  absoluteTitle: true,
   description:
     'Unabhängiger Kfz-Gutachter in Hannover: Unfallgutachten, Schadengutachten und PKW-Gutachten mit Vor-Ort-Service. Jetzt Schaden melden oder anrufen.',
   path: '/',

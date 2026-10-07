@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   }
 
   const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
-  const limit = rateLimit(`anfrage:${ip}`);
+  const limit = rateLimit(`anfrage:${ip}`, 12);
   if (!limit.ok) {
     return fail(429, 'rate_limited', {
       message: `Zu viele Anfragen. Bitte versuchen Sie es später erneut oder rufen Sie uns an: ${PHONE}.`,

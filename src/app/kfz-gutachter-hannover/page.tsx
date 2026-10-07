@@ -10,10 +10,10 @@ import { BIZ, FAQS, FLOW_STEPS, HOME_SERVICES, WHY_ITEMS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Kfz-Gutachter und Sachverständiger in Hannover: Unfallgutachten, Schadengutachten und PKW-Gutachten mit Vor-Ort-Service. Büro Hildesheimer Straße 229. Jetzt Schaden melden.';
+  'Kfz-Gutachter und Sachverständiger in Hannover: Unfall-, Schaden- und PKW-Gutachten mit Vor-Ort-Service. Büro Hildesheimer Straße 229. Jetzt Schaden melden.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Kfz-Gutachter Hannover – Unfall- & Schadengutachten',
+  title: 'Kfz-Gutachter Hannover – Unfall & Schaden',
   description: DESCRIPTION,
   path: '/kfz-gutachter-hannover',
 });
@@ -61,7 +61,7 @@ export default function Page() {
               <Reveal as="li" key={s.num} variant="clip" delay={i * 0.05} className="border-b border-line">
                 <Link href={s.href} className="group grid grid-cols-[3rem_1fr_auto] items-baseline gap-4 py-5" data-cursor="link" data-cursor-label="ÖFFNEN">
                   <span className="mono-label text-signal-bright">{s.num}</span>
-                  <span className="display text-[clamp(1.4rem,1rem+1.8vw,2.4rem)] uppercase leading-none tracking-[-.03em] transition-transform duration-500 ease-out group-hover:translate-x-2">
+                  <span className="display min-w-0 [overflow-wrap:anywhere] text-[clamp(1.2rem,.5rem+4.6vw,2.4rem)] uppercase leading-none tracking-[-.03em] transition-transform duration-500 ease-out group-hover:translate-x-2">
                     {s.title}
                   </span>
                   <Arrow />

@@ -5,10 +5,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Gutachten für LKW, Transporter und Anhänger in Hannover: Schadengutachten, Wertermittlung und Ausfallschaden für Nutzfahrzeuge und Flotten. Vor-Ort-Termin auf dem Betriebsgelände.';
+  'LKW-Gutachten in Hannover: Schäden an Transportern, LKW und Anhängern begutachtet – inklusive Ausfall- und Ladungsfragen. Besichtigung vor Ort.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'LKW-Gutachten Hannover | Nutzfahrzeuge & Transporter',
+  title: 'LKW-Gutachten Hannover',
   description: DESCRIPTION,
   path: '/lkw-gutachten',
 });

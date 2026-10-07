@@ -11,7 +11,7 @@ import { Arrow } from '@/components/ui/Icon';
  * Schaden-Konfigurator: Fahrzeug im Zentrum, Hotspots statt Textblöcken.
  * Hotspot → eine kurze Aussage → mögliche Gutachtenart → CTA.
  */
-export function DamageConfigurator() {
+export function DamageConfigurator({ ctaHref = '#anfrage' }: { ctaHref?: string }) {
   const [active, setActive] = useState(DAMAGE_ZONES[0]);
 
   return (
@@ -84,7 +84,7 @@ export function DamageConfigurator() {
                 Passend: <Link href={active.href} className="text-signal-bright underline underline-offset-4">{active.kind}</Link>
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
-                <Link href="#anfrage" className="btn" data-cursor="link" data-cursor-label="ANFRAGEN">
+                <Link href={ctaHref} className="btn" data-cursor="link" data-cursor-label="ANFRAGEN">
                   Schaden melden <Arrow />
                 </Link>
               </div>

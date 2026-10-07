@@ -479,14 +479,14 @@ function Row({ label, value, onEdit }: { label: string; value: string; onEdit: (
 
 function Options({ name, values, selected, onSelect }: { name: string; values: readonly string[]; selected: string; onSelect: (value: string) => void }) {
   return (
-    <div className="grid grid-cols-2 gap-[.6rem] sm:grid-cols-3">
+    <div className="grid gap-[.6rem] min-[400px]:grid-cols-2 sm:grid-cols-3">
       {values.map((v) => {
         const on = selected === v;
         return (
           <label key={v} className="relative">
             <input type="radio" name={name} value={v} checked={on} onChange={() => onSelect(v)} className="peer absolute h-0 w-0 opacity-0" />
             <span
-              className={`flex min-h-[56px] cursor-pointer items-center gap-3 rounded-[14px] px-4 py-[.75rem] font-display text-[.92rem] font-semibold transition-all duration-300 ease-out peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-signal-bright hover:-translate-y-0.5 hover:bg-white/[.04] ${on ? 'bg-signal-soft' : ''}`}
+              className={`flex min-h-[56px] cursor-pointer items-center gap-3 rounded-[14px] px-4 py-[.75rem] font-display text-[.92rem] font-semibold [overflow-wrap:anywhere] transition-all duration-300 ease-out peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-signal-bright hover:-translate-y-0.5 hover:bg-white/[.04] ${on ? 'bg-signal-soft' : ''}`}
               style={{ boxShadow: on ? 'inset 0 0 0 1.5px rgb(var(--c-signal-bright))' : 'inset 0 0 0 1px rgb(var(--c-line))' }}
             >
               <span className={`h-4 w-4 flex-none rounded-full ${on ? 'bg-signal' : ''}`} style={{ boxShadow: 'inset 0 0 0 1px rgb(var(--c-line))' }} />

@@ -5,10 +5,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Wertgutachten und Fahrzeugbewertung in Hannover: Marktwert, Wiederbeschaffungswert und Restwert – für Verkauf, Erbfall, Scheidung, Leasingrückgabe, Finanzierung oder Versicherung.';
+  'Wertgutachten und Fahrzeugbewertung in Hannover: Marktwert und Wiederbeschaffungswert belastbar ermittelt. Unabhängiger Kfz-Sachverständiger.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Wertgutachten Hannover | Fahrzeugbewertung & Marktwert',
+  title: 'Wertgutachten & Fahrzeugbewertung Hannover',
   description: DESCRIPTION,
   path: '/wertgutachten',
 });

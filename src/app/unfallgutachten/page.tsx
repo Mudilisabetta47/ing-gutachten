@@ -7,10 +7,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Unfallgutachten in Hannover vom unabhängigen Kfz-Sachverständigen: beweissichere Schadendokumentation, Wertminderung, Nutzungsausfall und Restwert. Kosten trägt bei Haftpflichtschäden die gegnerische Versicherung.';
+  'Unfallgutachten nach einem Verkehrsunfall in Hannover: beweissicher dokumentiert für Versicherung und Anwalt. Besichtigung vor Ort. Jetzt Schaden melden.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Unfallgutachten Hannover | Unfallgutachter & Schadengutachten',
+  title: 'Unfallgutachten Hannover – Unfallgutachter',
   description: DESCRIPTION,
   path: '/unfallgutachten',
 });

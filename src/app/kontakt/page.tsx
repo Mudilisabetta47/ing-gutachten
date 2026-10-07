@@ -8,9 +8,9 @@ import { BIZ } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Kontakt & Termin | Kfz-Gutachter Hannover',
+  title: 'Kontakt & Schaden melden',
   description:
-    'Kontakt zum Kfz-Sachverständigenbüro ING Gutachten in Hannover: Telefon 0511 543 00 976, mobil 0173 72 79 763, Hildesheimer Straße 229. Gutachten in vier Schritten online anfordern.',
+    'Kontakt zu ING Gutachten, Hildesheimer Straße 229, Hannover: Telefon 0511 543 00 976, mobil 0173 72 79 763 – oder Schaden online in vier Schritten melden.',
   path: '/kontakt',
 });
 

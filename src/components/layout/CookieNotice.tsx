@@ -46,7 +46,7 @@ export function CookieNotice() {
         <motion.div
           role="dialog"
           aria-label="Cookie-Hinweis"
-          className="fixed bottom-[4.6rem] z-[95] grid max-w-[520px] gap-[.9rem] rounded-[14px] border border-line p-5 sm:bottom-4"
+          className="fixed bottom-[4.6rem] z-[95] grid max-w-[520px] gap-[.7rem] rounded-[14px] border border-line p-4 sm:bottom-4 sm:gap-[.9rem] sm:p-5"
           style={{
             left: 'var(--pad)',
             right: 'var(--pad)',
@@ -60,7 +60,7 @@ export function CookieNotice() {
           exit={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         >
-          <p className="text-[.85rem] text-fg-dim">
+          <p className="text-[.8rem] text-fg-dim sm:text-[.85rem]">
             <strong>Nur das Nötigste.</strong> Diese Website nutzt ausschließlich technisch notwendige
             Speicherung. Es werden keine Tracking- oder Marketing-Cookies gesetzt. Details in der{' '}
             <Link href="/datenschutz" className="text-signal-bright underline underline-offset-2">

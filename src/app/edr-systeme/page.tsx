@@ -8,10 +8,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'EDR-Systeme im Fahrzeug: Bestimmte moderne Fahrzeuge können ereignisbezogene Informationen speichern, die je nach Fahrzeug und System eine technische Unfallanalyse unterstützen können.';
+  'EDR-Systeme erklärt: ereignisbezogene Fahrzeugdaten nach einem Unfall – was je nach Fahrzeug und System ausgelesen werden kann. Kfz-Sachverständiger Hannover.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'EDR-Systeme | Ereignisbezogene Fahrzeugdaten nach einem Unfall',
+  title: 'EDR-Systeme – Fahrzeugdaten nach dem Unfall',
   description: DESCRIPTION,
   path: '/edr-systeme',
 });

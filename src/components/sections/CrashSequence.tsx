@@ -142,9 +142,9 @@ function makeParticles(count: number): Particle[] {
 
 /* --- Messmarken (Beispielwerte) ------------------------------------------ */
 const CALLOUTS = [
-  { dx: 70, dy: -168, label: 'HECKABSCHLUSSBLECH', value: 'Δ 118 mm · BSP.' },
-  { dx: -60, dy: -214, label: 'STOSSFÄNGERTRÄGER', value: 'Δ 64 mm · BSP.' },
-  { dx: -190, dy: 74, label: 'LÄNGSTRÄGER', value: 'PRÜFEN · BSP.' },
+  { dx: 70, dy: -168, label: 'HECKABSCHLUSSBLECH', value: 'Δ 118 mm · BSP.', mdx: 40, mlabel: 'HECKBLECH' },
+  { dx: -60, dy: -214, label: 'STOSSFÄNGERTRÄGER', value: 'Δ 64 mm · BSP.', mdx: -40, mlabel: 'STOSSFÄNGER' },
+  { dx: -190, dy: 74, label: 'LÄNGSTRÄGER', value: 'PRÜFEN · BSP.', mdx: -120, mlabel: 'LÄNGSTRÄGER' },
 ];
 
 /* --- Kamera-Keyframes ------------------------------------------------------ */
@@ -537,19 +537,23 @@ export function CrashSequence() {
 
             {/* Messmarken, Bemaßung (Beispielwerte) */}
             <g id="hud-marks" opacity="0">
-              {CALLOUTS.map((c) => (
-                <g key={c.label}>
-                  <path d={`M ${IMPACT_PT.x} ${IMPACT_PT.y} L ${IMPACT_PT.x + c.dx} ${IMPACT_PT.y + c.dy}`} stroke="#6ba8ff" strokeOpacity=".6" strokeWidth="1" strokeDasharray="4 5" />
-                  <circle cx={IMPACT_PT.x + c.dx} cy={IMPACT_PT.y + c.dy} r="4" fill="#6ba8ff" />
-                  <circle cx={IMPACT_PT.x + c.dx} cy={IMPACT_PT.y + c.dy} r="9" fill="none" stroke="#6ba8ff" strokeOpacity=".5" />
-                  <text x={IMPACT_PT.x + c.dx + (c.dx < 0 ? -14 : 14)} y={IMPACT_PT.y + c.dy - 8} textAnchor={c.dx < 0 ? 'end' : 'start'} fontFamily="monospace" fontSize="13" letterSpacing="1.6" fill="#edf1f4" fillOpacity=".92">
-                    {c.label}
-                  </text>
-                  <text x={IMPACT_PT.x + c.dx + (c.dx < 0 ? -14 : 14)} y={IMPACT_PT.y + c.dy + 10} textAnchor={c.dx < 0 ? 'end' : 'start'} fontFamily="monospace" fontSize="13" letterSpacing="1.6" fill="#6ba8ff">
-                    {c.value}
-                  </text>
-                </g>
-              ))}
+              {CALLOUTS.map((c) => {
+                const dx = mobile ? c.mdx : c.dx;
+                const fs = mobile ? 11 : 13;
+                return (
+                  <g key={c.label}>
+                    <path d={`M ${IMPACT_PT.x} ${IMPACT_PT.y} L ${IMPACT_PT.x + dx} ${IMPACT_PT.y + c.dy}`} stroke="#6ba8ff" strokeOpacity=".6" strokeWidth="1" strokeDasharray="4 5" />
+                    <circle cx={IMPACT_PT.x + dx} cy={IMPACT_PT.y + c.dy} r="4" fill="#6ba8ff" />
+                    <circle cx={IMPACT_PT.x + dx} cy={IMPACT_PT.y + c.dy} r="9" fill="none" stroke="#6ba8ff" strokeOpacity=".5" />
+                    <text x={IMPACT_PT.x + dx + (dx < 0 ? -14 : 14)} y={IMPACT_PT.y + c.dy - 8} textAnchor={dx < 0 ? 'end' : 'start'} fontFamily="monospace" fontSize={fs} letterSpacing="1.6" fill="#edf1f4" fillOpacity=".92">
+                      {mobile ? c.mlabel : c.label}
+                    </text>
+                    <text x={IMPACT_PT.x + dx + (dx < 0 ? -14 : 14)} y={IMPACT_PT.y + c.dy + 10} textAnchor={dx < 0 ? 'end' : 'start'} fontFamily="monospace" fontSize={fs} letterSpacing="1.6" fill="#6ba8ff">
+                      {c.value}
+                    </text>
+                  </g>
+                );
+              })}
               {/* Bemaßung der Verformungstiefe */}
               <g id="dim" opacity="0" stroke="#bcd9ff" strokeWidth="1.3" fill="none">
                 <path d={`M ${IMPACT_PT.x - 56} ${IMPACT_PT.y + 128} H ${IMPACT_PT.x + 56}`} />
@@ -571,7 +575,7 @@ export function CrashSequence() {
 
         {/* HUD */}
         <div className="pointer-events-none absolute inset-0" style={{ paddingInline: 'var(--pad)' }}>
-          <div className="mx-auto flex h-full max-w-shell flex-col justify-between py-5 sm:py-9">
+          <div className="mx-auto flex h-full max-w-shell flex-col justify-between pb-[5.6rem] pt-5 sm:py-9">
             <div className="flex items-start justify-between gap-4 font-mono text-[.6rem] uppercase tracking-[.2em] text-fg-mute sm:text-[.64rem]">
               <h2 id="crash-h" className="font-mono text-[.6rem] font-normal uppercase tracking-[.2em] text-fg-mute sm:text-[.64rem]">
                 Vom Unfall zum Gutachten

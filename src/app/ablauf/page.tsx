@@ -9,9 +9,9 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Ablauf der Schadenabwicklung | Kfz-Gutachten Hannover',
+  title: 'Ablauf der Schadenabwicklung',
   description:
-    'So läuft die Schadenabwicklung mit ING Gutachten in Hannover: Anfrage, Vor-Ort-Besichtigung, Gutachten, Regulierung. Vier Schritte, klar erklärt.',
+    'So läuft die Schadenabwicklung mit ING Gutachten in Hannover: Anfrage, Besichtigung vor Ort, Gutachten, Regulierung – in vier Schritten erklärt.',
   path: '/ablauf',
 });
 

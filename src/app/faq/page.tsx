@@ -5,9 +5,9 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'FAQ | Häufige Fragen zum Kfz-Gutachten in Hannover',
+  title: 'FAQ – Fragen zum Kfz-Gutachten',
   description:
-    'Antworten zu Kfz-Gutachten in Hannover: Wer wählt den Sachverständigen, wer zahlt, wie lange dauert es, ab welcher Schadenhöhe lohnt sich ein Gutachten und was steht darin?',
+    'Häufige Fragen zum Kfz-Gutachten: Wann lohnt sich ein Gutachter, wer trägt die Kosten, wer darf den Sachverständigen wählen? Antworten aus Hannover.',
   path: '/faq',
 });
 

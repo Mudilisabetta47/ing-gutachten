@@ -25,9 +25,9 @@ export default function Page() {
       <section className="section">
         <div className="shell prose-ing max-w-[70ch]">
           <p className="notice">
-            <strong>Hinweis für die Redaktion:</strong> Dieser Entwurf deckt den technischen Stand dieser Website
-            ab. Bitte vor dem Livegang rechtlich prüfen lassen und um Hosting, Formulardienst und eventuelle
-            Kartendienste ergänzen.
+            <strong>Hinweis für die Redaktion:</strong> Dieser Entwurf beschreibt den technischen Stand dieser
+            Website (Hosting bei Vercel, Formularversand per E-Mail-Dienstleister). Alle Angaben in eckigen Klammern
+            müssen ergänzt, der gesamte Text vor dem Livegang rechtlich geprüft werden.
           </p>
 
           <h2 className="display mb-4 mt-10 text-[clamp(1.6rem,3.4vw,2.4rem)]">Datenschutz auf einen Blick</h2>
@@ -54,6 +54,12 @@ export default function Page() {
             ausschließlich zur Bearbeitung Ihrer Anfrage. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO
             (vorvertragliche Maßnahmen) beziehungsweise Art. 6 Abs. 1 lit. f DSGVO.
           </p>
+          <p>
+            Die Daten werden über den Server dieser Website geprüft und per E-Mail an uns weitergeleitet. Hochgeladene
+            Fotos werden dabei nicht dauerhaft auf dem Server gespeichert, sondern ausschließlich als E-Mail-Anhang
+            übermittelt. Der E-Mail-Versand erfolgt über einen Dienstleister [E-Mail-Dienstleister eintragen,
+            Auftragsverarbeitungsvertrag prüfen].
+          </p>
 
           <h3>Speicherdauer</h3>
           <p>
@@ -64,8 +70,8 @@ export default function Page() {
           <h3>Hosting und Server-Logfiles</h3>
           <p>
             Der Hostinganbieter erhebt in Server-Logfiles technisch notwendige Daten (IP-Adresse, Zeitpunkt,
-            abgerufene Datei, Browsertyp). Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. [Hostinganbieter und
-            Auftragsverarbeitungsvertrag ergänzen.]
+            abgerufene Datei, Browsertyp). Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Diese Website wird bei Vercel Inc.
+            gehostet [Anschrift, Auftragsverarbeitungsvertrag und Drittlandübermittlung prüfen].
           </p>
 
           <h3>Schriftarten</h3>

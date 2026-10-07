@@ -10,10 +10,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'PKW-Gutachten in Hannover: Schadenaufnahme, technische Bewertung, Reparaturkalkulation und Fahrzeugwert für Pkw und Transporter. Unabhängig, mit Vor-Ort-Service.';
+  'PKW-Gutachten für Pkw und Transporter in Hannover: Schaden, Kosten und Wert nachvollziehbar belegt – mit Achs- und Karosserievermessung. Vor Ort.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'PKW-Gutachten Hannover | Schadengutachten für Pkw & Transporter',
+  title: 'PKW-Gutachten Hannover',
   description: DESCRIPTION,
   path: '/pkw-gutachten',
 });
@@ -76,7 +76,7 @@ export default function Page() {
         </div>
       </section>
 
-      <DamageConfigurator />
+      <DamageConfigurator ctaHref="/kontakt#anfrage" />
 
       <section className="section">
         <div className="shell grid gap-[clamp(2rem,5vw,4rem)] lg:grid-cols-[1.05fr_.95fr] lg:items-center">

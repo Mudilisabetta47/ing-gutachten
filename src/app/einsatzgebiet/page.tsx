@@ -9,9 +9,9 @@ import { REGION_PAGES } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Einsatzgebiet | Kfz-Gutachter Hannover & Umgebung',
+  title: 'Einsatzgebiet Hannover & Region',
   description:
-    'Vor-Ort-Service als Kfz-Gutachter in Hannover und Umgebung: Laatzen, Langenhagen, Garbsen, Seelze, Wunstorf, Pattensen, Linden, Döhren, Misburg und mehr. Besichtigung dort, wo das Fahrzeug steht.',
+    'Einsatzgebiet von ING Gutachten: Kfz-Gutachter in Hannover, Laatzen, Langenhagen, Garbsen, Seelze, Wunstorf und Pattensen. Besichtigung vor Ort.',
   path: '/einsatzgebiet',
 });
 
@@ -20,8 +20,8 @@ export default function Page() {
     <Landing
       eyebrow="Vor-Ort-Service"
       title="Hannover und Umgebung."
-      lead="Wir begutachten dort, wo das Fahrzeug steht – zu Hause, in der Werkstatt, auf dem Betriebsgelände oder am Unfallort. Die Anfahrt im Einsatzgebiet berechnen wir nicht extra."
-      chips={['Hannover', 'Region Hannover', 'Vor-Ort-Termine', 'ohne Anfahrtskosten']}
+      lead="Wir begutachten dort, wo das Fahrzeug steht – zu Hause, in der Werkstatt, auf dem Betriebsgelände oder am Unfallort."
+      chips={['Hannover', 'Region Hannover', 'Vor-Ort-Termine', 'Kfz-Sachverständiger']}
       trail={[{ name: 'Einsatzgebiet', href: '/einsatzgebiet' }]}
       related={[
         { title: 'Kontakt & Termin', text: 'Termin vor Ort vereinbaren.', href: '/kontakt' },

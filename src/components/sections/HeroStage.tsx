@@ -34,7 +34,7 @@ export function HeroStage({ background, visual, children }: { background: ReactN
 
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-[22%] top-[11%] -z-10 w-[165%] opacity-[.5] sm:-right-[12%] sm:w-[115%] lg:bottom-[10%] lg:right-[-4%] lg:top-auto lg:w-[min(80%,1080px)] lg:opacity-100"
+        className="pointer-events-none absolute -right-[16%] top-[5%] -z-10 w-[138%] opacity-[.5] sm:-right-[12%] sm:top-[11%] sm:w-[115%] lg:bottom-[10%] lg:right-[-6%] lg:top-auto lg:w-[min(64%,980px)] lg:opacity-100 xl:right-[-4%] xl:w-[min(78%,1080px)]"
         style={reduced ? undefined : { y: carY, scale: carScale, x: carX }}
       >
         {visual}

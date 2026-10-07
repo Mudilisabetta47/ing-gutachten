@@ -464,6 +464,11 @@
   opacity: 1;
   transform: none;
   filter: none;
+}
+/* clip-path nur für Block-Elemente der Varianten clip/clip-x (auf Inline-Spans würde
+   Chrome nur das erste Zeilenfragment als Referenzbox nehmen und Folgezeilen abschneiden). */
+.js [data-reveal='clip'].is-in,
+.js [data-reveal='clip-x'].is-in {
   clip-path: inset(0 0 0 0);
 }
 

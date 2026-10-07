@@ -13,10 +13,10 @@ import { ASSESSMENT_PAGES, FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Schadensgutachten vom unabhängigen Kfz-Sachverständigen in Hannover: Schadenaufnahme, technische Bewertung, Unfallanalyse und Dokumentation für Versicherung und Anwalt.';
+  'Schadengutachten vom unabhängigen Kfz-Sachverständigen in Hannover: Schaden, Reparaturkosten, Wertminderung. Besichtigung vor Ort. Jetzt Schaden melden.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Schadensgutachten Hannover | Kfz-Sachverständiger & Gutachter',
+  title: 'Schadengutachten Hannover',
   description: DESCRIPTION,
   path: '/schadensgutachten',
 });

@@ -8,10 +8,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Unfallrekonstruktion in Hannover: Rekonstruktion des Unfallhergangs aus Fahrzeugpositionen, Bewegungsrichtungen, Kollisionspunkt und Schadenbild.';
+  'Unfallrekonstruktion in Hannover: Rekonstruktion des Unfallhergangs aus Schadenbild, Spurenlage und Fahrzeugpositionen durch den Sachverständigen.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Unfallrekonstruktion Hannover | Rekonstruktion des Unfallhergangs',
+  title: 'Unfallrekonstruktion Hannover',
   description: DESCRIPTION,
   path: '/unfallrekonstruktion',
 });

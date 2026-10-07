@@ -10,9 +10,9 @@ import { SERVICES } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Leistungen | Kfz-Gutachten Hannover – Unfall, Wert, Oldtimer',
+  title: 'Leistungen – Kfz-Gutachten Hannover',
   description:
-    'Alle Gutachtenarten des Kfz-Sachverständigenbüros ING in Hannover: Unfallgutachten, Schadengutachten, Wertgutachten, Kostenvoranschläge, Achs- und Karosserievermessung für PKW, LKW, E-Auto, Motorrad und Oldtimer.',
+    'Alle Gutachtenarten von ING Gutachten in Hannover: Unfall-, Schaden- und Wertgutachten für PKW, LKW, E-Auto, Motorrad und Oldtimer.',
   path: '/leistungen',
 });
 

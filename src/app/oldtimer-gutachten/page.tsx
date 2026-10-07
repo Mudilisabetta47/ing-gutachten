@@ -5,10 +5,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Oldtimer-Gutachten in Hannover: Wertgutachten, Zustandsnote und Dokumentation für Klassiker und Youngtimer – als Grundlage für Versicherung, Verkauf oder H-Kennzeichen.';
+  'Oldtimer-Gutachten in Hannover: Wertgutachten und Zustandsdokumentation für klassische Fahrzeuge – belastbar für Versicherer. Kfz-Sachverständiger.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Oldtimer-Gutachten Hannover | Wertgutachten für Klassiker',
+  title: 'Oldtimer-Gutachten Hannover',
   description: DESCRIPTION,
   path: '/oldtimer-gutachten',
 });

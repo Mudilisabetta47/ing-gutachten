@@ -9,10 +9,10 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Unfallanalyse in Hannover: technische Auswertung von Schadenbild, Fahrzeugzustand und — je nach Fahrzeug und verfügbaren Daten — fahrzeugseitigen Informationen zum Unfallhergang.';
+  'Unfallanalyse in Hannover: technische Auswertung von Schadenbild, Spuren und verfügbaren Fahrzeugdaten durch den Kfz-Sachverständigen.';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Unfallanalyse Hannover | Technische Auswertung nach dem Unfall',
+  title: 'Unfallanalyse Hannover',
   description: DESCRIPTION,
   path: '/unfallanalyse',
 });

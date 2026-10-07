@@ -7,9 +7,9 @@ import { PhotoBand } from '@/components/sections/PhotoBand';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Über uns | Kfz-Sachverständigenbüro ING Gutachten Hannover',
+  title: 'Über uns – Kfz-Sachverständigenbüro',
   description:
-    'ING Gutachten ist ein unabhängiges Kfz-Sachverständigenbüro in Hannover mit über 15 Jahren Erfahrung. Vor-Ort-Service, Achs- und Karosserievermessung, klare Gutachten für Geschädigte, Anwälte und Versicherungen.',
+    'ING Gutachten: unabhängiges Kfz-Sachverständigenbüro in Hannover mit über 15 Jahren Erfahrung, Vor-Ort-Service sowie Achs- und Karosserievermessung.',
   path: '/ueber-uns',
 });
 

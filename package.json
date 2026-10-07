@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsc -p tsconfig.test.json && node --test tests/unit.test.cjs",
+    "qa:crawl": "node scripts/crawl.mjs"
   },
   "dependencies": {
     "framer-motion": "^11.18.2",

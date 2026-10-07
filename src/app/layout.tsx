@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import Script from 'next/script';
 import { Archivo, JetBrains_Mono, Manrope } from 'next/font/google';
 import './globals.css';
 import { Nav } from '@/components/layout/Nav';
@@ -41,11 +42,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="de" className={`${archivo.variable} ${manrope.variable} ${mono.variable}`} suppressHydrationWarning>
-      <head>
-        {/* Schaltet die CSS-Reveals erst ein, wenn JavaScript läuft – ohne JS bleibt alles sichtbar. */}
-        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
-      </head>
       <body>
+        {/* Schaltet die CSS-Reveals erst ein, wenn JavaScript läuft – ohne JS bleibt alles sichtbar. */}
+        <Script id="js-flag" strategy="beforeInteractive">{"document.documentElement.classList.add('js')"}</Script>
         <JsonLd data={localBusinessSchema()} />
         <a
           href="#main"
