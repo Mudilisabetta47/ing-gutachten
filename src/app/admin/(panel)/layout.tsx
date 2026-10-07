@@ -1,25 +1,49 @@
 import type { ReactNode } from 'react';
+import { cookies } from 'next/headers';
 import { requireUser } from '@/server/auth/guards';
-import { visibleNav, upcomingNav } from '@/server/admin/nav';
+import { NAV_GROUPS, navFor } from '@/server/admin/nav';
 import { ROLE_LABELS } from '@/server/auth/permissions';
-import { AdminShell } from '@/components/admin/AdminShell';
+import { dashboardCounts } from '@/server/pipeline/today';
+import { AdminShell, type ShellAction, type ShellNotice } from '@/components/admin/AdminShell';
+import { AdminIcon } from '@/components/admin/AdminIcon';
 import { logoutAction } from './actions';
 
 export default async function PanelLayout({ children }: { children: ReactNode }) {
   // Passwortwechsel-Pflicht wird in den Seiten erzwungen; das Layout selbst muss die Profilseite rendern können.
   const user = await requireUser({ allowPasswordChange: true });
-  const has = (p: Parameters<typeof visibleNav>[0] extends (p: infer P) => boolean ? P : never) => user.permissions.has(p);
-  const nav = visibleNav(has).map(({ href, label, icon }) => ({ href, label, icon }));
-  const upcoming = upcomingNav(has).map(({ label, phase }) => ({ label, phase }));
+  const has = (p: Parameters<typeof navFor>[0] extends (p: infer P) => boolean ? P : never) => user.permissions.has(p);
+  const jar = await cookies();
+  const pref = jar.get('ing_theme')?.value;
+  const theme = pref === 'light' || pref === 'system' ? pref : 'dark';
+
+  // Hinweise und Zähler: echte Daten, nur soweit die Rolle sie sehen darf.
+  const c = user.mustChangePassword ? null : await dashboardCounts(user);
+  const nav = navFor(has).map(({ href, label, icon, group, ready, phase }) => ({ href, label, icon, group, ready, phase, count: href === '/admin/anfragen' && c?.newLeads ? c.newLeads : undefined }));
+  const notices: ShellNotice[] = [];
+  if (c?.newLeads) notices.push({ id: 'new', label: 'Neue Anfragen', href: '/admin/anfragen?status=NEW', count: c.newLeads, tone: 'info' });
+  if (c?.failedMail) notices.push({ id: 'mail', label: 'Ohne Mail-Benachrichtigung', href: '/admin/anfragen?mail=failed', count: c.failedMail, tone: 'warn' });
+  if (c?.followUpsDue) notices.push({ id: 'fu', label: 'Fällige Wiedervorlagen', href: '/admin/heute', count: c.followUpsDue, tone: 'warn' });
+  if (c?.unassigned) notices.push({ id: 'unassigned', label: 'Fälle ohne Sachverständigen', href: '/admin/faelle?status=open&sv=none', count: c.unassigned, tone: 'warn' });
+
+  const actions: ShellAction[] = [];
+  if (has('cases.write.all')) actions.push({ id: 'new-case', label: 'Neuer Fall', href: '/admin/faelle/neu/', icon: 'case' });
+  if (has('customers.write')) actions.push({ id: 'new-customer', label: 'Neuer Kunde', href: '/admin/kunden/neu/', icon: 'users' });
+  if (has('users.write')) actions.push({ id: 'new-user', label: 'Neuer Benutzer', href: '/admin/benutzer/neu/', icon: 'user' });
 
   return (
     <AdminShell
       nav={nav}
-      upcoming={upcoming}
-      user={{ name: `${user.firstName} ${user.lastName}`, role: ROLE_LABELS[user.role] }}
+      groups={NAV_GROUPS}
+      actions={actions}
+      notices={notices}
+      canSearch={has('search.global')}
+      theme={theme}
+      collapsedInitially={jar.get('ing_nav')?.value === 'collapsed'}
+      user={{ name: `${user.firstName} ${user.lastName}`, role: ROLE_LABELS[user.role], email: user.email }}
       logout={
         <form action={logoutAction}>
-          <button type="submit" className="adm-btn adm-btn-ghost w-full">
+          <button type="submit" className="adm-menu-item" role="menuitem">
+            <AdminIcon name="logout" />
             Abmelden
           </button>
         </form>

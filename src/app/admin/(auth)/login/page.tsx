@@ -13,26 +13,22 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (configured && (await getAuthUser())) redirect(safeNext(weiter));
 
   return (
-    <div className="grid min-h-[100svh] place-items-center px-4 py-10">
-      <div className="w-full max-w-[400px]">
-        <div className="mb-8 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-[10px] bg-signal font-display text-[.9rem] font-bold text-white">ING</span>
-          <div>
-            <p className="font-display text-[1.15rem] font-bold leading-tight tracking-[-.02em]">Operating System</p>
-            <p className="font-mono text-[.62rem] uppercase tracking-[.14em] text-fg-mute">Interner Bereich</p>
-          </div>
+    <div className="adm-login">
+      <div className="adm-login-box">
+        <div className="adm-brand" style={{ border: 0, padding: 0, height: 'auto', marginBottom: 28 }}>
+          <span className="adm-brand-mark" style={{ width: 38, height: 38, fontSize: 13 }}>ING</span>
+          <span className="adm-brand-text"><b style={{ fontSize: 17 }}>Operating System</b><span>Interner Bereich · ING Gutachten</span></span>
         </div>
-        <div className="adm-card !p-6">
-          <h1 className="mb-5 font-display text-[1.4rem] font-semibold tracking-[-.02em]">Anmelden</h1>
+        <div className="adm-panel" style={{ padding: 24 }}>
+          <h1 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 700, letterSpacing: '-.02em' }}>Anmelden</h1>
+          <p className="t-2" style={{ margin: '0 0 20px' }}>Mit Ihrer geschäftlichen E-Mail-Adresse.</p>
           {configured ? (
             <LoginForm next={weiter ? safeNext(weiter) : undefined} />
           ) : (
-            <p role="alert" className="rounded-[10px] border border-line px-3.5 py-3 text-[.92rem] text-fg-dim">
-              Das System ist hier noch nicht eingerichtet: <code className="font-mono text-[.85em]">DATABASE_URL</code> fehlt. Die öffentliche Website ist davon nicht betroffen.
-            </p>
+            <p role="alert" className="adm-alert">Das System ist hier noch nicht eingerichtet: <code className="mono">DATABASE_URL</code> fehlt. Die öffentliche Website ist davon nicht betroffen.</p>
           )}
         </div>
-        <p className="mt-6 text-center text-[.78rem] text-fg-mute">Zugang nur für Mitarbeiter von ING Gutachten.</p>
+        <p className="t-3" style={{ textAlign: 'center', fontSize: 12, margin: '20px 0 0' }}>Zugang nur für Mitarbeiter von ING Gutachten.</p>
       </div>
     </div>
   );

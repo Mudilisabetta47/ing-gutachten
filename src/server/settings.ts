@@ -1,5 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
+import type { PrismaClient } from '@prisma/client';
 import { db } from '@/server/db';
 import { writeAudit } from '@/server/audit';
 
@@ -30,8 +31,12 @@ export const SETTING_DEFAULTS: { [K in SettingKey]: SettingValue<K> } = {
   uploads: { maxPhotoMb: 15, maxDocumentMb: 25, maxFilesPerUpload: 20 },
 };
 
-export async function getSetting<K extends SettingKey>(key: K): Promise<SettingValue<K>> {
-  const row = await db.systemSetting.findUnique({ where: { key } });
+/**
+ * `client`: innerhalb einer Transaktion MUSS der Transaktions-Client übergeben werden – sonst hält
+ * die Transaktion eine Verbindung und wartet auf eine zweite (Pool-Verklemmung unter Last).
+ */
+export async function getSetting<K extends SettingKey>(key: K, client: Pick<PrismaClient, 'systemSetting'> = db): Promise<SettingValue<K>> {
+  const row = await client.systemSetting.findUnique({ where: { key } });
   const parsed = SETTINGS[key].safeParse(row?.value);
   return (parsed.success ? parsed.data : SETTING_DEFAULTS[key]) as SettingValue<K>;
 }

@@ -47,3 +47,13 @@ Ohne `DATABASE_URL` baut und läuft die öffentliche Website unverändert; `/adm
 * Rollenwechsel, Deaktivierung und Passwort-Reset beenden Sitzungen sofort; letzter Inhaber bleibt geschützt
 * Audit-Log append-only, Geheimnisse werden vor dem Schreiben entfernt
 * `/admin`: `Cache-Control: no-store`, `X-Robots-Tag: noindex`, `X-Frame-Options: DENY`, in `robots.txt` gesperrt
+
+
+## Phase 2 – Anfragen, Kunden, Fahrzeuge, Fälle
+
+- **Ablauf:** Formular → `/api/anfrage` → Inquiry (unveränderlich) + Lead + Mail-Benachrichtigung → Admin `/admin/anfragen` → Umwandlung (eine Transaktion) → Kunde + Fahrzeug + Fall (`ING-JJJJ-NNNNNN`).
+- **Fehlerverhalten Formular:** DB ok + Mail Fehler → Erfolg, `notificationStatus=FAILED` (Hinweis am Lead). DB Fehler + Mail ok → neutraler Erfolg, Server-Log `DATABASE_PERSISTENCE_FAILED`. Beides Fehler → ehrlicher Fehler mit Telefonnummer. Ohne `DATABASE_URL` (Vercel-Preview) verhält sich das Formular wie bisher (nur Mail).
+- **Tests:** `npm run test:db` (73 Tests: Normalisierung, Workflows, Intake, Umwandlung inkl. Rollback, parallele Fallnummern, Rechte, Suche, Archiv).
+- **Dev-Daten:** `npm run seed:demo -- fixtures` (markiert `(Demo)`/`@demo.ing.test`), `npm run seed:demo -- clear` räumt Demo-Benutzer und Pipeline-Daten (nur lokal).
+- **Admin-Design-System:** `src/app/admin/admin.css` (Tokens für Dunkel/Hell/System), Komponenten in `src/components/admin/`. Neue Admin-Seiten nutzen ausschließlich diese Bausteine (PageHeader/DetailHeader, SummaryBar, Tabs, Section/Rows, Timeline, `dt`-Tabellen mit `data-slot`, Drawer/Toast/ConfirmModal, Forms).
+- **Datenschutz:** siehe `docs/DATENSCHUTZ-TODO.md`.

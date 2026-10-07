@@ -2,8 +2,11 @@
  * Demo-/Entwicklungsdaten – NUR lokal. Verweigert sich in Production und gegen Nicht-Lokal-Datenbanken.
  * Enthält ausschließlich erfundene Beispieldaten, keine echten Kunden.
  *
- *   npm run seed:demo          legt Demo-Benutzer an (idempotent)
- *   npm run seed:demo -- clear entfernt sie wieder
+ *   npm run seed:demo                  legt Demo-Benutzer an (idempotent)
+ *   npm run seed:demo -- fixtures      legt zusätzlich markierte Beispiel-Anfragen/-Kunden/-Fälle an
+ *   npm run seed:demo -- clear         entfernt Demo-Benutzer UND alle Pipeline-Daten (nur lokale Entwicklung)
+ *
+ * Fixtures sind erkennbar: E-Mail-Adressen auf @demo.ing.test, Namen mit „(Demo)“.
  *
  * Das Demo-Passwort gilt nur für diese lokale Entwicklungsumgebung und steht deshalb hier im Skript.
  */
@@ -22,6 +25,39 @@ export const DEMO_USERS: { email: string; firstName: string; lastName: string; r
   { email: 'redaktion@demo.ing.test', firstName: 'Rita', lastName: 'Redaktion', role: 'CONTENT_MANAGER' },
 ];
 
+async function fixtures(db: PrismaClient) {
+  if ((await db.lead.count()) > 0) {
+    console.log('Fixtures übersprungen: es gibt bereits Anfragen (erst `-- clear`).');
+    return;
+  }
+  const expert = await db.user.findUniqueOrThrow({ where: { email: 'gutachter@demo.ing.test' } });
+  const office = await db.user.findUniqueOrThrow({ where: { email: 'buero@demo.ing.test' } });
+  const now = Date.now();
+  const mk = async (i: number, v: { name: string; reason: string; kind: string; place: string; status?: 'NEW' | 'CONTACTED'; mail?: 'SENT' | 'FAILED' }) => {
+    const email = `${v.name.split(' ')[0].toLowerCase()}.demo@demo.ing.test`;
+    const received = new Date(now - i * 3_600_000 * 5);
+    const inq = await db.inquiry.create({
+      data: { receivedAt: received, formVersion: 'form-2026-10-v1', reason: v.reason, vehicleKind: v.kind, name: v.name, email, phone: `0511 55500${i}${i}`, location: v.place, message: 'Beispielanfrage (Demo) – erfundene Daten.', consentAt: received, privacyVersion: 'datenschutz-2026-10', landingPath: '/kfz-gutachter-hannover/' },
+    });
+    const lead = await db.lead.create({
+      data: { inquiryId: inq.id, name: v.name, email, phone: `0511 55500${i}${i}`, phoneNorm: `051155500${i}${i}`, location: v.place, reason: v.reason, vehicleKind: v.kind, message: 'Beispielanfrage (Demo) – erfundene Daten.', status: v.status ?? 'NEW', notificationStatus: v.mail ?? 'SENT', createdAt: received },
+    });
+    await db.leadStatusHistory.create({ data: { leadId: lead.id, toStatus: 'NEW', reason: 'Demo-Fixture', createdAt: received } });
+  };
+  await mk(1, { name: 'Anna Beispiel (Demo)', reason: 'Unfall', kind: 'PKW', place: 'Hannover' });
+  await mk(2, { name: 'Bernd Probe (Demo)', reason: 'Parkschaden', kind: 'Motorrad', place: 'Laatzen', mail: 'FAILED' });
+  await mk(3, { name: 'Clara Muster (Demo)', reason: 'Wertgutachten', kind: 'Oldtimer', place: 'Langenhagen', status: 'CONTACTED' });
+  await mk(4, { name: 'Dirk Test (Demo)', reason: 'Unfall', kind: 'Elektro / Hybrid', place: 'Garbsen' });
+
+  const year = new Date().getFullYear();
+  const customer = await db.customer.create({ data: { firstName: 'Erika', lastName: 'Fixture (Demo)', email: 'erika.fixture@demo.ing.test', phone: '0511 5550100', phoneNorm: '05115550100', street: 'Beispielweg 1', postalCode: '30159', city: 'Hannover' } });
+  const vehicle = await db.vehicle.create({ data: { customerId: customer.id, manufacturer: 'VW', model: 'Golf VIII', licensePlate: 'H-DM 2026', licensePlateNorm: 'HDM2026', fuelType: 'DIESEL' } });
+  const rows = await db.$queryRaw<{ last_value: number }[]>`INSERT INTO case_counters (year, last_value, updated_at) VALUES (${year}, 1, now()) ON CONFLICT (year) DO UPDATE SET last_value = case_counters.last_value + 1, updated_at = now() RETURNING last_value`;
+  const c = await db.case.create({ data: { caseNumber: `ING-${year}-${String(rows[0].last_value).padStart(6, '0')}`, status: 'APPOINTMENT_SET', customerId: customer.id, vehicleId: vehicle.id, assignedExpertId: expert.id, createdById: office.id, description: 'Heckschaden (Demo-Fixture)', inspectionLocation: 'Hannover' } });
+  await db.caseStatusHistory.create({ data: { caseId: c.id, toStatus: 'NEW', actorId: office.id, reason: 'Demo-Fixture' } });
+  console.log('Fixtures angelegt: 4 Anfragen, 1 Kunde, 1 Fahrzeug, 1 Fall (dem Demo-Gutachter zugewiesen).');
+}
+
 async function main() {
   assertSafeTarget('seed:demo');
   const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
@@ -29,6 +65,10 @@ async function main() {
     if (process.argv.includes('clear')) {
       // Das Protokoll verweist auf Benutzer (Fremdschlüssel). Nur in der lokalen Entwicklung dürfen
       // die Einträge der Demo-Benutzer mit entfernt werden – gegen echte Datenbanken verweigert _guard das Skript.
+      // Pipeline-Daten verweisen auf Benutzer → zuerst leeren (lokale Entwicklungsdatenbank, _guard erzwingt das).
+      await db.$executeRawUnsafe(
+        'TRUNCATE TABLE notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters RESTART IDENTITY CASCADE',
+      );
       const demo = await db.user.findMany({ where: { email: { endsWith: '@demo.ing.test' } }, select: { id: true } });
       const ids = demo.map((u) => u.id);
       await db.auditLog.deleteMany({ where: { actorId: { in: ids } } });
@@ -45,6 +85,7 @@ async function main() {
       });
     }
     console.log(`${DEMO_USERS.length} Demo-Benutzer bereit (…@demo.ing.test).`);
+    if (process.argv.includes('fixtures')) await fixtures(db);
   } finally {
     await db.$disconnect();
   }

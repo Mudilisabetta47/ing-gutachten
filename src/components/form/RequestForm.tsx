@@ -177,6 +177,16 @@ export function RequestForm() {
       if (doc) data.append('fahrzeugschein', doc, doc.name);
       data.append('website', honeypot.current?.value ?? '');
       data.append('t', String(startedAt.current));
+      // Herkunft (optional, harmlos): UTM-Parameter, Referrer-Host, Einstiegsseite. Der Server verwirft alles Auffällige.
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        for (const k of ['utm_source', 'utm_medium', 'utm_campaign']) {
+          const v = sp.get(k);
+          if (v) data.append(k, v.slice(0, 80));
+        }
+        if (document.referrer) data.append('ref', document.referrer.slice(0, 300));
+        data.append('lp', window.location.pathname.slice(0, 120));
+      } catch { /* Herkunft ist optional */ }
 
       const res = await fetch(FORM_ENDPOINT, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
       const json = (await res.json().catch(() => ({}))) as { ok?: boolean; dryRun?: boolean; message?: string; fields?: FieldErrors };

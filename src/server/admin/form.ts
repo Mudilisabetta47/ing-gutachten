@@ -1,5 +1,6 @@
 import { ZodError } from 'zod';
 import { AuthRequiredError, ForbiddenError } from '@/server/auth/errors';
+import { DomainError } from '@/server/errors';
 
 export type FormState = { ok?: boolean; error?: string; fields?: Record<string, string>; message?: string; values?: Record<string, string> };
 
@@ -21,7 +22,7 @@ export function toFormState(err: unknown, values?: Record<string, string>): Form
     }
     return { error: 'Bitte die markierten Angaben prüfen.', fields, values };
   }
-  if (err instanceof ForbiddenError || err instanceof AuthRequiredError) return { error: err.message, values };
+  if (err instanceof ForbiddenError || err instanceof AuthRequiredError || err instanceof DomainError) return { error: err.message, values };
   console.error('[admin] unerwarteter Fehler:', err instanceof Error ? err.message : 'unbekannt');
   return { error: 'Das hat nicht geklappt. Bitte erneut versuchen.', values };
 }

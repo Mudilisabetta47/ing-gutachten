@@ -12,8 +12,8 @@ import type { Role } from '@prisma/client';
 export const PERMISSIONS = [
   // Pipeline & Stammdaten
   'leads.read', 'leads.write', 'leads.convert',
-  'customers.read', 'customers.read.own', 'customers.write',
-  'vehicles.read', 'vehicles.write',
+  'customers.read', 'customers.read.own', 'customers.write', 'customers.delete',
+  'vehicles.read', 'vehicles.write', 'vehicles.delete',
   // Fälle
   'cases.read.all', 'cases.read.own', 'cases.write.all', 'cases.write.own', 'cases.assign', 'cases.status', 'cases.delete',
   // Termine, Fotos, Dokumente

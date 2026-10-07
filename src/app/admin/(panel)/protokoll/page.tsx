@@ -1,15 +1,16 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import type { Prisma } from '@prisma/client';
 import { db } from '@/server/db';
 import { requirePagePermission, can } from '@/server/auth/guards';
-import { PageHeader, Pagination, fmtDateTime } from '@/components/admin/ui';
+import { AutoForm } from '@/components/admin/AutoForm';
+import { EmptyState, FilterChips, PageHeader, Pagination, fmtWhen, hrefWith, type Chip } from '@/components/admin/ui';
 
 export const metadata: Metadata = { title: 'Protokoll' };
 
 const GROUPS = [
-  ['auth.', 'Anmeldung'],
-  ['user.', 'Benutzer'],
-  ['settings.', 'Einstellungen'],
+  ['auth.', 'Anmeldung'], ['user.', 'Benutzer'], ['settings.', 'Einstellungen'],
+  ['lead.', 'Anfragen'], ['customer.', 'Kunden'], ['vehicle.', 'Fahrzeuge'], ['case.', 'Fälle'], ['note.', 'Notizen'],
 ] as const;
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ gruppe?: string; von?: string; bis?: string; seite?: string }> }) {
@@ -28,84 +29,59 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   };
   const [total, rows] = await Promise.all([
     db.auditLog.count({ where }),
-    db.auditLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize, include: { actor: { select: { firstName: true, lastName: true, email: true } } } }),
+    db.auditLog.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize, include: { actor: { select: { firstName: true, lastName: true } } } }),
   ]);
+  const base = '/admin/protokoll';
+  const params = { gruppe: group, von: sp.von, bis: sp.bis };
+  const chips: Chip[] = [
+    group && { label: 'Bereich', value: GROUPS.find(([p]) => p === group)![1], href: hrefWith(base, { ...params, gruppe: undefined }) },
+    sp.von && { label: 'Von', value: sp.von, href: hrefWith(base, { ...params, von: undefined }) },
+    sp.bis && { label: 'Bis', value: sp.bis, href: hrefWith(base, { ...params, bis: undefined }) },
+  ].filter(Boolean) as Chip[];
 
   return (
     <>
       <PageHeader title="Protokoll" intro="Wer hat wann was geändert. Einträge sind unveränderlich; Geheimnisse (Passwörter, Tokens) werden nie gespeichert." />
-      <form className="mb-4 flex flex-wrap items-end gap-2" role="search">
-        <label className="grid gap-0.5">
-          <span className="adm-label">Bereich</span>
-          <select name="gruppe" defaultValue={group ?? ''} className="adm-input !w-auto">
-            <option value="">Alle</option>
-            {GROUPS.map(([p, l]) => (
-              <option key={p} value={p}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-0.5">
-          <span className="adm-label">Von</span>
-          <input type="date" name="von" defaultValue={sp.von} className="adm-input !w-auto" />
-        </label>
-        <label className="grid gap-0.5">
-          <span className="adm-label">Bis</span>
-          <input type="date" name="bis" defaultValue={sp.bis} className="adm-input !w-auto" />
-        </label>
-        <button type="submit" className="adm-btn adm-btn-ghost">
-          Filtern
-        </button>
-      </form>
+      <AutoForm action={base}>
+        <select name="gruppe" defaultValue={group ?? ''} className="adm-input" aria-label="Bereich">
+          <option value="">Alle Bereiche</option>
+          {GROUPS.map(([p, l]) => <option key={p} value={p}>{l}</option>)}
+        </select>
+        <label className="adm-check">Von <input type="date" name="von" defaultValue={sp.von} className="adm-input" style={{ width: 'auto' }} /></label>
+        <label className="adm-check">Bis <input type="date" name="bis" defaultValue={sp.bis} className="adm-input" style={{ width: 'auto' }} /></label>
+      </AutoForm>
+      <FilterChips chips={chips} clearHref={base} />
 
-      <div className="adm-card overflow-hidden !p-0">
-        <table className="adm-table adm-stack">
-          <thead>
-            <tr>
-              <th>Zeit</th>
-              <th>Wer</th>
-              <th>Aktion</th>
-              <th>Objekt</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={5} className="py-8 text-center text-fg-mute">
-                  Keine Einträge.
-                </td>
-              </tr>
-            )}
-            {rows.map((r) => (
-              <tr key={r.id}>
-                <td data-label="Zeit" className="whitespace-nowrap font-mono text-[.76rem] text-fg-mute">
-                  {fmtDateTime(r.createdAt)}
-                </td>
-                <td data-label="Wer">{r.actor ? `${r.actor.firstName} ${r.actor.lastName}` : <span className="text-fg-mute">System / unbekannt</span>}</td>
-                <td data-label="Aktion">
-                  <code className="font-mono text-[.8rem]">{r.action}</code>
-                </td>
-                <td data-label="Objekt" className="text-fg-dim">
-                  {r.entityType}
-                </td>
-                <td data-label="Details" className="max-w-[420px]">
-                  {r.summary ? <span className="text-fg-dim">{r.summary}</span> : null}
-                  {r.before || r.after ? (
-                    <details className="mt-1">
-                      <summary className="cursor-pointer text-[.78rem] text-fg-mute">Vorher / Nachher</summary>
-                      <pre className="mt-1 max-h-48 overflow-auto rounded-[8px] bg-ink-900 p-2 font-mono text-[.7rem] text-fg-dim">{JSON.stringify({ vorher: r.before, nachher: r.after }, null, 2)}</pre>
-                    </details>
-                  ) : null}
-                  {r.ip ? <span className="ml-2 font-mono text-[.66rem] text-fg-mute">{r.ip}</span> : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <Pagination total={total} page={page} pageSize={pageSize} basePath="/admin/protokoll" params={{ gruppe: group, von: sp.von, bis: sp.bis }} />
+      {rows.length === 0 ? (
+        <EmptyState icon="log" title="Keine Einträge" action={chips.length ? <Link href={base} className="adm-btn adm-btn-secondary">Filter zurücksetzen</Link> : undefined}>Für diese Auswahl gibt es keine Protokolleinträge.</EmptyState>
+      ) : (
+        <div className="dt-wrap">
+          <table className="dt">
+            <thead><tr><th>Zeit</th><th>Wer</th><th>Aktion</th><th>Objekt</th><th>Details</th></tr></thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id}>
+                  <td data-slot="meta" className="nowrap t-2">{fmtWhen(r.createdAt)}</td>
+                  <td data-slot="title">{r.actor ? `${r.actor.firstName} ${r.actor.lastName}` : <span className="t-3">System</span>}</td>
+                  <td data-slot="sub"><code className="mono" style={{ fontSize: 12 }}>{r.action}</code></td>
+                  <td data-slot="hide" className="t-2">{r.entityType}</td>
+                  <td data-slot="meta" style={{ maxWidth: 420 }}>
+                    {r.summary ? <span className="t-2">{r.summary}</span> : null}
+                    {r.before || r.after ? (
+                      <details style={{ marginTop: 4 }}>
+                        <summary className="t-3" style={{ cursor: 'pointer', fontSize: 12 }}>Vorher / Nachher</summary>
+                        <pre className="mono" style={{ margin: '4px 0 0', maxHeight: 192, overflow: 'auto', padding: 8, borderRadius: 8, background: 'rgb(var(--a-s2))', fontSize: 11 }}>{JSON.stringify({ vorher: r.before, nachher: r.after }, null, 2)}</pre>
+                      </details>
+                    ) : null}
+                    {r.ip ? <span className="mono t-3" style={{ marginLeft: 8, fontSize: 11 }}>{r.ip}</span> : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <Pagination total={total} page={page} pageSize={pageSize} basePath={base} params={params} noun="Einträge" />
     </>
   );
 }

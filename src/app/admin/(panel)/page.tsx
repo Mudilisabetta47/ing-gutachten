@@ -2,121 +2,150 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { db } from '@/server/db';
 import { requireUser, can } from '@/server/auth/guards';
-import { ROLE_LABELS } from '@/server/auth/permissions';
 import { getSystemStatus } from '@/server/admin/status';
-import { upcomingNav } from '@/server/admin/nav';
-import { PageHeader, fmtDateTime } from '@/components/admin/ui';
+import { dashboardCounts, todayOverview } from '@/server/pipeline/today';
+import { CASE_LABELS, LEAD_LABELS } from '@/lib/workflow';
+import { AdminIcon } from '@/components/admin/AdminIcon';
+import { Badge, EmptyState, Kpi, Kpis, PageHeader, Section, StatusPill, Timeline, fmtWhen, phoneHref, type TimelineItem } from '@/components/admin/ui';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 
 const ACTION_LABEL: Record<string, string> = {
-  'auth.login': 'Angemeldet',
-  'auth.logout': 'Abgemeldet',
-  'auth.login_failed': 'Fehlgeschlagene Anmeldung',
-  'auth.login_throttled': 'Anmeldung gedrosselt',
-  'auth.password_change': 'Passwort geändert',
-  'user.create': 'Benutzer angelegt',
-  'user.update': 'Benutzer geändert',
-  'user.role_change': 'Rolle geändert',
-  'user.deactivate': 'Benutzer deaktiviert',
-  'user.password_reset': 'Passwort zurückgesetzt',
-  'settings.update': 'Einstellung geändert',
+  'auth.login': 'hat sich angemeldet', 'auth.logout': 'hat sich abgemeldet', 'auth.login_failed': 'Fehlgeschlagene Anmeldung', 'auth.login_throttled': 'Anmeldung gedrosselt',
+  'auth.password_change': 'hat das Passwort geändert', 'user.create': 'hat einen Benutzer angelegt', 'user.update': 'hat einen Benutzer geändert', 'user.role_change': 'hat eine Rolle geändert',
+  'user.deactivate': 'hat einen Benutzer deaktiviert', 'user.password_reset': 'hat ein Passwort zurückgesetzt', 'settings.update': 'hat eine Einstellung geändert',
+  'lead.create': 'Neue Anfrage über die Website eingegangen', 'lead.status_change': 'hat den Anfragestatus geändert', 'lead.update': 'hat eine Anfrage bearbeitet', 'lead.convert': 'hat eine Anfrage in einen Fall umgewandelt',
+  'lead.notification_failed': 'E-Mail-Benachrichtigung fehlgeschlagen', 'lead.assign': 'hat eine Anfrage zugewiesen', 'note.add': 'hat eine Notiz hinzugefügt',
+  'customer.create': 'hat einen Kunden angelegt', 'customer.update': 'hat einen Kunden geändert', 'customer.archive': 'hat einen Kunden archiviert', 'customer.restore': 'hat einen Kunden wiederhergestellt',
+  'vehicle.create': 'hat ein Fahrzeug angelegt', 'vehicle.update': 'hat ein Fahrzeug geändert', 'vehicle.archive': 'hat ein Fahrzeug archiviert',
+  'case.create': 'hat einen Fall angelegt', 'case.update': 'hat einen Fall geändert', 'case.status_change': 'hat den Fallstatus geändert', 'case.assign': 'hat einen Fall zugewiesen', 'case.archive': 'hat einen Fall archiviert', 'case.restore': 'hat einen Fall wiederhergestellt',
 };
+
+const greeting = () => {
+  const h = Number(new Intl.DateTimeFormat('de-DE', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Europe/Berlin' }).format(new Date()));
+  return h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend';
+};
+const dateLong = () => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Berlin' }).format(new Date());
 
 export default async function DashboardPage() {
   const user = await requireUser();
   const seeAll = can(user, 'audit.read');
-  const status = getSystemStatus();
-
-  const [activeUsers, activity, mySessions] = await Promise.all([
-    can(user, 'users.read') ? db.user.count({ where: { isActive: true, deletedAt: null } }) : Promise.resolve(null),
+  const [counts, today, audit] = await Promise.all([
+    dashboardCounts(user),
+    todayOverview(user),
     db.auditLog.findMany({
       where: seeAll ? {} : { actorId: user.id },
       orderBy: { createdAt: 'desc' },
       take: 8,
       include: { actor: { select: { firstName: true, lastName: true } } },
     }),
-    db.session.count({ where: { userId: user.id, revokedAt: null, expiresAt: { gt: new Date() } } }),
   ]);
-  const upcoming = upcomingNav((p) => user.permissions.has(p));
+  const activity: TimelineItem[] = audit.map((a) => ({
+    id: a.id, at: a.createdAt, actor: a.actor ? `${a.actor.firstName} ${a.actor.lastName}` : null,
+    text: ACTION_LABEL[a.action] ?? a.action, kind: a.action.includes('status') ? 'status' : a.action.startsWith('note') ? 'note' : 'system',
+  }));
+  const status = can(user, 'settings.read') ? getSystemStatus() : null;
+  const hasKpi = counts.newLeads !== null || counts.openCases !== null;
+  const now = Date.now();
 
   return (
     <>
-      <PageHeader title={`Guten Tag, ${user.firstName}`} intro={`Angemeldet als ${ROLE_LABELS[user.role]}. Das Dashboard zeigt nur echte Daten – die Fall-Kennzahlen erscheinen, sobald die Module gebaut sind.`} />
+      <PageHeader title={`${greeting()}, ${user.firstName}.`} intro={dateLong()} />
 
-      <section aria-label="Kennzahlen" className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {activeUsers !== null && (
-          <div className="adm-card">
-            <p className="adm-label">Aktive Benutzer</p>
-            <p className="font-display text-[2rem] font-semibold leading-none tracking-[-.03em]">{activeUsers}</p>
-          </div>
-        )}
-        <div className="adm-card">
-          <p className="adm-label">Meine Sitzungen</p>
-          <p className="font-display text-[2rem] font-semibold leading-none tracking-[-.03em]">{mySessions}</p>
-          <Link href="/admin/profil" className="adm-link mt-2 inline-block text-[.82rem]">
-            Verwalten
-          </Link>
-        </div>
-        {can(user, 'settings.read') && (
-          <>
-            <div className="adm-card">
-              <p className="adm-label">E-Mail-Versand</p>
-              <p className={`text-[.95rem] ${status.mail.ok ? 'text-ok' : 'text-fg-dim'}`}>{status.mail.label}</p>
-            </div>
-            <div className="adm-card">
-              <p className="adm-label">Dateispeicher</p>
-              <p className={`text-[.95rem] ${status.storage.ok ? 'text-ok' : 'text-fg-dim'}`}>{status.storage.label}</p>
-            </div>
-          </>
-        )}
-      </section>
+      {hasKpi && (
+        <Kpis>
+          {counts.newLeads !== null && <Kpi label="Neue Anfragen" value={counts.newLeads} href="/admin/anfragen?status=NEW" testId="count-new-leads" note={counts.failedMail ? `${counts.failedMail} ohne Mail-Hinweis` : undefined} warn />}
+          {counts.openCases !== null && <Kpi label="Offene Fälle" value={counts.openCases} href="/admin/faelle?status=open" testId="count-open-cases" note={counts.unassigned ? `${counts.unassigned} ohne Gutachter` : undefined} warn />}
+          {counts.reportsOpen !== null && <Kpi label="Gutachten offen" value={counts.reportsOpen} href="/admin/faelle?status=IN_PROGRESS" />}
+          {counts.followUpsDue !== null && <Kpi label="Wiedervorlagen fällig" value={counts.followUpsDue} href="/admin/heute" />}
+          {counts.customers !== null && <Kpi label="Kunden" value={counts.customers} href="/admin/kunden" />}
+        </Kpis>
+      )}
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section className="adm-card" aria-labelledby="feed-h">
-          <h2 id="feed-h" className="mb-3 font-display text-[1.1rem] font-semibold">
-            Letzte Aktivität
-          </h2>
-          {activity.length === 0 ? (
-            <p className="text-[.92rem] text-fg-mute">Noch keine Einträge.</p>
-          ) : (
-            <ul className="divide-y divide-line/60">
-              {activity.map((a) => (
-                <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 py-2.5 text-[.9rem]">
-                  <span>
-                    <span className="text-fg">{ACTION_LABEL[a.action] ?? a.action}</span>
-                    {a.summary && a.summary !== (ACTION_LABEL[a.action] ?? a.action) ? <span className="text-fg-mute"> · {a.summary}</span> : null}
-                  </span>
-                  <span className="font-mono text-[.66rem] text-fg-mute">
-                    {a.actor ? `${a.actor.firstName} ${a.actor.lastName} · ` : ''}
-                    {fmtDateTime(a.createdAt)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+      <div className="adm-work" style={{ marginTop: 28 }}>
+        <div style={{ minWidth: 0 }}>
+          {counts.newLeads !== null && (
+            <Section title="Neue Anfragen" aside={<Link href="/admin/anfragen?status=NEW" className="adm-link">Alle anzeigen</Link>}>
+              {today.newLeads.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Keine neuen Anfragen – alles bearbeitet.</p> : (
+                <ul className="adm-list">
+                  {today.newLeads.slice(0, 6).map((l) => (
+                    <li key={l.id}>
+                      <span className="main">
+                        <Link href={`/admin/anfragen/${l.id}/`} className="stretch">{l.name}</Link>
+                        <span className="secondary">{l.reason} · {l.vehicleKind}{l.location ? ` · ${l.location}` : ''} · {fmtWhen(l.createdAt)}</span>
+                      </span>
+                      <span style={{ display: 'flex', gap: 8, alignItems: 'center', position: 'relative', zIndex: 2 }}>
+                        {l.notificationStatus === 'FAILED' && <Badge tone="warn">Mail fehlgeschlagen</Badge>}
+                        {phoneHref(l.phone) && <a href={phoneHref(l.phone)} className="adm-btn adm-btn-secondary adm-btn-sm adm-btn-icon" aria-label={`${l.name} anrufen`}><AdminIcon name="phone" /></a>}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
           )}
-          {can(user, 'audit.read') || can(user, 'audit.read.own') ? (
-            <Link href="/admin/protokoll" className="adm-link mt-3 inline-block text-[.86rem]">
-              Gesamtes Protokoll
-            </Link>
-          ) : null}
-        </section>
 
-        <section className="adm-card" aria-labelledby="road-h">
-          <h2 id="road-h" className="mb-3 font-display text-[1.1rem] font-semibold">
-            Im Aufbau
-          </h2>
-          <ul className="grid gap-2 text-[.9rem]">
-            {upcoming.length === 0 ? <li className="text-fg-mute">Alle Module für Ihre Rolle sind verfügbar.</li> : null}
-            {upcoming.map((m) => (
-              <li key={m.href} className="flex justify-between gap-3 text-fg-dim">
-                <span>{m.label}</span>
-                <span className="adm-pill">Phase {m.phase}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+          {counts.openCases !== null && (
+            <Section title={user.permissions.has('cases.read.all') ? 'Offene Fälle' : 'Meine offenen Fälle'} aside={<Link href="/admin/faelle?status=open" className="adm-link">Alle anzeigen</Link>}>
+              {today.workCases.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Keine offenen Fälle.</p> : (
+                <div className="dt-wrap">
+                  <table className="dt">
+                    <thead><tr><th>Fall</th><th>Kunde</th><th>Kennzeichen</th><th>Status</th></tr></thead>
+                    <tbody>
+                      {today.workCases.map((c) => (
+                        <tr key={c.id}>
+                          <td data-slot="title"><Link href={`/admin/faelle/${c.caseNumber}/`} className="primary stretch mono">{c.caseNumber}</Link></td>
+                          <td data-slot="sub">{c.customer.company || c.customer.lastName}</td>
+                          <td data-slot="meta">{c.vehicle.licensePlate ? <span className="mono">{c.vehicle.licensePlate}</span> : c.vehicle.model}</td>
+                          <td data-slot="badge"><StatusPill kind="case" status={c.status} label={CASE_LABELS[c.status]} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Section>
+          )}
+        </div>
+
+        <aside aria-label="Heute und Aktivität">
+          <div className="adm-aside-block">
+            <h3>Heute</h3>
+            <p className="t-2" style={{ margin: 0 }}>Der Terminkalender folgt in Phase 3. Bis dahin zeigt „Heute“ Anfragen, Wiedervorlagen und Fälle in Arbeit.</p>
+            <Link href="/admin/heute" className="adm-btn adm-btn-secondary adm-btn-sm" style={{ marginTop: 10 }}>Heute öffnen</Link>
+          </div>
+          {counts.followUpsDue !== null && (
+            <div className="adm-aside-block">
+              <h3>Wiedervorlagen</h3>
+              {today.dueLeads.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Keine fälligen Wiedervorlagen.</p> : (
+                <ul className="adm-list">
+                  {today.dueLeads.slice(0, 5).map((l) => (
+                    <li key={l.id}>
+                      <span className="main"><Link href={`/admin/anfragen/${l.id}/`} className="stretch">{l.name}</Link><span className={`secondary ${l.nextActionAt && l.nextActionAt.getTime() < now ? 't-danger' : ''}`}>{l.nextActionAt && l.nextActionAt.getTime() < now ? 'überfällig · ' : ''}{fmtWhen(l.nextActionAt)}</span></span>
+                      <StatusPill kind="lead" status={l.status} label={LEAD_LABELS[l.status]} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+          <div className="adm-aside-block">
+            <h3>Aktivität</h3>
+            {activity.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Noch keine Einträge.</p> : <Timeline items={activity} />}
+            {(can(user, 'audit.read') || can(user, 'audit.read.own')) && <Link href="/admin/protokoll" className="adm-link" style={{ display: 'inline-block', marginTop: 8 }}>Gesamtes Protokoll</Link>}
+          </div>
+          {status && (
+            <div className="adm-aside-block">
+              <h3>Betrieb</h3>
+              <ul className="adm-list">
+                <li><span>E-Mail-Versand</span><Badge tone={status.mail.ok ? 'ok' : 'muted'}>{status.mail.ok ? 'Aktiv' : 'Nicht konfiguriert'}</Badge></li>
+                <li><span>Dateispeicher</span><Badge tone={status.storage.ok ? 'ok' : 'muted'}>{status.storage.ok ? 'Aktiv' : 'Folgt (Phase 3)'}</Badge></li>
+              </ul>
+            </div>
+          )}
+        </aside>
       </div>
+      {!hasKpi && <EmptyState icon="home" title="Willkommen im Operating System">Für Ihre Rolle gibt es noch keine Arbeitsbereiche auf dieser Übersicht. Nutzen Sie die Navigation links.</EmptyState>}
     </>
   );
 }

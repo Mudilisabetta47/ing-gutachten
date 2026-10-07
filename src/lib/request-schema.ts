@@ -3,6 +3,14 @@
  * Server (maßgeblich) verwendet. Der Server traut dem Browser nie.
  */
 
+/** Version des Formulars (Felder/Texte). Bei jeder inhaltlichen Änderung hochzählen – wird je Anfrage gespeichert. */
+export const FORM_VERSION = 'form-2026-10-v1';
+/**
+ * Kennung der Datenschutzerklärung, der zugestimmt wurde. Bei jeder Änderung der Erklärung
+ * hochzählen (siehe docs/DATENSCHUTZ-TODO.md). Der Text selbst steht NICHT hier.
+ */
+export const PRIVACY_VERSION = 'datenschutz-2026-10';
+
 export const REQUEST_REASONS = ['Unfall', 'Parkschaden', 'Wertgutachten', 'Fahrzeugbewertung', 'Leasingrückgabe', 'Sonstiges'] as const;
 export const REQUEST_VEHICLES = ['PKW', 'LKW', 'Motorrad', 'Elektro / Hybrid', 'Oldtimer'] as const;
 

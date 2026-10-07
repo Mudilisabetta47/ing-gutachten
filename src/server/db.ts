@@ -24,7 +24,7 @@ function create(): PrismaClient {
   if (!connectionString) {
     throw new Error('DATABASE_URL ist nicht gesetzt. Siehe .env.example und docs/ARCHITEKTUR-OS.md.');
   }
-  const adapter = new PrismaPg({ connectionString });
+  const adapter = new PrismaPg({ connectionString, connectionTimeoutMillis: 5000 });
   return new PrismaClient({ adapter, log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'] });
 }
 

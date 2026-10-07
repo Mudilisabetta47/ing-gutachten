@@ -2,149 +2,204 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
-import type { NavIcon } from '@/server/admin/nav';
-import { AdminIcon } from './AdminIcon';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { NavGroup } from '@/server/admin/nav';
+import { AdminIcon, type IconName } from './AdminIcon';
 import { CommandPalette, type Command } from './CommandPalette';
+import { Menu, Popover } from './Overlay';
+import { ThemeMenu, type Theme } from './ThemeMenu';
+import { ToastProvider } from './Toast';
 
-export type ShellNavItem = { href: string; label: string; icon: NavIcon };
+export type ShellNavItem = { href: string; label: string; icon: IconName; group: NavGroup; ready: boolean; phase: number; count?: number };
+export type ShellAction = { id: string; label: string; href: string; icon: IconName };
+export type ShellNotice = { id: string; label: string; href: string; count: number; tone: 'info' | 'warn' | 'danger' };
+
+const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join('');
 
 /**
- * Admin-Rahmen: feste Seitenleiste ab 1024 px, darunter Kopfzeile mit Drawer
- * (mobil bedienbar). Wenig Bewegung – nur Drawer und Hover.
+ * Rahmen des Operating Systems: einklappbare Seitenleiste (Desktop), kompakte Topbar mit Suche, Schnellanlage,
+ * Hinweisen und Konto-Menü; mobil Drawer + untere Hauptnavigation.
  */
 export function AdminShell({
-  nav,
-  upcoming,
-  user,
-  logout,
-  children,
+  nav, groups, actions, notices, user, theme, collapsedInitially, logout, canSearch, children,
 }: {
   nav: ShellNavItem[];
-  upcoming: { label: string; phase: number }[];
-  user: { name: string; role: string };
+  groups: NavGroup[];
+  actions: ShellAction[];
+  notices: ShellNotice[];
+  user: { name: string; role: string; email: string };
+  theme: Theme;
+  collapsedInitially: boolean;
   logout: ReactNode;
+  canSearch: boolean;
   children: ReactNode;
 }) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [sheet, setSheet] = useState(false);
   const [palette, setPalette] = useState(false);
+  const [collapsed, setCollapsed] = useState(collapsedInitially);
 
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => setSheet(false), [pathname]);
   useEffect(() => {
-    document.body.classList.toggle('is-locked', open);
+    document.body.classList.toggle('is-locked', sheet);
     return () => document.body.classList.remove('is-locked');
-  }, [open]);
+  }, [sheet]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setPalette((p) => !p);
-      }
-      if (e.key === 'Escape') setOpen(false);
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPalette((p) => !p); }
+      if (e.key === 'Escape') setSheet(false);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  // trailingSlash: true → Pfade enden auf "/"; zum Vergleichen normalisieren.
+  const toggle = () => {
+    setCollapsed((c) => {
+      document.cookie = `ing_nav=${c ? 'open' : 'collapsed'}; path=/admin; max-age=31536000; samesite=lax`;
+      return !c;
+    });
+  };
+
   const here = pathname.replace(/\/+$/, '') || '/';
   const active = (href: string) => (href === '/admin' ? here === '/admin' : here === href || here.startsWith(`${href}/`));
-  const commands: Command[] = nav.map((n) => ({ id: n.href, label: n.label, hint: 'Gehe zu', href: n.href }));
+  const current = nav.find((n) => n.ready && active(n.href));
+  const navCommands: Command[] = useMemo(() => nav.filter((n) => n.ready).map((n) => ({ id: n.href, label: n.label, href: n.href, icon: n.icon })), [nav]);
+  const noticeTotal = notices.reduce((a, n) => a + n.count, 0);
+  const mainNav = nav.filter((n) => n.ready && ['/admin', '/admin/heute', '/admin/anfragen', '/admin/faelle', '/admin/kunden'].includes(n.href)).slice(0, 5);
 
   const NavList = (
-    <nav aria-label="Hauptnavigation" className="grid gap-0.5">
-      {nav.map((n) => (
-        <Link
-          key={n.href}
-          href={n.href}
-          aria-current={active(n.href) ? 'page' : undefined}
-          className={`flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[.92rem] transition-colors ${
-            active(n.href) ? 'bg-signal-soft text-fg' : 'text-fg-dim hover:bg-white/[.04] hover:text-fg'
-          }`}
-        >
-          <AdminIcon name={n.icon} className={`h-[18px] w-[18px] ${active(n.href) ? 'text-signal-bright' : ''}`} />
-          {n.label}
-        </Link>
-      ))}
-      {upcoming.length > 0 && (
-        <div className="mt-5 px-3">
-          <p className="adm-label">Im Aufbau</p>
-          <ul className="grid gap-1 text-[.82rem] text-fg-mute">
-            {upcoming.map((u) => (
-              <li key={u.label} className="flex justify-between gap-2">
-                <span>{u.label}</span>
-                <span className="font-mono text-[.62rem]">Phase {u.phase}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+    <nav aria-label="Hauptnavigation" className="adm-nav">
+      {groups.map((g) => {
+        const items = nav.filter((n) => n.group === g);
+        if (!items.length) return null;
+        return (
+          <div key={g} style={{ display: 'contents' }}>
+            <p className="adm-nav-group">{g}</p>
+            {items.map((n) =>
+              n.ready ? (
+                <Link key={n.href} href={n.href} className="adm-nav-item" aria-current={active(n.href) ? 'page' : undefined} title={collapsed ? n.label : undefined}>
+                  <AdminIcon name={n.icon} />
+                  <span className="label">{n.label}</span>
+                  {n.count ? <span className="count" aria-label={`${n.count} neu`}>{n.count}</span> : null}
+                </Link>
+              ) : (
+                <span key={n.href} className="adm-nav-item" aria-disabled="true" title={`${n.label} folgt in Phase ${n.phase}`}>
+                  <AdminIcon name={n.icon} />
+                  <span className="label">{n.label}</span>
+                  <span className="soon">Phase {n.phase}</span>
+                </span>
+              ),
+            )}
+          </div>
+        );
+      })}
     </nav>
   );
 
+  const Brand = (
+    <Link href="/admin" className="adm-brand" aria-label="ING Operating System – Dashboard">
+      <span className="adm-brand-mark">ING</span>
+      <span className="adm-brand-text"><b>Operating System</b><span>Gutachtenbüro</span></span>
+    </Link>
+  );
+
   return (
-    <div className="min-h-[100svh] lg:grid lg:grid-cols-[256px_1fr]">
-      {/* Seitenleiste (Desktop) */}
-      <aside className="sticky top-0 hidden h-[100svh] flex-col gap-6 overflow-y-auto border-r border-line bg-ink-850 p-4 lg:flex">
-        <Link href="/admin" className="flex items-center gap-2.5 px-2 py-1 font-display text-[1.05rem] font-bold tracking-[-.02em]">
-          <span className="grid h-8 w-8 place-items-center rounded-[8px] bg-signal text-[.78rem] text-white">ING</span>
-          Operating System
-        </Link>
-        {NavList}
-        <div className="mt-auto grid gap-2 border-t border-line pt-4">
-          <Link href="/admin/profil" className="rounded-[10px] px-3 py-2 hover:bg-white/[.04]">
-            <span className="block text-[.9rem]">{user.name}</span>
-            <span className="font-mono text-[.62rem] uppercase tracking-[.12em] text-fg-mute">{user.role}</span>
-          </Link>
-          {logout}
-        </div>
-      </aside>
+    <ToastProvider>
+      <div className="adm-shell" data-collapsed={collapsed}>
+        <aside className="adm-sidebar adm-sidebar-desktop">
+          {Brand}
+          {NavList}
+          <div className="adm-side-foot">
+            <button type="button" className="adm-nav-item" style={{ width: '100%', border: 0, background: 'transparent', cursor: 'pointer', font: 'inherit' }} onClick={toggle} aria-pressed={collapsed} title={collapsed ? 'Seitenleiste ausklappen' : 'Seitenleiste einklappen'}>
+              <AdminIcon name="sidebar" />
+              <span className="label">{collapsed ? 'Ausklappen' : 'Einklappen'}</span>
+            </button>
+          </div>
+        </aside>
 
-      <div className="min-w-0">
-        {/* Kopfzeile */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-ink-900/90 px-4 py-2.5 backdrop-blur lg:px-8">
-          <button type="button" className="adm-btn adm-btn-ghost !px-3 lg:hidden" aria-label="Menü öffnen" aria-expanded={open} onClick={() => setOpen(true)}>
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          </button>
-          <button type="button" onClick={() => setPalette(true)} className="adm-input !w-auto min-w-0 flex-1 cursor-pointer text-left text-fg-mute sm:max-w-[420px]" aria-label="Suche und Befehle öffnen">
-            Suchen oder Befehl …
-            <kbd className="float-right hidden rounded border border-line px-1.5 font-mono text-[.65rem] sm:inline">⌘K</kbd>
-          </button>
-          <span className="ml-auto hidden font-mono text-[.62rem] uppercase tracking-[.12em] text-fg-mute sm:block">{user.role}</span>
-        </header>
-
-        <main id="admin-main" className="mx-auto w-full max-w-[1240px] px-4 py-6 lg:px-8 lg:py-9">
-          {children}
-        </main>
-      </div>
-
-      {/* Drawer (mobil) */}
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
-          <button type="button" className="absolute inset-0 cursor-default bg-black/60" aria-label="Menü schließen" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 flex w-[min(88vw,320px)] flex-col gap-5 overflow-y-auto border-r border-line bg-ink-850 p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-display font-bold">ING Operating System</span>
-              <button type="button" className="adm-btn adm-btn-ghost !px-3" onClick={() => setOpen(false)} aria-label="Menü schließen">
-                ✕
+        <div style={{ minWidth: 0 }}>
+          <header className="adm-topbar">
+            <button type="button" className="adm-btn adm-btn-quiet adm-btn-icon adm-hide-lg-up" aria-label="Menü öffnen" aria-expanded={sheet} onClick={() => setSheet(true)}>
+              <AdminIcon name="menu" className="h-5 w-5" />
+            </button>
+            <span className="t-2 truncate-1 adm-show-lg" style={{ fontWeight: 600, minWidth: 96 }}>{current?.label ?? 'Operating System'}</span>
+            <div className="adm-top-search">
+              <button type="button" onClick={() => setPalette(true)} aria-label="Suche und Befehle öffnen">
+                <AdminIcon name="search" />
+                <span>{canSearch ? 'Fall, Kunde, Kennzeichen, FIN suchen …' : 'Befehl suchen …'}</span>
+                <kbd className="adm-kbd">⌘K</kbd>
               </button>
             </div>
-            {NavList}
-            <div className="mt-auto grid gap-2 border-t border-line pt-4">
-              <Link href="/admin/profil" className="rounded-[10px] px-3 py-2">
-                <span className="block text-[.95rem]">{user.name}</span>
-                <span className="font-mono text-[.62rem] uppercase tracking-[.12em] text-fg-mute">{user.role}</span>
-              </Link>
-              {logout}
+            <div className="adm-top-actions">
+              {actions.length > 0 && (
+                <span className="qa"><Menu
+                  label="Schnell anlegen"
+                  triggerClassName="adm-btn adm-btn-secondary adm-btn-icon"
+                  trigger={<AdminIcon name="plus" />}
+                  entries={[{ kind: 'label', label: 'Neu anlegen' }, ...actions.map((a) => ({ kind: 'link' as const, label: a.label, href: a.href, icon: a.icon }))]}
+                /></span>
+              )}
+              <Popover
+                label={`Hinweise${noticeTotal ? `, ${noticeTotal} offen` : ''}`}
+                trigger={<AdminIcon name="bell" />}
+                badge={noticeTotal ? <span className="adm-dot" aria-hidden="true">{noticeTotal > 99 ? '99+' : noticeTotal}</span> : null}
+              >
+                <p className="adm-menu-label">Hinweise</p>
+                {notices.length === 0 ? (
+                  <p className="adm-pal-msg" style={{ padding: '10px 10px 12px' }}>Alles erledigt – keine offenen Hinweise.</p>
+                ) : (
+                  notices.map((n) => (
+                    <Link key={n.id} href={n.href} role="menuitem" className="adm-menu-item">
+                      <span className={`adm-badge adm-badge-${n.tone === 'danger' ? 'danger' : n.tone === 'warn' ? 'warn' : 'info'}`} style={{ padding: 0, background: 'transparent' }} aria-hidden="true" />
+                      <span style={{ flex: 1 }}>{n.label}</span>
+                      <b className="tabular">{n.count}</b>
+                    </Link>
+                  ))
+                )}
+              </Popover>
+              <Popover label="Konto" triggerClassName="adm-btn adm-btn-quiet" trigger={<span className="adm-avatar">{initials(user.name)}</span>}>
+                <div style={{ padding: '8px 10px 10px', display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <span className="adm-avatar adm-avatar-lg">{initials(user.name)}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontWeight: 600 }} className="truncate-1">{user.name}</p>
+                    <p className="t-3 truncate-1" style={{ margin: 0, fontSize: 12 }}>{user.role} · {user.email}</p>
+                  </div>
+                </div>
+                <div className="adm-menu-sep" />
+                <Link href="/admin/profil" role="menuitem" className="adm-menu-item"><AdminIcon name="user" />Profil &amp; Sicherheit</Link>
+                <div className="adm-menu-sep" />
+                <ThemeMenu initial={theme} />
+                <div className="adm-menu-sep" />
+                {logout}
+              </Popover>
+            </div>
+          </header>
+
+          <main id="admin-main" className="adm-main">{children}</main>
+        </div>
+
+        {sheet && (
+          <div className="adm-navsheet adm-hide-lg-up" role="dialog" aria-modal="true" aria-label="Navigation">
+            <button type="button" className="scrim" aria-label="Menü schließen" onClick={() => setSheet(false)} />
+            <div className="panel">
+              {Brand}
+              {NavList}
+              <div className="adm-side-foot">{logout}</div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <CommandPalette open={palette} onClose={() => setPalette(false)} commands={commands} />
-    </div>
+        <nav className="adm-bottomnav" aria-label="Schnellnavigation">
+          {mainNav.map((n) => (
+            <Link key={n.href} href={n.href} aria-current={active(n.href) ? 'page' : undefined}>
+              <AdminIcon name={n.icon} />
+              {n.label}
+            </Link>
+          ))}
+        </nav>
+
+        <CommandPalette open={palette} onClose={() => setPalette(false)} navigation={navCommands} actions={actions} canSearch={canSearch} />
+      </div>
+    </ToastProvider>
   );
 }

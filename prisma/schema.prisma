@@ -66,6 +66,13 @@ model User {
   permissions UserPermission[]
   auditLogs   AuditLog[]
 
+  leadsAssigned   Lead[]              @relation("LeadAssignee")
+  casesAssigned   Case[]              @relation("CaseExpert")
+  casesCreated    Case[]              @relation("CaseCreator")
+  notesAuthored   Note[]
+  leadHistory     LeadStatusHistory[]
+  caseHistory     CaseStatusHistory[]
+
   @@index([role, isActive])
   @@index([deletedAt])
   @@map("users")
@@ -182,4 +189,374 @@ model AuditLog {
   @@index([action, createdAt])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// =====================================================================
+//  PHASE 2 — Pipeline: Inquiry → Lead → Kunde / Fahrzeug / Fall
+// =====================================================================
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  APPOINTMENT_PENDING
+  APPOINTMENT_SET
+  CONVERTED
+  CLOSED
+  SPAM
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+/// Zustand der Datei: im privaten Speicher, nur per Mail zugestellt oder gar nicht gesichert.
+enum AttachmentStatus {
+  STORED
+  MAIL_ONLY
+  NOT_STORED
+}
+
+enum NoteKind {
+  NOTE
+  PHONE_CALL
+}
+
+enum CustomerType {
+  PRIVATE
+  BUSINESS
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  PLUG_IN_HYBRID
+  LPG
+  CNG
+  HYDROGEN
+  OTHER
+}
+
+enum ServiceType {
+  ACCIDENT_REPORT
+  DAMAGE_REPORT
+  VALUATION
+  COST_ESTIMATE
+  ACCIDENT_ANALYSIS
+  RECONSTRUCTION
+  OTHER
+}
+
+enum CaseStatus {
+  NEW
+  APPOINTMENT_PENDING
+  APPOINTMENT_SET
+  INSPECTED
+  DOCUMENTS_MISSING
+  IN_PROGRESS
+  REPORT_READY
+  REPORT_SENT
+  INVOICED
+  CLOSED
+  CANCELLED
+}
+
+/// Ursprüngliche Website-Anfrage. UNVERÄNDERLICH: ein Datenbank-Trigger verhindert UPDATEs
+/// (Ausnahme: gezielte Anonymisierung nach DSGVO). Bearbeitet wird der Lead, nie die Inquiry.
+/// Datensparsam: keine IP (nur ein gesalzener Hash zur Missbrauchserkennung), kein User-Agent.
+model Inquiry {
+  id             String   @id @default(cuid())
+  receivedAt     DateTime @default(now()) @map("received_at")
+  source         String   @default("website_form")
+  formVersion    String   @map("form_version")
+  reason         String
+  vehicleKind    String   @map("vehicle_kind")
+  name           String
+  email          String
+  phone          String
+  location       String?
+  licensePlate   String?  @map("license_plate")
+  message        String?
+  /// Einwilligung in die Verarbeitung der Anfrage – KEINE Marketing-Einwilligung.
+  consentAt      DateTime @map("consent_at")
+  privacyVersion String   @map("privacy_version")
+  utmSource      String?  @map("utm_source")
+  utmMedium      String?  @map("utm_medium")
+  utmCampaign    String?  @map("utm_campaign")
+  referrerHost   String?  @map("referrer_host")
+  landingPath    String?  @map("landing_path")
+  ipHash         String?  @map("ip_hash")
+
+  lead        Lead?
+  attachments InquiryAttachment[]
+
+  @@index([receivedAt])
+  @@index([ipHash, receivedAt])
+  @@map("inquiries")
+}
+
+model InquiryAttachment {
+  id         String           @id @default(cuid())
+  inquiryId  String           @map("inquiry_id")
+  /// "photo" | "registration"
+  kind       String
+  fileName   String           @map("file_name") // serverseitig vergeben, nie der Originalname
+  mimeType   String           @map("mime_type")
+  sizeBytes  Int              @map("size_bytes")
+  sha256     String
+  status     AttachmentStatus
+  /// Zufälliger Schlüssel im privaten Speicher (nie erratbar, nie öffentlich).
+  storageKey String?          @unique @map("storage_key")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId])
+  @@map("inquiry_attachments")
+}
+
+/// Bearbeitbarer Arbeitsvorgang. Bleibt nach der Umwandlung erhalten (Status CONVERTED + Verweise).
+model Lead {
+  id        String     @id @default(cuid())
+  inquiryId String?    @unique @map("inquiry_id")
+  status    LeadStatus @default(NEW)
+  source    String     @default("website_form")
+
+  // Arbeitskopie der Kontaktdaten (die Inquiry bleibt unangetastet)
+  name             String
+  email            String?
+  phone            String?
+  phoneNorm        String? @map("phone_norm")
+  location         String?
+  reason           String
+  vehicleKind      String  @map("vehicle_kind")
+  licensePlate     String? @map("license_plate")
+  licensePlateNorm String? @map("license_plate_norm")
+  message          String?
+
+  assignedToId String?   @map("assigned_to_id")
+  nextActionAt DateTime? @map("next_action_at")
+  closedReason String?   @map("closed_reason")
+
+  notificationStatus NotificationStatus @default(PENDING) @map("notification_status")
+  notificationError  String?            @map("notification_error")
+  notifiedAt         DateTime?          @map("notified_at")
+
+  convertedAt         DateTime? @map("converted_at")
+  convertedById       String?   @map("converted_by_id")
+  convertedCustomerId String?   @map("converted_customer_id")
+  convertedVehicleId  String?   @map("converted_vehicle_id")
+  convertedCaseId     String?   @unique @map("converted_case_id")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  inquiry           Inquiry?            @relation(fields: [inquiryId], references: [id])
+  assignedTo        User?               @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  convertedCustomer Customer?           @relation("LeadConvertedCustomer", fields: [convertedCustomerId], references: [id])
+  convertedVehicle  Vehicle?            @relation("LeadConvertedVehicle", fields: [convertedVehicleId], references: [id])
+  convertedCase     Case?               @relation("LeadConvertedCase", fields: [convertedCaseId], references: [id])
+  history           LeadStatusHistory[]
+  notes             Note[]
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@index([assignedToId, status])
+  @@index([nextActionAt])
+  @@index([notificationStatus])
+  @@index([licensePlateNorm])
+  @@index([phoneNorm])
+  @@index([email])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "leads_name_trgm")
+  @@map("leads")
+}
+
+model LeadStatusHistory {
+  id         String      @id @default(cuid())
+  leadId     String      @map("lead_id")
+  fromStatus LeadStatus? @map("from_status")
+  toStatus   LeadStatus  @map("to_status")
+  actorId    String?     @map("actor_id")
+  reason     String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  lead  Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@map("lead_status_history")
+}
+
+model Customer {
+  id         String       @id @default(cuid())
+  type       CustomerType @default(PRIVATE)
+  company    String?
+  firstName  String       @map("first_name")
+  lastName   String       @map("last_name")
+  email      String?
+  phone      String?
+  phoneNorm  String?      @map("phone_norm")
+  street     String?
+  postalCode String?      @map("postal_code")
+  city       String?
+  country    String       @default("DE")
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  /// Archiv (Soft Delete). Echte Löschung/Anonymisierung folgt über ein eigenes Verfahren.
+  deletedAt    DateTime? @map("deleted_at")
+  anonymizedAt DateTime? @map("anonymized_at")
+
+  vehicles       Vehicle[]
+  cases          Case[]
+  notes          Note[]
+  convertedLeads Lead[]    @relation("LeadConvertedCustomer")
+
+  @@index([lastName, firstName])
+  @@index([email])
+  @@index([phone])
+  @@index([phoneNorm])
+  @@index([deletedAt])
+  @@index([lastName(ops: raw("gin_trgm_ops"))], type: Gin, map: "customers_last_name_trgm")
+  @@index([email(ops: raw("gin_trgm_ops"))], type: Gin, map: "customers_email_trgm")
+  @@index([company(ops: raw("gin_trgm_ops"))], type: Gin, map: "customers_company_trgm")
+  @@map("customers")
+}
+
+model Vehicle {
+  id                String    @id @default(cuid())
+  customerId        String    @map("customer_id")
+  manufacturer      String
+  model             String
+  variant           String?
+  /// Anzeige, sauber formatiert (z. B. "H-AB 123").
+  licensePlate      String?   @map("license_plate")
+  /// Suchform: nur Buchstaben/Ziffern in Großbuchstaben ("HAB123").
+  licensePlateNorm  String?   @map("license_plate_norm")
+  vin               String?
+  firstRegistration DateTime? @map("first_registration") @db.Date
+  mileage           Int?
+  fuelType          FuelType? @map("fuel_type")
+  color             String?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  customer       Customer @relation(fields: [customerId], references: [id])
+  cases          Case[]
+  convertedLeads Lead[]   @relation("LeadConvertedVehicle")
+
+  @@index([customerId])
+  @@index([licensePlateNorm])
+  @@index([vin])
+  @@index([deletedAt])
+  @@index([licensePlateNorm(ops: raw("gin_trgm_ops"))], type: Gin, map: "vehicles_plate_trgm")
+  @@index([vin(ops: raw("gin_trgm_ops"))], type: Gin, map: "vehicles_vin_trgm")
+  @@map("vehicles")
+}
+
+model Case {
+  id                String      @id @default(cuid())
+  /// z. B. ING-2026-000123 – vergeben über CaseCounter, race-condition-sicher.
+  caseNumber        String      @unique @map("case_number")
+  status            CaseStatus  @default(NEW)
+  serviceType       ServiceType @default(ACCIDENT_REPORT) @map("service_type")
+
+  customerId        String      @map("customer_id")
+  vehicleId         String      @map("vehicle_id")
+  assignedExpertId  String?     @map("assigned_expert_id")
+  createdById       String?     @map("created_by_id")
+
+  damageDate        DateTime?   @map("damage_date") @db.Date
+  accidentDate      DateTime?   @map("accident_date") @db.Date
+  inspectionLocation String?    @map("inspection_location")
+
+  insuranceName         String? @map("insurance_name")
+  insuranceClaimNumber  String? @map("insurance_claim_number")
+  opposingInsurance     String? @map("opposing_insurance")
+  opposingClaimNumber   String? @map("opposing_claim_number")
+  lawyer                String?
+  repairShop            String? @map("repair_shop")
+
+  description       String?
+  cancelledReason   String?     @map("cancelled_reason")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  closedAt  DateTime? @map("closed_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  customer       Customer            @relation(fields: [customerId], references: [id])
+  vehicle        Vehicle             @relation(fields: [vehicleId], references: [id])
+  assignedExpert User?               @relation("CaseExpert", fields: [assignedExpertId], references: [id])
+  createdBy      User?               @relation("CaseCreator", fields: [createdById], references: [id])
+  history        CaseStatusHistory[]
+  notes          Note[]
+  lead           Lead?               @relation("LeadConvertedCase")
+
+  @@index([status, createdAt])
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([assignedExpertId, status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([insuranceClaimNumber])
+  @@index([caseNumber(ops: raw("gin_trgm_ops"))], type: Gin, map: "cases_number_trgm")
+  @@map("cases")
+}
+
+/// Fallnummern-Zähler: eine Zeile je Jahr, hochgezählt mit einem einzigen atomaren
+/// `INSERT … ON CONFLICT DO UPDATE … RETURNING` – keine Doppelvergabe bei parallelen Requests.
+model CaseCounter {
+  year      Int      @id
+  lastValue Int      @default(0) @map("last_value")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("case_counters")
+}
+
+/// Fachliche Statushistorie (zusätzlich zum AuditLog).
+model CaseStatusHistory {
+  id         String      @id @default(cuid())
+  caseId     String      @map("case_id")
+  fromStatus CaseStatus? @map("from_status")
+  toStatus   CaseStatus  @map("to_status")
+  actorId    String?     @map("actor_id")
+  reason     String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  case  Case  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([caseId, createdAt])
+  @@map("case_status_history")
+}
+
+/// Interne Notiz an genau EINEM Objekt (Lead, Kunde oder Fall) – per CHECK-Constraint erzwungen.
+/// Nie für Kunden sichtbar. Nicht editierbar (Korrektur = neue Notiz).
+model Note {
+  id         String   @id @default(cuid())
+  kind       NoteKind @default(NOTE)
+  body       String
+  authorId   String?  @map("author_id")
+  leadId     String?  @map("lead_id")
+  customerId String?  @map("customer_id")
+  caseId     String?  @map("case_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  author   User?     @relation(fields: [authorId], references: [id])
+  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id])
+  case     Case?     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([caseId, createdAt])
+  @@map("notes")
 }
