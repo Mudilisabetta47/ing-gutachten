@@ -144,7 +144,7 @@ function makeParticles(count: number): Particle[] {
 const CALLOUTS = [
   { dx: 70, dy: -168, label: 'HECKABSCHLUSSBLECH', value: 'Δ 118 mm · BSP.', mdx: 40, mlabel: 'HECKBLECH' },
   { dx: -60, dy: -214, label: 'STOSSFÄNGERTRÄGER', value: 'Δ 64 mm · BSP.', mdx: -40, mlabel: 'STOSSFÄNGER' },
-  { dx: -190, dy: 74, label: 'LÄNGSTRÄGER', value: 'PRÜFEN · BSP.', mdx: -120, mlabel: 'LÄNGSTRÄGER' },
+  { dx: -190, dy: 74, label: 'LÄNGSTRÄGER', value: 'PRÜFEN · BSP.', mdx: 70, mlabel: 'LÄNGSTRÄGER' },
 ];
 
 /* --- Kamera-Keyframes ------------------------------------------------------ */
@@ -589,7 +589,10 @@ export function CrashSequence() {
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4 font-mono text-[.56rem] uppercase tracking-[.18em] text-fg-mute/80">
-                <span id="legend" style={{ opacity: 0 }} aria-hidden="true">Beispielhafte Rekonstruktion · Messwerte exemplarisch</span>
+                <span id="legend" style={{ opacity: 0 }} aria-hidden="true">
+                  <span className="sm:hidden">Beispielwerte</span>
+                  <span className="hidden sm:inline">Beispielhafte Rekonstruktion · Messwerte exemplarisch</span>
+                </span>
                 <span className="flex gap-[3px]" aria-hidden="true">
                   {ACTS.map((a, i) => (
                     <i key={a.key} id={`seg-${i}`} className="block h-[3px] w-4 rounded-full bg-signal-bright sm:w-7" style={{ opacity: 0.2 }} />
@@ -604,15 +607,15 @@ export function CrashSequence() {
         <div className="pointer-events-none absolute inset-0" style={{ paddingInline: 'var(--pad)' }} aria-hidden="true">
           <div className="relative mx-auto h-full w-full max-w-shell">
             {ACTS.slice(0, -1).map((a, i) => (
-              <div key={a.key} id={`cap-${i}`} className={`absolute left-0 max-w-[22ch] ${i >= 6 ? 'bottom-[15%]' : 'top-[17%] sm:top-[19%]'}`} style={{ opacity: i === 0 ? 1 : 0, willChange: 'transform, opacity' }}>
+              <div key={a.key} id={`cap-${i}`} className={`absolute left-0 max-w-[22ch] ${i >= 6 ? 'bottom-[24%] sm:bottom-[15%]' : 'top-[17%] sm:top-[19%]'}`} style={{ opacity: i === 0 ? 1 : 0, willChange: 'transform, opacity' }}>
                 <p className="mono-label mb-3 text-signal-bright">{String(i + 1).padStart(2, '0')} / 09</p>
                 <p className="display text-[clamp(2.6rem,1.2rem+6.4vw,7rem)] uppercase leading-[.88] tracking-[-.045em]">{a.word}</p>
                 <p className="lead mt-3 max-w-[26ch] text-[clamp(1rem,.9rem+.5vw,1.25rem)]">{a.line}</p>
               </div>
             ))}
 
-            <div id="cap-ing" className="pointer-events-auto absolute inset-x-0 bottom-[14%] grid justify-items-start gap-4 sm:bottom-[16%]" style={{ opacity: 0, visibility: 'hidden' }}>
-              <span className="pointer-events-none absolute -bottom-[14%] -left-[var(--pad)] -top-[30%] z-0 w-[min(72vw,900px)] bg-[linear-gradient(90deg,rgba(4,16,44,.92),rgba(4,16,44,.6)_60%,transparent)]" aria-hidden="true" />
+            <div id="cap-ing" className="pointer-events-auto absolute inset-x-0 bottom-[22%] grid justify-items-start gap-4 sm:bottom-[16%]" style={{ opacity: 0, visibility: 'hidden' }}>
+              <span className="pointer-events-none absolute -bottom-[22%] -left-[var(--pad)] -top-[28%] z-0 w-screen bg-[linear-gradient(0deg,rgba(4,16,44,.95)_35%,rgba(4,16,44,0))] sm:-bottom-[14%] sm:-top-[30%] sm:w-[min(72vw,900px)] sm:bg-[linear-gradient(90deg,rgba(4,16,44,.92),rgba(4,16,44,.6)_60%,transparent)]" aria-hidden="true" />
               <div className="relative z-[1] grid justify-items-start gap-4">
               <p className="mono-label text-signal-bright">09 / 09</p>
               <p className="display text-[clamp(2.8rem,1rem+8vw,9rem)] uppercase leading-[.86] tracking-[-.05em]">

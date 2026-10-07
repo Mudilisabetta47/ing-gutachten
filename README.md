@@ -71,6 +71,7 @@ Kein Autoplay, kein Zustand – stoppt der Nutzer, steht exakt dieser Frame; zur
 | Custom Cursor (VIEW/ANFRAGEN/MEHR/GUTACHTEN, nur Fine Pointer) | `layout/CustomCursor.tsx`, Attribute `data-cursor`, `data-cursor-label` |
 | Magnetische Buttons | `ui/Magnetic.tsx` |
 | Scroll-Fortschrittslinie | `layout/ScrollProgress.tsx` |
+| Timeline-Füllung auf `/ablauf`, `/unfallgutachten` (0 → 100 %, rückwärts exakt; ein `useScroll`, direkte Style-Writes; Reduced Motion: gefüllt) | `sections/FlowTimeline.tsx` |
 
 ### Unfall-Film (`sections/CrashSequence.tsx`)
 SVG-Szene mit eigener Kamera (bewusst kein WebGL), 660 vh Scrollstrecke (mobil 480 vh), Bühne `sticky 100svh`.
@@ -92,6 +93,7 @@ SVG-Szene mit eigener Kamera (bewusst kein WebGL), 660 vh Scrollstrecke (mobil 4
 * **Messwerte** im Film (`Δ 118 mm` …) sind **Beispielwerte** und überall als „BSP." / „Beispielhafte Rekonstruktion" gekennzeichnet.
 * **Mobil:** 12 statt 36 Partikel, kein SVG-Filter (Bewegungsunschärfe), kein Kamerastoß, gröberes Raster, 480 vh, kürzere Callout-Labels, Kamera-Zoom passt sich dem Seitenverhältnis an.
 * **Reduced Motion:** kein Sticky, keine Bewegung. Der Film steht einmal bei `p = 0,9` (technische Darstellung mit Messmarken) plus Textblock und CTA.
+* **Hinweis zu Framer:** `useScroll` + `useTransform` direkt im `style` einer `motion.*`-Komponente aktualisierte sich in diesem Setup nicht zuverlässig (Timeline-Bug). Scroll-gesteuerte Elemente schreiben deshalb per `useMotionValueEvent` direkt auf den DOM-Knoten (Film, Ablauf-Schiene, Timeline). Den eigenen `useReducedMotion`-Hook (`motion/use-reduced-motion.ts`) nicht in Komponenten mit `useScroll({ target })` verwenden.
 * **Wichtig:** `body { overflow-x: clip }` – nie `hidden`, sonst bricht `position: sticky`.
 
 ## 5. Anfrageformular & Foto-Upload
@@ -106,7 +108,10 @@ SVG-Szene mit eigener Kamera (bewusst kein WebGL), 660 vh Scrollstrecke (mobil 4
 * Größe: Fotos werden im Browser verkleinert (≤ 1600 px, JPEG); Server-Limit 4,3 MB gesamt (Vercel-Body-Limit 4,5 MB)
 * **Keine Speicherung:** Dateien werden nicht abgelegt, sondern als E-Mail-Anhang weitergeleitet – es gibt keine öffentliche, erratbare URL
 * Provider austauschbar (`src/lib/mail/`): **Brevo** oder **Resend**. Ohne Konfiguration antwortet die API ehrlich mit `503` – es wird **nie** ein Erfolg vorgetäuscht
-* `MAIL_PROVIDER=dry-run` (nur außerhalb Production): validiert alles, versendet nichts – für lokale Tests
+* `MAIL_PROVIDER=dry-run` validiert alles und versendet **nichts** (Antwort `dryRun: true`, die UI zeigt „Testmodus – nicht versendet“). Erlaubt ist das nur:
+  * **Vercel Preview** mit `ALLOW_PREVIEW_DRY_RUN=true` (Environment „Preview“ in Vercel setzen)
+  * lokal mit `next dev`
+  * **Vercel Production: niemals** → Konfigurationsfehler (API antwortet 503, der Grund steht im Server-Log, nie mit Werten/Keys)
 
 ### Umgebungsvariablen (`.env.example`)
 | Variable | Zweck |
@@ -116,6 +121,7 @@ SVG-Szene mit eigener Kamera (bewusst kein WebGL), 660 vh Scrollstrecke (mobil 4
 | `BREVO_API_KEY` / `RESEND_API_KEY` | API-Key des gewählten Providers (nur serverseitig) |
 | `MAIL_FROM`, `MAIL_FROM_NAME` | Absender (Domain beim Provider verifizieren: SPF/DKIM) |
 | `MAIL_TO` | Empfänger der Anfragen |
+| `ALLOW_PREVIEW_DRY_RUN` | nur Vercel *Preview*: `true` erlaubt `MAIL_PROVIDER=dry-run`. In Production nie setzen |
 
 > **Status:** Serverlogik, Validierung und Provider-Adapter sind implementiert und getestet (Unit-Tests mit
 > gestubbtem `fetch`, API-Tests mit echten Dateien). **Ein echter Versand wurde nicht getestet** – dafür fehlen
@@ -143,7 +149,7 @@ SVG-Szene mit eigener Kamera (bewusst kein WebGL), 660 vh Scrollstrecke (mobil 4
 ## 8. Tests & QA
 
 ```bash
-npm test                                   # 16 Unit-Tests
+npm test                                   # 20 Unit-Tests (inkl. Dry-Run-Guard-Matrix)
 npm run build && MAIL_PROVIDER=dry-run npx next start -p 3200
 node scripts/crawl.mjs http://localhost:3200
 ```

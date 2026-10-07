@@ -31,12 +31,12 @@ export function Dock() {
         paddingBottom: 'calc(.55rem + env(safe-area-inset-bottom))',
       }}
     >
-      <a href={`tel:${BIZ.phoneLink}`} className="btn btn-ghost btn-sm justify-center py-[.85rem]">
+      <a href={`tel:${BIZ.phoneLink}`} className="btn btn-ghost btn-sm justify-center whitespace-nowrap px-3 py-[.85rem]">
         Anrufen
       </a>
       <Link
         href={pathname === '/' ? '#anfrage' : '/kontakt#anfrage'}
-        className="btn btn-sm justify-center py-[.85rem]"
+        className="btn btn-sm justify-center whitespace-nowrap px-3 py-[.85rem]"
       >
         Schaden melden
       </Link>

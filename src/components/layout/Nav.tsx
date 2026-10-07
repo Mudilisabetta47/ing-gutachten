@@ -276,12 +276,12 @@ export function Nav() {
                           href={item.href}
                           onClick={() => setOpen(false)}
                           className="flex flex-1 items-baseline gap-4 py-[.3rem] font-display font-bold leading-[1.06] tracking-[-.035em] transition-colors hover:text-signal-bright"
-                          style={{ fontSize: 'clamp(1.75rem,8vw,2.8rem)' }}
+                          style={{ fontSize: 'clamp(1.5rem,7vw,2.8rem)' }}
                         >
                           <em className="font-mono text-[.6rem] not-italic tracking-[.18em] text-fg-mute">
                             {String(i + 1).padStart(2, '0')}
                           </em>
-                          {item.label}
+                          <span className="min-w-0 whitespace-normal break-words hyphens-auto">{item.label}</span>
                         </Link>
 
                         {hasChildren && (

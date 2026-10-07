@@ -42,7 +42,7 @@ export function Leistungen() {
                     href={s.href}
                     data-cursor="link"
                     data-cursor-label="GUTACHTEN"
-                    className="display block [overflow-wrap:anywhere] text-[clamp(1.35rem,.5rem+5.8vw,5.2rem)] uppercase leading-[.92] tracking-[-.04em] transition-transform duration-[600ms] ease-out after:absolute after:inset-0 after:content-[''] group-hover:translate-x-3 group-focus-within:translate-x-3"
+                    className="display block [overflow-wrap:anywhere] text-[clamp(1.2rem,.2rem+6vw,5.2rem)] uppercase leading-[.92] tracking-[-.04em] transition-transform duration-[600ms] ease-out after:absolute after:inset-0 after:content-[''] group-hover:translate-x-3 group-focus-within:translate-x-3"
                   >
                     {s.title}
                   </Link>

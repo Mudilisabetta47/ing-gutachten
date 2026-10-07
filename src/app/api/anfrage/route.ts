@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getMailConfig, MailError, type MailAttachment } from '@/lib/mail';
+import { getMailConfig, MailConfigError, MailError, type MailAttachment } from '@/lib/mail';
 import { rateLimit } from '@/lib/rate-limit';
 import {
   clean,
@@ -110,7 +110,16 @@ export async function POST(req: Request) {
   if (total > LIMITS.maxTotalBytes) return fail(413, 'too_large', { message: 'Die Dateien sind zusammen zu groß. Bitte weniger oder kleinere Fotos senden.' });
 
   /* ---------- Versand ---------- */
-  const config = getMailConfig();
+  let config: ReturnType<typeof getMailConfig>;
+  try {
+    config = getMailConfig();
+  } catch (err) {
+    // Konfigurationsfehler (z. B. dry-run in Production): laut ins Server-Log, neutral zum Besucher.
+    console.error('[anfrage] KONFIGURATIONSFEHLER:', err instanceof MailConfigError ? err.message : 'unbekannt');
+    return fail(503, 'config_error', {
+      message: `Der Versand ist momentan nicht verfügbar. Bitte rufen Sie uns direkt an: ${PHONE}.`,
+    });
+  }
   if (!config) {
     console.error('[anfrage] Mail-Versand nicht konfiguriert (MAIL_PROVIDER / API-Key / MAIL_FROM / MAIL_TO).');
     return fail(503, 'not_configured', {

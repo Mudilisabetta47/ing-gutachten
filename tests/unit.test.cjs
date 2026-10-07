@@ -102,13 +102,38 @@ test('getMailConfig: ohne Konfiguration → null (kein Fake-Versand)', () => {
   process.env.RESEND_API_KEY = 'k';
   assert.equal(getMailConfig().provider.id, 'resend');
 });
-test('getMailConfig: dry-run in Production gesperrt', () => {
+const base = { MAIL_PROVIDER: 'dry-run', MAIL_FROM: 'a@b.de', MAIL_TO: 'c@d.de' };
+test('Dry-Run-Guard: Vercel Production → Konfigurationsfehler, egal welche Flags', () => {
+  const { getMailConfig, MailConfigError } = lib('mail');
+  for (const extra of [{}, { ALLOW_PREVIEW_DRY_RUN: 'true' }, { NODE_ENV: 'development' }]) {
+    assert.throws(() => getMailConfig({ ...base, VERCEL_ENV: 'production', ...extra }), MailConfigError);
+  }
+});
+test('Dry-Run-Guard: Vercel Preview nur mit ALLOW_PREVIEW_DRY_RUN=true', () => {
+  const { getMailConfig, MailConfigError } = lib('mail');
+  assert.throws(() => getMailConfig({ ...base, VERCEL_ENV: 'preview', NODE_ENV: 'production' }), MailConfigError);
+  assert.throws(() => getMailConfig({ ...base, VERCEL_ENV: 'preview', NODE_ENV: 'production', ALLOW_PREVIEW_DRY_RUN: 'yes' }), MailConfigError);
+  assert.equal(getMailConfig({ ...base, VERCEL_ENV: 'preview', NODE_ENV: 'production', ALLOW_PREVIEW_DRY_RUN: 'true' }).provider.id, 'dry-run');
+});
+test('Dry-Run-Guard: lokal nur im Entwicklungsmodus, nie bei next start', () => {
+  const { getMailConfig, MailConfigError } = lib('mail');
+  assert.equal(getMailConfig({ ...base, NODE_ENV: 'development' }).provider.id, 'dry-run');
+  assert.throws(() => getMailConfig({ ...base, NODE_ENV: 'production' }), MailConfigError);
+});
+test('Dry-Run-Guard: Fehlermeldung enthält keine Geheimnisse', () => {
   const { getMailConfig } = lib('mail');
-  process.env.MAIL_PROVIDER = 'dry-run'; process.env.MAIL_FROM = 'a@b.de'; process.env.MAIL_TO = 'c@d.de';
-  process.env.NODE_ENV = 'production';
-  assert.equal(getMailConfig(), null);
-  process.env.NODE_ENV = 'test';
-  assert.equal(getMailConfig().provider.id, 'dry-run');
+  try {
+    getMailConfig({ ...base, BREVO_API_KEY: 'SUPERGEHEIM123', VERCEL_ENV: 'production' });
+    assert.fail('sollte werfen');
+  } catch (e) {
+    assert.ok(!/SUPERGEHEIM123/.test(e.message));
+    assert.match(e.message, /nicht erlaubt/);
+  }
+});
+test('Echte Provider werden vom Guard nicht berührt', () => {
+  const { getMailConfig } = lib('mail');
+  assert.equal(getMailConfig({ MAIL_PROVIDER: 'brevo', BREVO_API_KEY: 'k', MAIL_FROM: 'a@b.de', MAIL_TO: 'c@d.de', VERCEL_ENV: 'production' }).provider.id, 'brevo');
+  assert.equal(getMailConfig({ MAIL_PROVIDER: 'brevo', VERCEL_ENV: 'production' }), null);
 });
 
 /* ---------- SITE_URL ---------- */

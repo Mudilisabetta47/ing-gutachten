@@ -47,6 +47,7 @@ export function RequestForm() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const [done, setDone] = useState(false);
+  const [dryRun, setDryRun] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const touched = useRef(false);
   const startedAt = useRef(0);
@@ -178,8 +179,9 @@ export function RequestForm() {
       data.append('t', String(startedAt.current));
 
       const res = await fetch(FORM_ENDPOINT, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
-      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string; fields?: FieldErrors };
+      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; dryRun?: boolean; message?: string; fields?: FieldErrors };
       if (res.ok && json.ok) {
+        setDryRun(Boolean(json.dryRun));
         setDone(true);
         return;
       }
@@ -209,6 +211,11 @@ export function RequestForm() {
             </svg>
           </span>
           <h3 className="display text-[clamp(1.8rem,1.2rem+2.4vw,3rem)] uppercase leading-none tracking-[-.04em]">Anfrage gesendet.</h3>
+          {dryRun ? (
+            <p role="note" className="notice max-w-[44ch]">
+              <strong>Testmodus (Vorschau):</strong> Die Anfrage wurde geprüft, aber <strong>nicht versendet</strong>.
+            </p>
+          ) : null}
           <p className="lead max-w-[40ch]">Wir melden uns bei Ihnen. Wenn es eilt, erreichen Sie uns jetzt direkt:</p>
           <div className="flex flex-wrap gap-3">
             <a href={`tel:${BIZ.phoneLink}`} className="btn">

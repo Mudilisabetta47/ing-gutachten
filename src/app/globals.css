@@ -566,7 +566,7 @@
 @media (prefers-reduced-motion: reduce) {
   .film-track { height: auto; }
   .film-stage { position: relative; height: min(78vh, 680px); }
-  .film-hint { display: none; }
+  .film-stage .film-hint { display: none; }
   .film-static { display: block; }
 }
 
