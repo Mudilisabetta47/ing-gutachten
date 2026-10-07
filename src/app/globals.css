@@ -570,6 +570,41 @@
   .film-static { display: block; }
 }
 
+
+/* =====================================================================
+   ADMIN (ING Operating System) – nüchtern, schnell, kaum Bewegung
+   ===================================================================== */
+@layer components {
+  .adm-card { @apply min-w-0 rounded-[14px] border border-line bg-ink-850 p-5; }
+  .adm-h1 { @apply font-display text-[1.6rem] font-semibold leading-tight tracking-[-.02em] sm:text-[1.9rem]; }
+  .adm-label { @apply mb-1.5 block font-mono text-[.66rem] uppercase tracking-[.14em] text-fg-mute; }
+  .adm-input {
+    @apply w-full rounded-[10px] border border-line bg-ink-900 px-3 py-2.5 text-[.95rem] text-fg outline-none transition-colors placeholder:text-fg-mute/60;
+  }
+  .adm-input:focus { @apply border-signal-bright; box-shadow: 0 0 0 3px rgba(107,168,255,.18); }
+  .adm-input[aria-invalid='true'] { @apply border-danger; }
+  .adm-btn {
+    @apply inline-flex min-h-[40px] cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-transparent bg-signal px-4 py-2 text-[.9rem] font-semibold text-white transition-[background-color,transform,opacity] duration-150 hover:opacity-90 active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .adm-btn-ghost { @apply border-line bg-transparent text-fg hover:bg-white/[.05] hover:opacity-100; }
+  .adm-btn-danger { @apply bg-danger/90 text-[#1a0a08]; }
+  .adm-pill { @apply inline-flex items-center rounded-full border border-line px-2.5 py-0.5 font-mono text-[.62rem] uppercase tracking-[.1em] text-fg-dim; }
+  .adm-pill-ok { @apply border-ok/40 text-ok; }
+  .adm-pill-warn { @apply border-[#e8b04a]/50 text-[#e8b04a]; }
+  .adm-pill-off { @apply text-fg-mute; }
+  .adm-table { @apply w-full border-collapse text-left text-[.9rem]; }
+  .adm-table th { @apply border-b border-line px-3 py-2.5 font-mono text-[.62rem] font-normal uppercase tracking-[.14em] text-fg-mute; }
+  .adm-table td { @apply border-b border-line/60 px-3 py-3 align-middle; }
+  .adm-table tbody tr { @apply transition-colors hover:bg-white/[.025]; }
+  .adm-link { @apply text-signal-bright underline-offset-4 hover:underline; }
+  @media (max-width: 720px) {
+    .adm-table.adm-stack thead { @apply sr-only; }
+    .adm-table.adm-stack tr { @apply block border-b border-line/60 py-2; }
+    .adm-table.adm-stack td { @apply flex items-baseline justify-between gap-4 border-0 px-2 py-1.5; }
+    .adm-table.adm-stack td::before { content: attr(data-label); @apply font-mono text-[.6rem] uppercase tracking-[.12em] text-fg-mute; }
+  }
+}
+
 /* Reduzierte Bewegung: alles bleibt lesbar, nichts bewegt sich. */
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal],

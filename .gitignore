@@ -11,3 +11,7 @@ next-env.d.ts
 .claude/
 HANDOVER*.md
 .test-build/
+
+# lokaler privater Dateispeicher (Entwicklung)
+.data/
+.env.test

@@ -3,16 +3,6 @@ import type { ReactNode } from 'react';
 import Script from 'next/script';
 import { Archivo, JetBrains_Mono, Manrope } from 'next/font/google';
 import './globals.css';
-import { Nav } from '@/components/layout/Nav';
-import { Footer } from '@/components/layout/Footer';
-import { Dock } from '@/components/layout/Dock';
-import { CookieNotice } from '@/components/layout/CookieNotice';
-import { SmoothScroll } from '@/components/layout/SmoothScroll';
-import { CustomCursor } from '@/components/layout/CustomCursor';
-import { RevealObserver } from '@/components/layout/RevealObserver';
-import { ScrollProgress } from '@/components/layout/ScrollProgress';
-import { JsonLd } from '@/components/ui/JsonLd';
-import { localBusinessSchema } from '@/lib/seo';
 import { SITE_URL } from '@/lib/content';
 
 const archivo = Archivo({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-archivo', display: 'swap' });
@@ -45,22 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         {/* Schaltet die CSS-Reveals erst ein, wenn JavaScript läuft – ohne JS bleibt alles sichtbar. */}
         <Script id="js-flag" strategy="beforeInteractive">{"document.documentElement.classList.add('js')"}</Script>
-        <JsonLd data={localBusinessSchema()} />
-        <a
-          href="#main"
-          className="sr-only sr-only-focusable absolute left-0 top-0 z-[200] bg-signal px-5 py-3 text-white"
-        >
-          Zum Inhalt springen
-        </a>
-        <SmoothScroll />
-        <RevealObserver />
-        <ScrollProgress />
-        <CustomCursor />
-        <Nav />
-        <main id="main">{children}</main>
-        <Footer />
-        <Dock />
-        <CookieNotice />
+        {children}
       </body>
     </html>
   );

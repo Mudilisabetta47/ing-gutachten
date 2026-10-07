@@ -1,0 +1,185 @@
+// =====================================================================
+//  ING GUTACHTEN — Operating System · Datenmodell
+//
+//  Phase 1: Zugriff (User, Session, Rechte, Login-Drosselung), System
+//  (Einstellungen) und Nachvollziehbarkeit (AuditLog).
+//  Weitere Module (Leads, Fälle, Termine, CMS …) kommen phasenweise als
+//  eigene Migrationen dazu – siehe docs/ARCHITEKTUR-OS.md.
+//
+//  Konventionen
+//   - id        cuid (keine fortlaufenden Zahlen in URLs)
+//   - Spalten   snake_case via @map, Tabellen via @@map
+//   - Soft Delete (deletedAt) bei Geschäftsobjekten, die in der Historie
+//     referenziert werden
+//   - Index auf jedem Feld, nach dem die Oberfläche filtert/sortiert
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7: Verbindung steht in prisma.config.ts, nicht im Schema.
+}
+
+// ---------------------------------------------------------------------
+//  Zugriff
+// ---------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  ADMIN
+  OFFICE
+  EXPERT
+  ACCOUNTING
+  CONTENT_MANAGER
+}
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  /// Argon2id-Hash. Niemals Klartext, niemals ein schneller Hash.
+  passwordHash String  @map("password_hash")
+  firstName    String  @map("first_name")
+  lastName     String  @map("last_name")
+  role         Role    @default(OFFICE)
+  isActive     Boolean @default(true) @map("is_active")
+
+  /// Brute-Force-Schutz pro Konto (zusätzlich zur Drosselung je IP in LoginAttempt).
+  failedLogins Int       @default(0) @map("failed_logins")
+  lockedUntil  DateTime? @map("locked_until")
+  lastLoginAt  DateTime? @map("last_login_at")
+  /// Erzwingt Passwortwechsel (z. B. nach Anlage durch den Inhaber).
+  mustChangePassword Boolean @default(false) @map("must_change_password")
+
+  /// Für TOTP vorbereitet, noch nicht aktiv.
+  mfaSecret    String?   @map("mfa_secret")
+  mfaEnabledAt DateTime? @map("mfa_enabled_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  employee    Employee?
+  sessions    Session[]
+  permissions UserPermission[]
+  auditLogs   AuditLog[]
+
+  @@index([role, isActive])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+/// Mitarbeiterprofil (1:1 zum Benutzer). Hier liegt, was ein Mitarbeiter ist,
+/// nicht womit er sich anmeldet.
+model Employee {
+  id        String  @id @default(cuid())
+  userId    String  @unique @map("user_id")
+  initials  String? // Kürzel für Fallnummern/Protokolle
+  phone     String?
+  /// Darf als Sachverständiger Fällen/Terminen zugewiesen werden.
+  isExpert  Boolean @default(false) @map("is_expert")
+  jobTitle  String? @map("job_title")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isExpert])
+  @@map("employees")
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  /// Nur der SHA-256-Hash des Tokens. Wer die Datenbank liest, kann sich nicht anmelden.
+  tokenHash String    @unique @map("token_hash")
+  ip        String?
+  userAgent String?   @map("user_agent")
+  createdAt DateTime  @default(now()) @map("created_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Abweichung vom Standardrechtesatz der Rolle – nach oben wie nach unten.
+model UserPermission {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  permission String   // z. B. "invoices.read" (siehe src/server/auth/permissions.ts)
+  granted    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permission])
+  @@map("user_permissions")
+}
+
+/// Fehlversuche der Anmeldung. In der Datenbank statt im Speicher, weil
+/// Serverless-Instanzen keinen gemeinsamen Speicher haben. Gespeichert wird
+/// nur ein Hash der E-Mail-Adresse und die IP – keine Passwörter.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  ip        String
+  emailHash String   @map("email_hash")
+  success   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([ip, createdAt])
+  @@index([emailHash, createdAt])
+  @@map("login_attempts")
+}
+
+// ---------------------------------------------------------------------
+//  System
+// ---------------------------------------------------------------------
+
+/// Konfiguration, die der Betrieb ohne Deployment ändern darf
+/// (Fallnummern-Format, Dateilimits, Unternehmensdaten …). Werte sind kleine,
+/// per Zod validierte JSON-Dokumente – keine Geheimnisse.
+model SystemSetting {
+  key         String   @id
+  value       Json
+  updatedById String?  @map("updated_by_id")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+// ---------------------------------------------------------------------
+//  Nachvollziehbarkeit
+// ---------------------------------------------------------------------
+
+/// Fortlaufendes Protokoll. Einträge werden nie geändert oder gelöscht –
+/// deshalb kein updatedAt/deletedAt. Änderungen stehen als Vorher/Nachher.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  /// z. B. "auth.login", "user.create", "case.status_change"
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  summary    String?
+  before     Json?
+  after      Json?
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Arrow } from '@/components/ui/Icon';
+import { SiteChrome } from '@/components/layout/SiteChrome';
 
 export const metadata: Metadata = {
   title: 'Seite nicht gefunden',
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
+    <SiteChrome>
     <section className="page-hero-bg relative flex min-h-[70vh] items-center overflow-hidden py-32">
       <div className="shell">
         <p className="eyebrow">Fehler 404</p>
@@ -31,5 +33,6 @@ export default function NotFound() {
         </div>
       </div>
     </section>
+    </SiteChrome>
   );
 }

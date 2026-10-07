@@ -15,6 +15,7 @@ const nextConfig = {
     deviceSizes: [360, 480, 640, 768, 1024, 1280, 1536, 1920, 2560],
     minimumCacheTTL: 60 * 60 * 24 * 30,
   },
+  serverExternalPackages: ['@node-rs/argon2', '@prisma/client', '@prisma/adapter-pg', 'pg'],
   experimental: {
     optimizePackageImports: ['framer-motion'],
   },
@@ -27,6 +28,16 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+      {
+        // Interner Bereich: nie cachen, nie indexieren, nie einbetten, kein Referrer.
+        source: '/admin/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, max-age=0' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
         ],
       },
       {
