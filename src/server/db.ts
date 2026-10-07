@@ -1,6 +1,7 @@
 import 'server-only';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { pgConfig } from './db-config';
 
 /**
  * Datenbankzugriff – die einzige Stelle, an der ein PrismaClient entsteht.
@@ -20,11 +21,10 @@ export function isDbConfigured(): boolean {
 }
 
 function create(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error('DATABASE_URL ist nicht gesetzt. Siehe .env.example und docs/ARCHITEKTUR-OS.md.');
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL ist nicht gesetzt. Siehe .env.example und docs/BETRIEB.md.');
   }
-  const adapter = new PrismaPg({ connectionString, connectionTimeoutMillis: 5000 });
+  const adapter = new PrismaPg(pgConfig());
   return new PrismaClient({ adapter, log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'] });
 }
 

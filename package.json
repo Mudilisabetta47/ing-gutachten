@@ -18,7 +18,8 @@
     "db:studio": "prisma studio",
     "create-owner": "tsx --env-file=.env scripts/create-owner.ts",
     "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts",
-    "test:db": "node --env-file=.env.test ./node_modules/prisma/build/index.js migrate deploy && node --env-file=.env.test --conditions=react-server --import tsx --test --test-concurrency=1 tests/db/*.test.ts"
+    "test:db": "node --env-file=.env.test ./node_modules/prisma/build/index.js migrate deploy && node --env-file=.env.test --conditions=react-server --import tsx --test --test-concurrency=1 tests/db/*.test.ts",
+    "db:check": "tsx --env-file=.env scripts/check-db.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1147.0",
