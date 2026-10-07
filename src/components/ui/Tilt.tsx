@@ -1,7 +1,6 @@
 'use client';
 
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useReducedMotion } from '@/components/motion/use-reduced-motion';
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
 import { useRef, type ReactNode } from 'react';
 
 /** Sehr dezente 3D-Neigung für Karten. */

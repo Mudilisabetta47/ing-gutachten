@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMotionValueEvent, useScroll } from 'framer-motion';
-import { useReducedMotion } from '@/components/motion/use-reduced-motion';
+import { useMotionValueEvent, useReducedMotion, useScroll } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Arrow } from '@/components/ui/Icon';
 import { applyRetreat, retreatT } from '@/components/motion/stage-retreat';

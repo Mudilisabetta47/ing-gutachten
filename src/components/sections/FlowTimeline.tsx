@@ -1,7 +1,6 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useReducedMotion } from '@/components/motion/use-reduced-motion';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { FLOW_STEPS } from '@/lib/content';
 import { Reveal } from '@/components/ui/Reveal';

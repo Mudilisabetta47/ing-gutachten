@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useReducedMotion } from '@/components/motion/use-reduced-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { BIZ, NAV, type NavItem } from '@/lib/content';
 import { Magnetic } from '@/components/ui/Magnetic';
