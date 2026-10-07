@@ -99,7 +99,7 @@ export function AdminShell({
   const Brand = (
     <Link href="/admin" className="adm-brand" aria-label="ING Operating System – Dashboard">
       <span className="adm-brand-mark">ING</span>
-      <span className="adm-brand-text"><b>Operating System</b><span>Gutachtenbüro</span></span>
+      <span className="adm-brand-logo"><span className="adm-logo" role="img" aria-label="ING Gutachten" /><small>Operating System</small></span>
     </Link>
   );
 

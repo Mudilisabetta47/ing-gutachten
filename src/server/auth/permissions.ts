@@ -45,7 +45,7 @@ const OFFICE: Permission[] = [
   'customers.read', 'customers.write', 'vehicles.read', 'vehicles.write',
   'cases.read.all', 'cases.write.all', 'cases.assign', 'cases.status',
   'appointments.read.all', 'appointments.write.all',
-  'photos.read.all', 'documents.read.all', 'documents.write.all',
+  'photos.read.all', 'photos.write.all', 'documents.read.all', 'documents.write.all',
   'reports.read.all', 'reports.send',
   'invoices.read',
   'tasks.read.all', 'tasks.write.all',

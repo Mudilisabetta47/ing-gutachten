@@ -15,9 +15,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="adm-login">
       <div className="adm-login-box">
-        <div className="adm-brand" style={{ border: 0, padding: 0, height: 'auto', marginBottom: 28 }}>
-          <span className="adm-brand-mark" style={{ width: 38, height: 38, fontSize: 13 }}>ING</span>
-          <span className="adm-brand-text"><b style={{ fontSize: 17 }}>Operating System</b><span>Interner Bereich · ING Gutachten</span></span>
+        <div className="adm-login-brand">
+          <span className="adm-logo adm-logo-lg" role="img" aria-label="ING Gutachten" />
+          <small>Operating System · Interner Bereich</small>
         </div>
         <div className="adm-panel" style={{ padding: 24 }}>
           <h1 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 700, letterSpacing: '-.02em' }}>Anmelden</h1>

@@ -45,6 +45,7 @@ const PATHS = {
   external: 'M14 4h6v6M20 4l-9 9M18 14v5H5V6h5',
   shield: 'M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z',
   photo: 'M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5M9 9.5h.01',
+  camera: 'M4 8h3l1.5-2h7L17 8h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
   navigate: 'M20 4 4 11l7 2 2 7z',
   note: 'M5 4h14v12l-4 4H5zM15 20v-4h4',
   archive: 'M4 5h16v4H4zM6 9v10h12V9M10 13h4',

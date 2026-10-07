@@ -8,9 +8,14 @@ import { customerActivity } from '@/server/pipeline/activity';
 import { CASE_LABELS, SERVICE_LABELS } from '@/lib/workflow';
 import { AdminIcon } from '@/components/admin/AdminIcon';
 import { DrawerHost, OpenDrawer } from '@/components/admin/Overlay';
-import { AsideBlock, Avatar, Badge, DetailHeader, EmptyState, Rows, Section, StatusPill, SummaryBar, Tabs, Timeline, fmtDate, fmtWhen, phoneHref, qp } from '@/components/admin/ui';
+import { Alert, AsideBlock, Avatar, Badge, DetailHeader, EmptyState, Rows, Section, StatusPill, SummaryBar, Tabs, Timeline, fmtDate, fmtWhen, phoneHref, qp } from '@/components/admin/ui';
 import { ConfirmForm, NoteForm } from '@/components/admin/forms';
 import { archiveCustomerAction, customerNoteAction, restoreCustomerAction } from '../actions';
+import { deleteDocumentAction } from '../../faelle/work-actions';
+import { APPT_LABELS, KIND_LABELS, customerAppointments } from '@/server/pipeline/appointments';
+import { DOCUMENT_CATEGORIES, DOCUMENT_LABELS, listDocuments } from '@/server/pipeline/media';
+import { MediaUploader } from '@/components/admin/work';
+import { getStorage } from '@/server/storage';
 
 export const metadata: Metadata = { title: 'Kunde' };
 
@@ -31,6 +36,13 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
   const base = `/admin/kunden/${id}/`;
   const address = [c.street, [c.postalCode, c.city].filter(Boolean).join(' '), c.country !== 'DE' ? c.country : ''].filter(Boolean).join(', ');
 
+  const mayAppts = user.permissions.has('appointments.read.all') || user.permissions.has('appointments.read.own');
+  const mayDocs = user.permissions.has('documents.read.all');
+  const storage = getStorage() !== null;
+  const [appts, docs] = await Promise.all([
+    tab === 'termine' && mayAppts ? customerAppointments(user, id) : Promise.resolve([]),
+    tab === 'dokumente' && mayDocs && storage ? listDocuments(user, { customerId: id }) : Promise.resolve([]),
+  ]);
   const [cases, vehicles, notes, activity] = await Promise.all([
     customerCases(user, id), customerVehicles(user, id),
     tab === 'notizen' ? customerNotes(user, id) : Promise.resolve([]),
@@ -92,8 +104,35 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
           ))}</tbody>
         </table></div>
       );
-    if (tab === 'termine') return <EmptyState icon="calendar" title="Termine folgen in Phase 3">Die Terminverwaltung mit Kalender wird in Phase 3 gebaut. Bis dahin steht ein vereinbarter Termin im Fallstatus.</EmptyState>;
-    if (tab === 'dokumente') return <EmptyState icon="doc" title="Dokumente folgen in Phase 3">Der private Dateispeicher für Fotos und Dokumente wird in Phase 3 gebaut.</EmptyState>;
+    if (tab === 'termine')
+      return !mayAppts ? <EmptyState icon="shield" title="Keine Berechtigung für Termine" /> : appts.length === 0 ? (
+        <EmptyState icon="calendar" title="Noch keine Termine">Termine legen Sie im jeweiligen Fall an.</EmptyState>
+      ) : (
+        <Section title={`Termine · ${appts.length}`}>
+          <ul className="adm-list">{appts.map((a) => (
+            <li key={a.id}><span className="main"><Link href={`/admin/faelle/${a.case.caseNumber}/?tab=termine`} className="stretch">{fmtWhen(a.startsAt)} · {KIND_LABELS[a.kind]}</Link><span className="secondary mono">{a.case.caseNumber} · {a.expert.firstName} {a.expert.lastName}</span></span><Badge tone={a.status === 'CONFIRMED' ? 'ok' : a.status === 'DONE' ? 'muted' : a.status === 'PLANNED' ? 'info' : 'danger'}>{APPT_LABELS[a.status]}</Badge></li>
+          ))}</ul>
+        </Section>
+      );
+    if (tab === 'dokumente') {
+      if (!mayDocs) return <EmptyState icon="shield" title="Keine Berechtigung für Dokumente" />;
+      if (!storage) return <Alert tone="warn">Der private Dateispeicher ist nicht eingerichtet.</Alert>;
+      return (
+        <>
+          {canWrite && !c.deletedAt && <Section title="Dokument hinzufügen"><MediaUploader target="document" customerId={id} categories={DOCUMENT_CATEGORIES.map((k) => [k, DOCUMENT_LABELS[k]])} defaultCategory="OTHER" /></Section>}
+          <Section title={`Dokumente · ${docs.length}`}>
+            {docs.length === 0 ? <EmptyState icon="doc" title="Noch keine Dokumente">Rahmenverträge, Vollmachten und weitere Unterlagen zum Kunden – privat, nur mit Anmeldung abrufbar.</EmptyState> : (
+              <ul className="adm-list">{docs.map((d) => (
+                <li key={d.id}>
+                  <span className="main"><a href={`/api/admin/media/${d.mediaId}`} target="_blank" rel="noreferrer" className="stretch">{d.title}</a><span className="secondary">{DOCUMENT_LABELS[d.category]} · {Math.max(1, Math.round(d.media.sizeBytes / 1024))} KB · {fmtWhen(d.createdAt)}</span></span>
+                  {user.permissions.has('documents.delete') && <span style={{ position: 'relative', zIndex: 2 }}><ConfirmForm action={deleteDocumentAction} id={d.id} label="Löschen" title="Dokument löschen?" confirm="Das Dokument wird ausgeblendet." danger /></span>}
+                </li>
+              ))}</ul>
+            )}
+          </Section>
+        </>
+      );
+    }
     if (tab === 'rechnungen') return <EmptyState icon="receipt" title="Rechnungen folgen in Phase 4">Rechnungen und Zahlungen werden in Phase 4 gebaut.</EmptyState>;
     if (tab === 'notizen')
       return canWrite ? (

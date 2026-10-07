@@ -1,6 +1,8 @@
 import 'server-only';
 import { createHmac } from 'node:crypto';
 import { db } from '@/server/db';
+import { getStorage } from '@/server/storage';
+import { putMedia } from './media';
 import { writeAudit } from '@/server/audit';
 import { normalizePhone } from '@/lib/normalize';
 import { FORM_VERSION, PRIVACY_VERSION, type RequestFields } from '@/lib/request-schema';
@@ -100,7 +102,30 @@ export async function markNotification(leadId: string, state: 'SENT' | 'FAILED' 
       select: { inquiryId: true },
     });
     // Nur wenn die Mail mit Anhängen wirklich rausging, sind die Dateien beim Büro angekommen.
-    if (state === 'SENT' && lead.inquiryId) await tx.inquiryAttachment.updateMany({ where: { inquiryId: lead.inquiryId }, data: { status: 'MAIL_ONLY' } });
+    if (state === 'SENT' && lead.inquiryId) await tx.inquiryAttachment.updateMany({ where: { inquiryId: lead.inquiryId, status: 'NOT_STORED' }, data: { status: 'MAIL_ONLY' } });
     if (state === 'FAILED') await writeAudit({ actorId: null, action: 'lead.notification_failed', entityType: 'Lead', entityId: leadId, summary: 'E-Mail-Benachrichtigung fehlgeschlagen' }, tx);
   });
+}
+
+
+export type IntakeFile = AttachmentMeta & { bytes: Uint8Array };
+
+/**
+ * Legt die mit der Anfrage gesendeten Dateien im privaten Speicher ab (wenn einer eingerichtet ist) und verknüpft sie mit den
+ * Anhangs-Metadaten (Status STORED). Best effort: scheitert eine Datei, bleibt sie „nicht gesichert“/„nur per E-Mail“ –
+ * die Anfrage selbst ist bereits gespeichert und wird dadurch nie gefährdet.
+ */
+export async function storeInquiryFiles(inquiryId: string, files: IntakeFile[]): Promise<number> {
+  if (!getStorage() || files.length === 0) return 0;
+  let stored = 0;
+  for (const f of files) {
+    try {
+      const media = await putMedia(null, { bytes: f.bytes }, f.mimeType === 'application/pdf' ? 'document' : 'photo');
+      const res = await db.inquiryAttachment.updateMany({ where: { inquiryId, fileName: f.fileName, mediaId: null }, data: { mediaId: media.id, storageKey: media.storageKey, status: 'STORED' } });
+      if (res.count === 1) stored += 1;
+    } catch (err) {
+      console.error('[anfrage] Datei konnte nicht im Speicher abgelegt werden', err instanceof Error ? err.name : 'unbekannt');
+    }
+  }
+  return stored;
 }

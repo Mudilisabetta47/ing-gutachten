@@ -5,6 +5,7 @@ import { todayOverview } from '@/server/pipeline/today';
 import { CASE_LABELS, LEAD_LABELS } from '@/lib/workflow';
 import { AdminIcon } from '@/components/admin/AdminIcon';
 import { Badge, EmptyState, PageHeader, Section, StatusPill, fmtWhen, mapsHref, phoneHref } from '@/components/admin/ui';
+import { APPT_LABELS, KIND_LABELS } from '@/server/pipeline/appointments';
 
 export const metadata: Metadata = { title: 'Heute' };
 
@@ -15,39 +16,47 @@ export default async function TodayPage() {
   const t = await todayOverview(user);
   const canLeads = user.permissions.has('leads.read');
   const now = Date.now();
-  const [first, ...rest] = t.jobs;
+  const next = t.next;
   const who = (c: { company: string | null; firstName: string; lastName: string }) => c.company || `${c.firstName} ${c.lastName}`.trim();
+  const hm = (d: Date) => new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' }).format(d);
+  const place = (a: NonNullable<typeof next>) => a.location || a.case.inspectionLocation;
+  const canWrite = user.permissions.has('appointments.write.all') || user.permissions.has('appointments.write.own');
 
   return (
     <>
       <PageHeader title="Heute" intro={dateLong()} />
 
-      <Section title="Nächster Einsatz">
-        {!first ? (
-          <EmptyState icon="calendar" title="Kein Einsatz vereinbart">Fälle mit dem Status „Termin vereinbart“ erscheinen hier. Der Kalender mit Uhrzeiten folgt in Phase 3.</EmptyState>
+      <Section title="Nächster Termin">
+        {!next ? (
+          <EmptyState icon="calendar" title="Kein Termin anstehend" action={<Link href="/admin/termine" className="adm-btn adm-btn-secondary">Zum Kalender</Link>}>In den nächsten 14 Tagen ist nichts eingetragen.</EmptyState>
         ) : (
           <div className="adm-panel" style={{ display: 'grid', gap: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
-              <div style={{ minWidth: 0 }}>
-                <p className="t-3" style={{ margin: 0, fontSize: 12 }}><span className="mono">{first.caseNumber}</span> · Termin vereinbart</p>
-                <p style={{ margin: '4px 0 0', fontSize: 20, fontWeight: 700, letterSpacing: '-.01em' }}>{who(first.customer)}</p>
-                <p className="t-2" style={{ margin: '2px 0 0' }}>{first.vehicle.manufacturer} {first.vehicle.model}{first.vehicle.licensePlate ? <> · <span className="mono">{first.vehicle.licensePlate}</span></> : null}</p>
-                {first.inspectionLocation && <p className="t-2" style={{ margin: '2px 0 0', display: 'flex', gap: 6, alignItems: 'center' }}><AdminIcon name="map" className="h-4 w-4" />{first.inspectionLocation}</p>}
-              </div>
+            <div style={{ minWidth: 0 }}>
+              <p className="t-3" style={{ margin: 0, fontSize: 12 }}>{fmtWhen(next.startsAt)} · {KIND_LABELS[next.kind]} · <span className="mono">{next.case.caseNumber}</span></p>
+              <p style={{ margin: '4px 0 0', fontSize: 22, fontWeight: 700, letterSpacing: '-.01em' }}>{hm(next.startsAt)} · {who(next.case.customer)}</p>
+              <p className="t-2" style={{ margin: '2px 0 0' }}>{next.case.vehicle.manufacturer} {next.case.vehicle.model}{next.case.vehicle.licensePlate ? <> · <span className="mono">{next.case.vehicle.licensePlate}</span></> : null}</p>
+              {place(next) && <p className="t-2" style={{ margin: '2px 0 0', display: 'flex', gap: 6, alignItems: 'center' }}><AdminIcon name="map" className="h-4 w-4" />{place(next)}</p>}
             </div>
             <div className="adm-actions">
-              {first.inspectionLocation && <a href={mapsHref(first.inspectionLocation)} target="_blank" rel="noreferrer" className="adm-btn" style={{ flex: '1 1 140px' }}><AdminIcon name="navigate" />Navigation</a>}
-              {phoneHref(first.customer.phone) && <a href={phoneHref(first.customer.phone)} className="adm-btn adm-btn-secondary" style={{ flex: '1 1 120px' }}><AdminIcon name="phone" />Anrufen</a>}
-              <Link href={`/admin/faelle/${first.caseNumber}/`} className="adm-btn adm-btn-secondary" style={{ flex: '1 1 120px' }}>Fall öffnen</Link>
+              {place(next) && <a href={mapsHref(place(next))} target="_blank" rel="noreferrer" className="adm-btn" style={{ flex: '1 1 140px' }}><AdminIcon name="navigate" />Navigation</a>}
+              {phoneHref(next.case.customer.phone) && <a href={phoneHref(next.case.customer.phone)} className="adm-btn adm-btn-secondary" style={{ flex: '1 1 120px' }}><AdminIcon name="phone" />Anrufen</a>}
+              <Link href={`/admin/faelle/${next.case.caseNumber}/`} className="adm-btn adm-btn-secondary" style={{ flex: '1 1 120px' }}>Fall öffnen</Link>
+              {next.kind === 'INSPECTION' && canWrite && <Link href={`/admin/faelle/${next.case.caseNumber}/erfassung/?termin=${next.id}`} className="adm-btn adm-btn-secondary" style={{ flex: '1 1 140px' }}><AdminIcon name="photo" />{next.inspection ? 'Besichtigung fortsetzen' : 'Besichtigung starten'}</Link>}
             </div>
           </div>
         )}
-        {rest.length > 0 && (
-          <ul className="adm-list" style={{ marginTop: 8 }}>
-            {rest.map((j) => (
-              <li key={j.id}>
-                <span className="main"><Link href={`/admin/faelle/${j.caseNumber}/`} className="stretch">{who(j.customer)}</Link><span className="secondary">{j.vehicle.manufacturer} {j.vehicle.model}{j.inspectionLocation ? ` · ${j.inspectionLocation}` : ''}</span></span>
-                <span className="mono t-3" style={{ fontSize: 12 }}>{j.caseNumber}</span>
+      </Section>
+
+      <Section title={`Termine heute · ${t.appointments.length}`} aside={<Link href="/admin/termine" className="adm-link">Kalender</Link>}>
+        {t.appointments.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Heute sind keine Termine eingetragen.</p> : (
+          <ul className="adm-list">
+            {t.appointments.map((a) => (
+              <li key={a.id}>
+                <span className="main">
+                  <Link href={`/admin/faelle/${a.case.caseNumber}/?tab=termine`} className="stretch">{hm(a.startsAt)}–{hm(a.endsAt)} · {who(a.case.customer)}</Link>
+                  <span className="secondary">{KIND_LABELS[a.kind]} · {a.case.vehicle.licensePlate ?? a.case.vehicle.model}{place(a as never) ? ` · ${place(a as never)}` : ''}{user.permissions.has('appointments.read.all') ? ` · ${a.expert.firstName} ${a.expert.lastName}` : ''}</span>
+                </span>
+                <Badge tone={a.status === 'CONFIRMED' ? 'ok' : a.status === 'DONE' ? 'muted' : 'info'}>{APPT_LABELS[a.status]}</Badge>
               </li>
             ))}
           </ul>

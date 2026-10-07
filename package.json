@@ -21,6 +21,8 @@
     "test:db": "node --env-file=.env.test ./node_modules/prisma/build/index.js migrate deploy && node --env-file=.env.test --conditions=react-server --import tsx --test --test-concurrency=1 tests/db/*.test.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1147.0",
+    "@aws-sdk/s3-request-presigner": "^3.1147.0",
     "@node-rs/argon2": "^2.2.2",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",

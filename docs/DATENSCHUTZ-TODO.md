@@ -17,11 +17,26 @@ Die Kennung `PRIVACY_VERSION` (`src/lib/request-schema.ts`) ist bei jeder Änder
 | **Kunde, Fahrzeug, Fall** (Name, Firma, Anschrift, Kontakt, FIN, Kennzeichen, Schaden-/Versicherungsdaten, Notizen) | Auftragsabwicklung (Gutachten) | `customers`, `vehicles`, `cases`, `notes`, `case_status_history` | **festlegen** (steuer-/handelsrechtliche Fristen für Rechnungen beachten; Gutachten-Aufbewahrung klären) |
 | **Protokoll (Audit)**: wer hat wann was geändert; keine Klartextwerte personenbezogener Felder, nur Feldnamen | Nachvollziehbarkeit, Sicherheit | `audit_logs` | **festlegen** |
 
+## Phase 3: zusätzlich gespeichert
+
+| Daten | Zweck | Speicherort | Aufbewahrung (offen!) |
+|---|---|---|---|
+| **Fotos** (Besichtigung, Anfrage) inkl. kleiner Vorschau | Beweissicherung, Gutachten | privater Dateispeicher (`STORAGE_DRIVER`), Metadaten in `media`/`case_photos`; **nie** in der Datenbank selbst | wie Fall – **festlegen**; „Löschen“ blendet aus, physische Bereinigung nach Frist ist noch ein Job (offen) |
+| **Dokumente** (Fahrzeugschein, Vollmacht, Versicherungsschreiben …) | Auftragsabwicklung | wie Fotos; `documents` | wie Fall |
+| **Termine** (Zeit, Ort, Gutachter, Hinweise) | Planung | `appointments` | wie Fall |
+| **Besichtigungsprotokoll** (Kilometerstand, Wetter, Notiz) | Dokumentation | `inspections` | wie Fall |
+| **Schäden** (Bauteil, Art, Beschreibung) | Gutachten | `damages` | wie Fall |
+| **Dateiabrufe** (wer hat wann welche Datei geöffnet; ohne Dateiinhalt) | Nachvollziehbarkeit | `audit_logs` (`media.download`) | wie Protokoll |
+
+Technische Schutzmaßnahmen: Dateien nie öffentlich (nur über die angemeldete Route nach Rechteprüfung am Fall; S3: kurzlebige signierte URL),
+zufällige Objektschlüssel ohne Dateiname/Fallnummer, Dateityp aus dem Inhalt geprüft (Bild/PDF), Original-Dateinamen werden nicht gespeichert.
+**Offen:** Verschlüsselung im Ruhezustand/Backups beim gewählten Speicheranbieter prüfen; Virenscan (Status-Feld ist vorbereitet).
+
 ## Verarbeiter / Drittanbieter (einzutragen, sobald produktiv)
 
 - **E-Mail-Versand** (Benachrichtigung inkl. Anhänge): Brevo **oder** Resend – AV-Vertrag, Standort der Verarbeitung, Drittlandübermittlung prüfen. *Noch nicht produktiv konfiguriert.*
 - **Datenbank (später)**: Anbieter und Region festlegen (empfohlen EU, z. B. Frankfurt), AV-Vertrag, Verschlüsselung/Backups. *Aktuell nur lokale Entwicklungsdatenbank.*
-- **Dateispeicher (Phase 3)**: privater S3-kompatibler Speicher in der EU. Bis dahin liegen Fotos **nicht** in der Datenbank, sondern nur im Mail-Anhang.
+- **Dateispeicher**: privater S3-kompatibler Bucket in der EU (z. B. Cloudflare R2 EU / AWS Frankfurt) – Anbieter wählen, AV-Vertrag. *Lokal: Dateisystem `.data/private` (nur Entwicklung).* Ohne eingerichteten Speicher bleiben Fotos nur im Mail-Anhang.
 - **Hosting**: Vercel (Funktionsregion einstellen), AV-Vertrag.
 
 ## Offene Entscheidungen

@@ -18,6 +18,9 @@ const ACTION_LABEL: Record<string, string> = {
   'lead.notification_failed': 'E-Mail-Benachrichtigung fehlgeschlagen', 'lead.assign': 'hat eine Anfrage zugewiesen', 'note.add': 'hat eine Notiz hinzugefügt',
   'customer.create': 'hat einen Kunden angelegt', 'customer.update': 'hat einen Kunden geändert', 'customer.archive': 'hat einen Kunden archiviert', 'customer.restore': 'hat einen Kunden wiederhergestellt',
   'vehicle.create': 'hat ein Fahrzeug angelegt', 'vehicle.update': 'hat ein Fahrzeug geändert', 'vehicle.archive': 'hat ein Fahrzeug archiviert',
+  'appointment.create': 'hat einen Termin angelegt', 'appointment.update': 'hat einen Termin geändert', 'appointment.status_change': 'hat einen Termin aktualisiert',
+  'photo.add': 'hat ein Foto hinzugefügt', 'photo.update': 'hat ein Foto bearbeitet', 'photo.delete': 'hat ein Foto gelöscht', 'document.add': 'hat ein Dokument hinzugefügt', 'document.delete': 'hat ein Dokument gelöscht',
+  'damage.add': 'hat einen Schaden erfasst', 'damage.update': 'hat einen Schaden bearbeitet', 'damage.delete': 'hat einen Schaden gelöscht', 'inspection.start': 'hat eine Besichtigung begonnen', 'inspection.finish': 'hat eine Besichtigung abgeschlossen', 'media.download': 'hat eine Datei abgerufen',
   'case.create': 'hat einen Fall angelegt', 'case.update': 'hat einen Fall geändert', 'case.status_change': 'hat den Fallstatus geändert', 'case.assign': 'hat einen Fall zugewiesen', 'case.archive': 'hat einen Fall archiviert', 'case.restore': 'hat einen Fall wiederhergestellt',
 };
 
@@ -56,6 +59,7 @@ export default async function DashboardPage() {
         <Kpis>
           {counts.newLeads !== null && <Kpi label="Neue Anfragen" value={counts.newLeads} href="/admin/anfragen?status=NEW" testId="count-new-leads" note={counts.failedMail ? `${counts.failedMail} ohne Mail-Hinweis` : undefined} warn />}
           {counts.openCases !== null && <Kpi label="Offene Fälle" value={counts.openCases} href="/admin/faelle?status=open" testId="count-open-cases" note={counts.unassigned ? `${counts.unassigned} ohne Gutachter` : undefined} warn />}
+          {counts.appointmentsToday !== null && <Kpi label="Termine heute" value={counts.appointmentsToday} href="/admin/termine?ansicht=tag" testId="count-appts-today" />}
           {counts.reportsOpen !== null && <Kpi label="Gutachten offen" value={counts.reportsOpen} href="/admin/faelle?status=IN_PROGRESS" />}
           {counts.followUpsDue !== null && <Kpi label="Wiedervorlagen fällig" value={counts.followUpsDue} href="/admin/heute" />}
           {counts.customers !== null && <Kpi label="Kunden" value={counts.customers} href="/admin/kunden" />}
@@ -111,7 +115,13 @@ export default async function DashboardPage() {
         <aside aria-label="Heute und Aktivität">
           <div className="adm-aside-block">
             <h3>Heute</h3>
-            <p className="t-2" style={{ margin: 0 }}>Der Terminkalender folgt in Phase 3. Bis dahin zeigt „Heute“ Anfragen, Wiedervorlagen und Fälle in Arbeit.</p>
+            {today.appointments.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Heute sind keine Termine eingetragen.</p> : (
+              <ul className="adm-list">
+                {today.appointments.slice(0, 5).map((a) => (
+                  <li key={a.id}><span className="main"><Link href={`/admin/faelle/${a.case.caseNumber}/?tab=termine`} className="stretch">{new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' }).format(a.startsAt)} · {a.case.customer.company || a.case.customer.lastName}</Link><span className="secondary">{a.case.vehicle.licensePlate ?? a.case.vehicle.model}</span></span></li>
+                ))}
+              </ul>
+            )}
             <Link href="/admin/heute" className="adm-btn adm-btn-secondary adm-btn-sm" style={{ marginTop: 10 }}>Heute öffnen</Link>
           </div>
           {counts.followUpsDue !== null && (

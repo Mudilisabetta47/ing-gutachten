@@ -55,7 +55,24 @@ async function fixtures(db: PrismaClient) {
   const rows = await db.$queryRaw<{ last_value: number }[]>`INSERT INTO case_counters (year, last_value, updated_at) VALUES (${year}, 1, now()) ON CONFLICT (year) DO UPDATE SET last_value = case_counters.last_value + 1, updated_at = now() RETURNING last_value`;
   const c = await db.case.create({ data: { caseNumber: `ING-${year}-${String(rows[0].last_value).padStart(6, '0')}`, status: 'APPOINTMENT_SET', customerId: customer.id, vehicleId: vehicle.id, assignedExpertId: expert.id, createdById: office.id, description: 'Heckschaden (Demo-Fixture)', inspectionLocation: 'Hannover' } });
   await db.caseStatusHistory.create({ data: { caseId: c.id, toStatus: 'NEW', actorId: office.id, reason: 'Demo-Fixture' } });
-  console.log('Fixtures angelegt: 4 Anfragen, 1 Kunde, 1 Fahrzeug, 1 Fall (dem Demo-Gutachter zugewiesen).');
+  // Termine: einer heute (in ca. einer Stunde), einer in zwei Tagen – damit Kalender, „Heute“ und Dashboard etwas zeigen.
+  // „heute“ immer in der Zukunft, solange der Tag es hergibt (bis 21 Uhr), damit „Heute“ den Termin als nächsten zeigt
+  const berlinHour = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Berlin' }).formatToParts(new Date()).find((p) => p.type === 'hour')?.value ?? '12');
+  const soon = Math.min(21, Math.max(8, berlinHour + 1));
+  const at = (dayOffset: number, hour: number) => {
+    const base = new Date(Date.now() + dayOffset * 86_400_000);
+    const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(base);
+    const guess = new Date(`${ymd}T${String(hour).padStart(2, '0')}:00:00Z`);
+    const off = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Berlin', timeZoneName: 'longOffset' }).formatToParts(guess).find((p) => p.type === 'timeZoneName')?.value.match(/GMT([+-]\d{2})/)?.[1] ?? '0');
+    return new Date(guess.getTime() - off * 3_600_000);
+  };
+  await db.appointment.createMany({
+    data: [
+      { caseId: c.id, expertId: expert.id, kind: 'INSPECTION', status: 'PLANNED', startsAt: at(0, soon), endsAt: at(0, soon + 1), location: 'Hannover, Beispielweg 1 (Demo)', createdById: office.id },
+      { caseId: c.id, expertId: expert.id, kind: 'CONSULTATION', status: 'CONFIRMED', startsAt: at(2, 9), endsAt: at(2, 10), location: 'Telefon (Demo)', createdById: office.id },
+    ],
+  });
+  console.log('Fixtures angelegt: 4 Anfragen, 1 Kunde, 1 Fahrzeug, 1 Fall mit 2 Terminen (dem Demo-Gutachter zugewiesen).');
 }
 
 async function main() {
@@ -67,7 +84,7 @@ async function main() {
       // die Einträge der Demo-Benutzer mit entfernt werden – gegen echte Datenbanken verweigert _guard das Skript.
       // Pipeline-Daten verweisen auf Benutzer → zuerst leeren (lokale Entwicklungsdatenbank, _guard erzwingt das).
       await db.$executeRawUnsafe(
-        'TRUNCATE TABLE notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters RESTART IDENTITY CASCADE',
+        'TRUNCATE TABLE inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters RESTART IDENTITY CASCADE',
       );
       const demo = await db.user.findMany({ where: { email: { endsWith: '@demo.ing.test' } }, select: { id: true } });
       const ids = demo.map((u) => u.id);

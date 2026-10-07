@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Protokoll' };
 
 const GROUPS = [
   ['auth.', 'Anmeldung'], ['user.', 'Benutzer'], ['settings.', 'Einstellungen'],
-  ['lead.', 'Anfragen'], ['customer.', 'Kunden'], ['vehicle.', 'Fahrzeuge'], ['case.', 'Fälle'], ['note.', 'Notizen'],
+  ['lead.', 'Anfragen'], ['appointment.', 'Termine'], ['photo.', 'Fotos'], ['document.', 'Dokumente'], ['damage.', 'Schäden'], ['inspection.', 'Besichtigung'], ['media.', 'Dateiabrufe'], ['customer.', 'Kunden'], ['vehicle.', 'Fahrzeuge'], ['case.', 'Fälle'], ['note.', 'Notizen'],
 ] as const;
 
 export default async function AuditPage({ searchParams }: { searchParams: Promise<{ gruppe?: string; von?: string; bis?: string; seite?: string }> }) {

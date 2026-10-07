@@ -14,7 +14,9 @@ export async function todayOverview(user: AuthUser) {
   const canLeads = has(user, 'leads.read');
   const scope = caseScope(user, 'read');
 
-  const [newLeads, dueLeads, workCases, jobs] = await Promise.all([
+  const canAppts = has(user, 'appointments.read.all') || has(user, 'appointments.read.own');
+  const apptScope = has(user, 'appointments.read.all') ? {} : { expertId: user.id };
+  const [newLeads, dueLeads, workCases, appts] = await Promise.all([
     canLeads
       ? db.lead.findMany({ where: { deletedAt: null, status: 'NEW' }, orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, name: true, reason: true, vehicleKind: true, phone: true, location: true, createdAt: true, notificationStatus: true } })
       : Promise.resolve([]),
@@ -32,20 +34,23 @@ export async function todayOverview(user: AuthUser) {
           select: { id: true, caseNumber: true, status: true, createdAt: true, customer: { select: { lastName: true, company: true } }, vehicle: { select: { licensePlate: true, model: true } } },
         })
       : Promise.resolve([]),
-    // Einsätze: Fälle mit vereinbartem Termin (Uhrzeiten kommen mit dem Kalender in Phase 3)
-    scope
-      ? db.case.findMany({
-          where: { AND: [scope, { deletedAt: null, status: 'APPOINTMENT_SET' }] },
-          orderBy: { updatedAt: 'asc' }, take: 8,
+    // Termine heute + der nächste anstehende Termin (nach Rechten: alle oder nur eigene)
+    canAppts
+      ? db.appointment.findMany({
+          where: { ...apptScope, case: { deletedAt: null }, OR: [{ startsAt: { gte: day.start, lt: day.end }, status: { in: ['PLANNED', 'CONFIRMED', 'DONE'] } }, { endsAt: { gt: new Date() }, status: { in: ['PLANNED', 'CONFIRMED'] }, startsAt: { lt: new Date(day.end.getTime() + 14 * 86_400_000) } }] },
+          orderBy: { startsAt: 'asc' }, take: 40,
           select: {
-            id: true, caseNumber: true, inspectionLocation: true,
-            customer: { select: { firstName: true, lastName: true, company: true, phone: true } },
-            vehicle: { select: { manufacturer: true, model: true, licensePlate: true } },
+            id: true, kind: true, status: true, startsAt: true, endsAt: true, location: true, caseId: true,
+            expert: { select: { firstName: true, lastName: true } },
+            inspection: { select: { status: true } },
+            case: { select: { caseNumber: true, inspectionLocation: true, customer: { select: { firstName: true, lastName: true, company: true, phone: true } }, vehicle: { select: { manufacturer: true, model: true, licensePlate: true } } } },
           },
         })
       : Promise.resolve([]),
   ]);
-  return { newLeads, dueLeads, workCases, jobs };
+  const todays = appts.filter((a) => a.startsAt >= day.start && a.startsAt < day.end);
+  const upcoming = appts.filter((a) => (a.status === 'PLANNED' || a.status === 'CONFIRMED') && a.endsAt > new Date());
+  return { newLeads, dueLeads, workCases, appointments: todays, next: upcoming[0] ?? null };
 }
 
 /** Echte Kennzahlen für das Dashboard (0 bleibt 0). */
@@ -53,7 +58,7 @@ export async function dashboardCounts(user: AuthUser) {
   const scope = caseScope(user, 'read');
   const canLeads = has(user, 'leads.read');
   const dayEnd = berlinDayRange(berlinToday())!.end;
-  const [newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue] = await Promise.all([
+  const [newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday] = await Promise.all([
     canLeads ? db.lead.count({ where: { deletedAt: null, status: 'NEW' } }) : null,
     canLeads ? db.lead.count({ where: { deletedAt: null, notificationStatus: 'FAILED', status: { notIn: ['CONVERTED', 'SPAM', 'CLOSED'] } } }) : null,
     scope ? db.case.count({ where: { AND: [scope, { deletedAt: null, status: { notIn: [...CASE_TERMINAL] } }] } }) : null,
@@ -62,6 +67,9 @@ export async function dashboardCounts(user: AuthUser) {
     // „Gutachten offen“: Fälle, in denen das Gutachten noch erstellt oder freigegeben werden muss
     scope ? db.case.count({ where: { AND: [scope, { deletedAt: null, status: { in: ['INSPECTED', 'DOCUMENTS_MISSING', 'IN_PROGRESS', 'REPORT_READY'] } }] } }) : null,
     canLeads ? db.lead.count({ where: { deletedAt: null, status: { notIn: ['CONVERTED', 'CLOSED', 'SPAM'] }, nextActionAt: { lt: dayEnd } } }) : null,
+    has(user, 'appointments.read.all') || has(user, 'appointments.read.own')
+      ? db.appointment.count({ where: { ...(has(user, 'appointments.read.all') ? {} : { expertId: user.id }), startsAt: { gte: berlinDayRange(berlinToday())!.start, lt: dayEnd }, status: { in: ['PLANNED', 'CONFIRMED', 'DONE'] } } })
+      : null,
   ]);
-  return { newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue };
+  return { newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday };
 }

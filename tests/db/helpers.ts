@@ -10,7 +10,7 @@ export function assertTestDb(): void {
 export async function resetDb(): Promise<void> {
   assertTestDb();
   await db.$executeRawUnsafe(
-    'TRUNCATE TABLE notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters, ' +
+    'TRUNCATE TABLE inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters, ' +
       'audit_logs, login_attempts, sessions, user_permissions, employees, system_settings, users RESTART IDENTITY CASCADE',
   );
 }
@@ -60,3 +60,26 @@ export async function makeLead(over: Partial<{ name: string; email: string; phon
 
 export const CUSTOMER = { type: 'PRIVATE', firstName: 'Erika', lastName: 'Mustermann', email: 'erika@example.test', phone: '0511 1234567', city: 'Hannover' };
 export const VEHICLE = { manufacturer: 'VW', model: 'Golf', licensePlate: 'H AB 123', vin: 'WVWZZZ1KZ6W000001' };
+
+/** Termin für einen Fall (Besichtigung), standardmäßig morgen, 1 Stunde. */
+export async function makeAppointment(user: Awaited<ReturnType<typeof asAuthUser>>, caseId: string, expertId: string, startOffsetH = 24, durH = 1) {
+  const { createAppointment } = await import('@/server/pipeline/appointments');
+  const start = new Date(Date.now() + startOffsetH * 3_600_000);
+  start.setMinutes(0, 0, 0);
+  return createAppointment(user, caseId, { expertId, kind: 'INSPECTION', startsAt: start, endsAt: new Date(start.getTime() + durH * 3_600_000) });
+}
+
+/** Lokaler Test-Speicher in einem Temp-Verzeichnis (nie im Projekt). */
+export async function useTempStorage() {
+  const { mkdtemp } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const path = await import('node:path');
+  const dir = await mkdtemp(path.join(tmpdir(), 'ing-storage-'));
+  process.env.STORAGE_DRIVER = 'local';
+  process.env.STORAGE_LOCAL_DIR = dir;
+  return dir;
+}
+
+/** Winziges, gültiges JPEG (Magic Bytes) – Inhalt ist für die Prüfung irrelevant. */
+export const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xff, 0xd9]);
+export const PDF_BYTES = new Uint8Array(Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n'));

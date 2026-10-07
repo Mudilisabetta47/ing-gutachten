@@ -24,7 +24,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/faelle', label: 'Fälle', icon: 'case', group: 'Arbeit', anyOf: ['cases.read.all', 'cases.read.own'], phase: 2, ready: true },
   { href: '/admin/kunden', label: 'Kunden', icon: 'users', group: 'Arbeit', anyOf: ['customers.read', 'customers.read.own'], phase: 2, ready: true },
   { href: '/admin/fahrzeuge', label: 'Fahrzeuge', icon: 'car', group: 'Arbeit', anyOf: ['vehicles.read'], phase: 2, ready: true },
-  { href: '/admin/termine', label: 'Termine', icon: 'calendar', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 3, ready: false },
+  { href: '/admin/termine', label: 'Termine', icon: 'calendar', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 3, ready: true },
   { href: '/admin/rechnungen', label: 'Rechnungen', icon: 'receipt', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: false },
   { href: '/admin/website', label: 'Inhalte', icon: 'globe', group: 'Website', anyOf: ['cms.read'], phase: 5, ready: false },
   { href: '/admin/regionen', label: 'Regionen', icon: 'map', group: 'Website', anyOf: ['seo.read'], phase: 5, ready: false },

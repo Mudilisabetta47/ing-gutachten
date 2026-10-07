@@ -1,7 +1,7 @@
 import test, { beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { db } from '@/server/db';
-import { assertTestDb, resetDb, makeUser, asAuthUser, makeLead, CUSTOMER, VEHICLE } from './helpers';
+import { assertTestDb, resetDb, makeUser, asAuthUser, makeLead, makeAppointment, CUSTOMER, VEHICLE } from './helpers';
 import { changeLeadStatus, convertLead, listLeads, getLead, addLeadNote } from '@/server/pipeline/leads';
 import { createCustomer, getCustomer, listCustomers, customerNotes, addCustomerNote, updateCustomer } from '@/server/pipeline/customers';
 import { createVehicle, listVehicles, getVehicle, updateVehicle } from '@/server/pipeline/vehicles';
@@ -47,7 +47,7 @@ test('Sachverständiger: sieht NUR eigene Fälle – Liste, Detail, Suche, Statu
   assert.equal((await db.case.findUniqueOrThrow({ where: { id: w.b.k.id } })).status, 'NEW', 'fremder Fall unverändert');
 
   // eigener Fall: fachliche Schritte ja, Verwaltungs-Schritte nein
-  await changeCaseStatus(w.office, w.a.k.id, 'APPOINTMENT_SET');
+  await makeAppointment(w.office, w.a.k.id, w.expA.id); // Termin → „Termin vereinbart"
   await changeCaseStatus(w.expA, w.a.k.id, 'INSPECTED');
   await changeCaseStatus(w.expA, w.a.k.id, 'IN_PROGRESS');
   await assert.rejects(changeCaseStatus(w.expA, w.a.k.id, 'CANCELLED', 'will nicht'), ForbiddenError);
@@ -86,8 +86,8 @@ test('Website-Rolle (CONTENT_MANAGER): NULL Zugriff auf Kundendaten – überall
   await assert.rejects(listCases(w.content, {}), ForbiddenError);
   await assert.rejects(getCase(w.content, w.a.k.caseNumber), ForbiddenError);
   await assert.rejects(globalSearch(w.content, 'Alpha'), ForbiddenError);
-  assert.deepEqual(await dashboardCounts(w.content), { newLeads: null, failedMail: null, openCases: null, unassigned: null, customers: null, reportsOpen: null, followUpsDue: null });
-  assert.deepEqual(await todayOverview(w.content), { newLeads: [], dueLeads: [], workCases: [], jobs: [] });
+  assert.deepEqual(await dashboardCounts(w.content), { newLeads: null, failedMail: null, openCases: null, unassigned: null, customers: null, reportsOpen: null, followUpsDue: null, appointmentsToday: null });
+  assert.deepEqual(await todayOverview(w.content), { newLeads: [], dueLeads: [], workCases: [], appointments: [], next: null });
 });
 
 test('Buchhaltung: Kunden & Fallkontext ja – aber keine Unfall-Interna, Notizen, Fahrzeuge, Anfragen', async () => {
@@ -164,7 +164,7 @@ test('Dashboard & Heute: echte Zahlen (0 bleibt 0), rollenbezogen', async () => 
   const empty = await asAuthUser((await makeUser({ role: 'OFFICE' })).user.id);
   await resetDb();
   const o = await asAuthUser((await makeUser({ role: 'OFFICE' })).user.id);
-  assert.deepEqual(await dashboardCounts(o), { newLeads: 0, failedMail: 0, openCases: 0, unassigned: 0, customers: 0, reportsOpen: 0, followUpsDue: 0 });
+  assert.deepEqual(await dashboardCounts(o), { newLeads: 0, failedMail: 0, openCases: 0, unassigned: 0, customers: 0, reportsOpen: 0, followUpsDue: 0, appointmentsToday: 0 });
   const { leadId } = await makeLead();
   await changeLeadStatus(o, leadId, 'CONTACTED');
   await makeLead({ name: 'Zweite Anfrage' });

@@ -13,6 +13,13 @@ import { AsideBlock, Alert, Badge, DetailHeader, EmptyState, Rows, Section, Stat
 import { CaseForm, ConfirmForm, NoteForm } from '@/components/admin/forms';
 import { CaseStatusForm, AssignForm } from './CaseForms';
 import { archiveCaseAction, caseNoteAction, restoreCaseAction, updateCaseAction } from '../actions';
+import { appointmentStatusAction, createAppointmentAction, rescheduleAppointmentAction, addDamageAction, deleteDamageAction, deletePhotoAction, deleteDocumentAction, updateDamageAction, updatePhotoAction } from '../work-actions';
+import { caseWorkSummary } from '@/server/pipeline/case-work';
+import { caseAppointments, APPT_LABELS, KIND_LABELS } from '@/server/pipeline/appointments';
+import { DOCUMENT_CATEGORIES, DOCUMENT_LABELS, PHOTO_CATEGORIES, PHOTO_LABELS, listCasePhotos, listDocuments } from '@/server/pipeline/media';
+import { AREA_LABELS, DAMAGE_AREAS, DAMAGE_TYPES, REPAIR_KINDS, listDamages } from '@/server/pipeline/damages';
+import { toBerlinLocalInput } from '@/lib/berlin';
+import { AppointmentForm, AppointmentStatusForm, DamageForm, MediaUploader, PhotoGallery } from '@/components/admin/work';
 
 export const metadata: Metadata = { title: 'Fall' };
 
@@ -22,8 +29,6 @@ const TABS = [
 ] as const;
 
 const LATER: Record<string, [string, string]> = {
-  dokumente: ['Dokumente folgen in Phase 3', 'Der private Dateispeicher für Dokumente und Fotos wird in Phase 3 gebaut.'],
-  termine: ['Termine folgen in Phase 3', 'Kalender und Terminverwaltung werden in Phase 3 gebaut. Bis dahin zeigt der Fallstatus „Termin vereinbart“ den Stand.'],
   gutachten: ['Gutachten folgen in Phase 3', 'Die Gutachten-Erstellung mit Versionierung und PDF kommt in Phase 3.'],
   rechnung: ['Rechnungen folgen in Phase 4', 'Rechnungen, Zahlungen und Mahnwesen werden in Phase 4 gebaut.'],
   kommunikation: ['Kommunikation folgt in Phase 4', 'E-Mail-Vorlagen und der Kommunikationsverlauf werden in Phase 4 gebaut.'],
@@ -51,11 +56,23 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
   const expert = c.assignedExpert ? `${c.assignedExpert.firstName} ${c.assignedExpert.lastName}` : null;
   const iso = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : '');
 
-  const [notes, activity, experts] = await Promise.all([
+  const work = await orNotFound(caseWorkSummary(user, c.id));
+  const canExpertList = canAssign || user.permissions.has('appointments.write.all') || user.permissions.has('cases.read.all');
+  const [notes, activity, experts, photos, docs, appts, damages] = await Promise.all([
     tab === 'uebersicht' ? caseNotes(user, c.id) : Promise.resolve([]),
     caseActivity(c.id, { includeNotes: c.internalsVisible }),
-    canAssign ? listExperts(user) : Promise.resolve([]),
+    canExpertList || work.can.apptsWrite ? listExperts(user) : Promise.resolve([]),
+    (tab === 'fotos' || tab === 'schaden') && work.can.photosRead && work.storage ? listCasePhotos(user, c.id) : Promise.resolve([]),
+    tab === 'dokumente' && work.can.docsRead ? listDocuments(user, { caseId: c.id }) : Promise.resolve([]),
+    tab === 'termine' || tab === 'uebersicht' ? (work.can.apptsRead ? caseAppointments(user, c.id) : Promise.resolve([])) : Promise.resolve([]),
+    tab === 'schaden' || tab === 'fotos' ? listDamages(user, c.id) : Promise.resolve([]),
   ]);
+  const photoLabels: [string, string][] = PHOTO_CATEGORIES.map((k) => [k, PHOTO_LABELS[k]]);
+  const docLabels: [string, string][] = DOCUMENT_CATEGORIES.map((k) => [k, DOCUMENT_LABELS[k]]);
+  const damageOptions = damages.map((d) => ({ id: d.id, label: `${AREA_LABELS[d.area]}: ${d.component}` }));
+  const expertOptions = experts.map((e) => ({ id: e.id, name: `${e.firstName} ${e.lastName}` }));
+  const activeAppts = appts.filter((a) => a.status === 'PLANNED' || a.status === 'CONFIRMED');
+  const canPickExpert = user.permissions.has('appointments.write.all');
   const attachments = c.lead?.inquiry?.attachments ?? [];
   const expertList = experts.map((e) => ({ id: e.id, name: `${e.firstName} ${e.lastName}` }));
 
@@ -72,6 +89,23 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
       ) },
     ] : []),
   ];
+
+  const apptDrawers = work.can.apptsWrite && !c.deletedAt
+    ? [
+        { id: 'appt-new', title: 'Termin anlegen', content: <AppointmentForm action={createAppointmentAction} experts={expertOptions} canPickExpert={canPickExpert} currentExpertId={c.assignedExpert?.id ?? user.id} caseId={c.id} caseNumber={caseNumber} initial={{ location: c.inspectionLocation ?? '' }} submitLabel="Termin anlegen" /> },
+        ...activeAppts.flatMap((a) => [
+          { id: `resched-${a.id}`, title: 'Termin verschieben', content: <AppointmentForm action={rescheduleAppointmentAction} experts={expertOptions} canPickExpert={canPickExpert} currentExpertId={a.expertId} caseNumber={caseNumber} appointmentId={a.id} initial={{ kind: a.kind, expertId: a.expertId, startsAt: toBerlinLocalInput(a.startsAt), duration: String(Math.round((a.endsAt.getTime() - a.startsAt.getTime()) / 60000)), location: a.location ?? '', notes: a.notes ?? '' }} submitLabel="Speichern" /> },
+          { id: `cancel-${a.id}`, title: 'Termin absagen', content: <AppointmentStatusForm action={appointmentStatusAction} id={a.id} caseNumber={caseNumber} status="CANCELLED" title="Termin absagen" text="Der Termin wird abgesagt. Hat der Fall keinen weiteren Termin, geht er zurück auf „Termin offen“." needsReason label="Termin absagen" /> },
+        ]),
+      ]
+    : [];
+  const damageDrawers = c.internalsVisible && canWrite && !c.deletedAt
+    ? [
+        { id: 'damage-new', title: 'Schaden erfassen', content: <DamageForm action={addDamageAction} caseId={c.id} caseNumber={caseNumber} areas={DAMAGE_AREAS.map((k) => [k, AREA_LABELS[k]])} types={DAMAGE_TYPES} repairs={REPAIR_KINDS} submitLabel="Schaden erfassen" /> },
+        ...damages.map((d) => ({ id: `damage-${d.id}`, title: 'Schaden bearbeiten', content: <DamageForm action={updateDamageAction} damageId={d.id} caseNumber={caseNumber} initial={{ area: d.area, component: d.component, damageType: d.damageType ?? '', repairKind: d.repairKind ?? '', description: d.description ?? '' }} areas={DAMAGE_AREAS.map((k) => [k, AREA_LABELS[k]])} types={DAMAGE_TYPES} repairs={REPAIR_KINDS} submitLabel="Speichern" /> })),
+      ]
+    : [];
+  drawers.push(...apptDrawers, ...damageDrawers);
 
   const more: MenuEntry[] = [
     ...(statusOptions.length && !c.deletedAt ? [{ kind: 'drawer' as const, label: 'Status ändern', drawer: 'status', icon: 'check' as const }] : []),
@@ -127,6 +161,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
       );
     if (tab === 'schaden')
       return c.internalsVisible ? (
+        <>
         <Section title="Schaden und Beteiligte" aside={canWrite && !c.deletedAt ? <OpenDrawer id="edit" icon="edit" className="adm-btn adm-btn-secondary adm-btn-sm">Bearbeiten</OpenDrawer> : undefined}>
           <Rows items={[
             ['Schadendatum', fmtDate(c.damageDate)], ['Unfalldatum', fmtDate(c.accidentDate)], ['Besichtigungsort', c.inspectionLocation],
@@ -136,23 +171,114 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
           ]} />
           <p style={{ margin: '14px 0 0', whiteSpace: 'pre-wrap' }}>{c.description || <span className="t-3">Keine Beschreibung.</span>}</p>
         </Section>
+        <Section title={`Schäden am Fahrzeug · ${damages.length}`} aside={canWrite && !c.deletedAt ? <OpenDrawer id="damage-new" icon="plus" className="adm-btn adm-btn-secondary adm-btn-sm">Schaden</OpenDrawer> : undefined}>
+          {damages.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Noch keine Einzelschäden erfasst.</p> : (
+            <ul className="adm-list">
+              {damages.map((d) => (
+                <li key={d.id} style={{ alignItems: 'flex-start' }}>
+                  <span className="main"><span>{AREA_LABELS[d.area]} · {d.component}</span><span className="secondary">{[d.damageType, d.repairKind].filter(Boolean).join(' · ') || '–'}{d._count.photos ? ` · ${d._count.photos} Foto(s)` : ''}</span>{d.description && <span className="secondary">{d.description}</span>}</span>
+                  {canWrite && !c.deletedAt && (
+                    <span style={{ display: 'flex', gap: 4 }}>
+                      <OpenDrawer id={`damage-${d.id}`} icon="edit" className="adm-btn adm-btn-quiet adm-btn-icon adm-btn-sm"><span className="sr-only-adm">Schaden bearbeiten</span></OpenDrawer>
+                      <ConfirmForm action={deleteDamageAction} id={d.id} extra={{ caseNumber }} label="Löschen" title="Schaden löschen?" confirm="Der Schaden wird gelöscht; zugeordnete Fotos bleiben erhalten." danger />
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+        </>
       ) : (
         <Section title="Schaden">
           <Rows items={[['Versicherung', c.insuranceName], ['Schadennummer', c.insuranceClaimNumber ? <span className="mono">{c.insuranceClaimNumber}</span> : null]]} />
           <p className="t-3" style={{ margin: '12px 0 0' }}>Unfallhergang und Beteiligte sind für Ihre Rolle nicht sichtbar.</p>
         </Section>
       );
-    if (tab === 'fotos')
-      return attachments.length === 0 ? (
-        <EmptyState icon="photo" title="Noch keine Fotos">Der private Dateispeicher und der Foto-Upload folgen in Phase 3.{c.lead ? ' Mit der ursprünglichen Anfrage wurden keine Dateien gesendet.' : ''}</EmptyState>
-      ) : (
-        <Section title="Fotos aus der Anfrage">
-          <p style={{ margin: '0 0 10px' }}>{attachments.length} Datei(en) wurden mit der Anfrage gesendet. Sie liegen nicht in der Datenbank – bis zum Dateispeicher (Phase 3) nur im Anhang der E-Mail-Benachrichtigung.</p>
-          <ul className="adm-list">{attachments.map((a) => (
-            <li key={a.id}><span className="main"><span>{a.kind === 'registration' ? 'Fahrzeugschein' : 'Foto'}</span><span className="secondary">{Math.max(1, Math.round(a.sizeBytes / 1024))} KB</span></span><Badge>{a.status === 'MAIL_ONLY' ? 'Nur per E-Mail' : a.status === 'STORED' ? 'Gespeichert' : 'Nicht gesichert'}</Badge></li>
-          ))}</ul>
+    if (tab === 'fotos') {
+      if (!work.can.photosRead) return <EmptyState icon="shield" title="Keine Berechtigung für Fotos">Fotos sehen nur Rollen mit Zugriff auf diesen Fall.</EmptyState>;
+      if (!work.storage)
+        return (
+          <>
+            <Alert tone="warn">Der private Dateispeicher ist nicht eingerichtet – Fotos können erst nach der Einrichtung hochgeladen werden (siehe Einstellungen). {attachments.length > 0 ? `Mit der Anfrage wurden ${attachments.length} Datei(en) gesendet; sie liegen nur im Anhang der E-Mail-Benachrichtigung.` : ''}</Alert>
+          </>
+        );
+      return (
+        <>
+          {work.can.photosWrite && !c.deletedAt && (
+            <Section title="Fotos hinzufügen"><MediaUploader target="photo" caseId={c.id} categories={photoLabels} defaultCategory="DAMAGE" damages={damageOptions} /></Section>
+          )}
+          <Section title={`Fotos · ${photos.length}`}>
+            {photos.length === 0 ? (
+              <EmptyState icon="photo" title="Noch keine Fotos">Fotos der Besichtigung und aus der Anfrage erscheinen hier – privat, nur mit Anmeldung abrufbar.</EmptyState>
+            ) : (
+              <PhotoGallery
+                photos={photos.map((p) => ({ id: p.id, mediaId: p.mediaId, category: p.category, title: p.title, description: p.description, damageId: p.damageId, damageLabel: p.damage ? p.damage.component : null, when: fmtWhen(p.createdAt) + (p.media.uploadedBy ? ` · ${p.media.uploadedBy.firstName} ${p.media.uploadedBy.lastName}` : '') }))}
+                categories={photoLabels} damages={damageOptions} canWrite={work.can.photosWrite && !c.deletedAt} caseNumber={caseNumber}
+                updateAction={updatePhotoAction} deleteAction={deletePhotoAction}
+              />
+            )}
+          </Section>
+        </>
+      );
+    }
+    if (tab === 'dokumente') {
+      if (!work.can.docsRead) return <EmptyState icon="shield" title="Keine Berechtigung für Dokumente">Dokumente sehen nur Rollen mit Zugriff auf diesen Fall.</EmptyState>;
+      if (!work.storage) return <Alert tone="warn">Der private Dateispeicher ist nicht eingerichtet – Dokumente können erst nach der Einrichtung hochgeladen werden.</Alert>;
+      return (
+        <>
+          {work.can.docsWrite && !c.deletedAt && <Section title="Dokument hinzufügen"><MediaUploader target="document" caseId={c.id} categories={docLabels} defaultCategory="OTHER" /></Section>}
+          <Section title={`Dokumente · ${docs.length}`}>
+            {docs.length === 0 ? <EmptyState icon="doc" title="Noch keine Dokumente">Fahrzeugschein, Vollmacht, Versicherungsschreiben und weitere Unterlagen zum Fall.</EmptyState> : (
+              <ul className="adm-list">
+                {docs.map((d) => (
+                  <li key={d.id}>
+                    <span className="main">
+                      <a href={`/api/admin/media/${d.mediaId}`} target="_blank" rel="noreferrer" className="stretch">{d.title}</a>
+                      <span className="secondary">{DOCUMENT_LABELS[d.category]} · {d.media.mimeType === 'application/pdf' ? 'PDF' : 'Bild'} · {Math.max(1, Math.round(d.media.sizeBytes / 1024))} KB · {fmtWhen(d.createdAt)}</span>
+                    </span>
+                    {user.permissions.has('documents.delete') && <span style={{ position: 'relative', zIndex: 2 }}><ConfirmForm action={deleteDocumentAction} id={d.id} extra={{ caseNumber }} label="Löschen" title="Dokument löschen?" confirm="Das Dokument wird ausgeblendet." danger /></span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+        </>
+      );
+    }
+    if (tab === 'termine') {
+      if (!work.can.apptsRead) return <EmptyState icon="shield" title="Keine Berechtigung für Termine">Termine sehen nur Rollen mit Zugriff auf diesen Fall.</EmptyState>;
+      return (
+        <Section title={`Termine · ${appts.length}`} aside={work.can.apptsWrite && !c.deletedAt ? <OpenDrawer id="appt-new" icon="plus" className="adm-btn adm-btn-secondary adm-btn-sm">Termin</OpenDrawer> : undefined}>
+          {appts.length === 0 ? (
+            <EmptyState icon="calendar" title="Noch kein Termin" action={work.can.apptsWrite && !c.deletedAt ? <OpenDrawer id="appt-new" className="adm-btn">Termin anlegen</OpenDrawer> : undefined}>Mit dem ersten Besichtigungstermin wechselt der Fall automatisch auf „Termin vereinbart“.</EmptyState>
+          ) : (
+            <ul className="adm-list">
+              {appts.map((a) => {
+                const active = a.status === 'PLANNED' || a.status === 'CONFIRMED';
+                const tone = a.status === 'CONFIRMED' ? 'ok' : a.status === 'PLANNED' ? 'info' : a.status === 'DONE' ? 'muted' : 'danger';
+                return (
+                  <li key={a.id} style={{ alignItems: 'flex-start' }}>
+                    <span className="main" style={{ minWidth: 0 }}>
+                      <span>{fmtWhen(a.startsAt)} – {new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin' }).format(a.endsAt)}</span>
+                      <span className="secondary">{KIND_LABELS[a.kind]} · {a.expert.firstName} {a.expert.lastName}{a.location ? ` · ${a.location}` : ''}</span>
+                      {a.cancelledReason && <span className="secondary">Grund: {a.cancelledReason}</span>}
+                    </span>
+                    <span style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      <Badge tone={tone}>{APPT_LABELS[a.status]}</Badge>
+                      {a.kind === 'INSPECTION' && work.can.apptsWrite && a.status !== 'CANCELLED' && a.status !== 'NO_SHOW' && (
+                        <Link href={`${base}erfassung/?termin=${a.id}`} className="adm-btn adm-btn-secondary adm-btn-sm">{a.inspection?.status === 'FINISHED' ? 'Protokoll' : a.inspection ? 'Besichtigung fortsetzen' : 'Besichtigung starten'}</Link>
+                      )}
+                      {active && work.can.apptsWrite && <Menu label="Termin-Aktionen" triggerClassName="adm-btn adm-btn-quiet adm-btn-icon adm-btn-sm" trigger={<AdminIcon name="more" />} entries={[{ kind: 'drawer', label: 'Verschieben', drawer: `resched-${a.id}`, icon: 'calendar' }, { kind: 'drawer', label: 'Absagen', drawer: `cancel-${a.id}`, icon: 'x' }]} />}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </Section>
       );
+    }
     if (LATER[tab]) return <EmptyState icon="clock" title={LATER[tab][0]}>{LATER[tab][1]}</EmptyState>;
     return (
       <div className="adm-grid-2">
@@ -173,6 +299,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
 
   return (
     <DrawerHost drawers={drawers}>
+      {qp(sp.fertig) && <FlashToast text="Besichtigung abgeschlossen. Der Fall steht jetzt auf „Besichtigt“." param="fertig" />}
       {qp(sp.neu) && <FlashToast text={`Fall ${c.caseNumber} angelegt. Die Anfrage bleibt erhalten und verweist auf diesen Fall.`} param="neu" />}
       <DetailHeader
         crumbs={[{ label: 'Fälle', href: '/admin/faelle' }, { label: c.caseNumber }]}
@@ -185,7 +312,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
         ]}
         actions={
           <>
-            <Link href={`${base}?tab=termine`} className="adm-btn adm-btn-secondary adm-hide-mobile"><AdminIcon name="calendar" />Termin</Link>
+            {work.can.apptsWrite && !c.deletedAt ? <OpenDrawer id="appt-new" icon="calendar" className="adm-btn adm-btn-secondary adm-hide-mobile">Termin</OpenDrawer> : <Link href={`${base}?tab=termine`} className="adm-btn adm-btn-secondary adm-hide-mobile"><AdminIcon name="calendar" />Termine</Link>}
             <Link href={`${base}?tab=dokumente`} className="adm-btn adm-btn-secondary adm-hide-mobile"><AdminIcon name="doc" />Dokument</Link>
             <Link href={`${base}?tab=gutachten`} className="adm-btn adm-btn-secondary adm-hide-mobile">Gutachten</Link>
             {statusOptions.length > 0 && !c.deletedAt && <OpenDrawer id="status" className="adm-btn adm-hide-mobile">Status ändern</OpenDrawer>}
@@ -198,7 +325,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
         items={[
           ['Schadendatum', c.internalsVisible ? fmtDate(c.damageDate) : null],
           ['Gutachtenart', SERVICE_LABELS[c.serviceType]],
-          ['Besichtigung', c.inspectionLocation],
+          ['Nächster Termin', work.next ? fmtWhen(work.next.startsAt) : null],
           ['Gutachter', expert],
           ['Versicherung', c.insuranceName],
           ['Schadennr.', c.insuranceClaimNumber ? <span className="mono">{c.insuranceClaimNumber}</span> : null],
@@ -207,7 +334,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
 
       {c.deletedAt && <div style={{ marginTop: 16 }}><Alert tone="danger">Dieser Fall ist archiviert und nur für die Leitung sichtbar.</Alert></div>}
 
-      <Tabs label="Fallbereiche" active={tab} items={TABS.map(([k, l]) => ({ key: k, label: l, href: k === 'uebersicht' ? base : `${base}?tab=${k}`, count: k === 'fotos' ? attachments.length : undefined }))} />
+      <Tabs label="Fallbereiche" active={tab} items={TABS.map(([k, l]) => ({ key: k, label: l, href: k === 'uebersicht' ? base : `${base}?tab=${k}`, count: k === 'fotos' ? work.counts.photos || undefined : k === 'dokumente' ? work.counts.documents || undefined : k === 'termine' ? work.counts.appointments || undefined : k === 'schaden' ? work.counts.damages || undefined : undefined }))} />
 
       <div className="adm-work">
         <div style={{ minWidth: 0 }}><Main /></div>
@@ -245,7 +372,13 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
           )}
         </aside>
       </div>
-      {statusOptions.length > 0 && !c.deletedAt && (
+      {work.can.apptsWrite && activeAppts.find((a) => a.kind === 'INSPECTION') && !c.deletedAt && (
+        <div className="adm-quickbar">
+          <Link href={`${base}erfassung/?termin=${activeAppts.find((a) => a.kind === 'INSPECTION')!.id}`} className="adm-btn"><AdminIcon name="photo" />Besichtigung</Link>
+          {phoneHref(c.customer.phone) && <a href={phoneHref(c.customer.phone)} className="adm-btn adm-btn-secondary"><AdminIcon name="phone" />Anrufen</a>}
+        </div>
+      )}
+      {statusOptions.length > 0 && !c.deletedAt && !(work.can.apptsWrite && activeAppts.find((a) => a.kind === 'INSPECTION')) && (
         <div className="adm-quickbar">
           {phoneHref(c.customer.phone) && <a href={phoneHref(c.customer.phone)} className="adm-btn adm-btn-secondary"><AdminIcon name="phone" />Anrufen</a>}
           <OpenDrawer id="status" className="adm-btn">Status ändern</OpenDrawer>

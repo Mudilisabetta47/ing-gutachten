@@ -69,6 +69,10 @@ model User {
   leadsAssigned   Lead[]              @relation("LeadAssignee")
   casesAssigned   Case[]              @relation("CaseExpert")
   casesCreated    Case[]              @relation("CaseCreator")
+  appointments    Appointment[]       @relation("AppointmentExpert")
+  appointmentsCreated Appointment[]   @relation("AppointmentCreator")
+  mediaUploaded   Media[]
+  damagesCreated  Damage[]
   notesAuthored   Note[]
   leadHistory     LeadStatusHistory[]
   caseHistory     CaseStatusHistory[]
@@ -311,9 +315,12 @@ model InquiryAttachment {
   status     AttachmentStatus
   /// Zufälliger Schlüssel im privaten Speicher (nie erratbar, nie öffentlich).
   storageKey String?          @unique @map("storage_key")
+  /// Wenn der private Dateispeicher aktiv war: die gespeicherte Datei (Media). Sonst bleibt es bei MAIL_ONLY/NOT_STORED.
+  mediaId    String?          @unique @map("media_id")
   createdAt  DateTime         @default(now()) @map("created_at")
 
   inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  media   Media?  @relation(fields: [mediaId], references: [id])
 
   @@index([inquiryId])
   @@map("inquiry_attachments")
@@ -416,6 +423,7 @@ model Customer {
   cases          Case[]
   notes          Note[]
   convertedLeads Lead[]    @relation("LeadConvertedCustomer")
+  documents      Document[]
 
   @@index([lastName, firstName])
   @@index([email])
@@ -499,6 +507,11 @@ model Case {
   history        CaseStatusHistory[]
   notes          Note[]
   lead           Lead?               @relation("LeadConvertedCase")
+  appointments   Appointment[]
+  inspections    Inspection[]
+  damages        Damage[]
+  photos         CasePhoto[]
+  documents      Document[]
 
   @@index([status, createdAt])
   @@index([customerId])
@@ -559,4 +572,212 @@ model Note {
   @@index([customerId, createdAt])
   @@index([caseId, createdAt])
   @@map("notes")
+}
+
+// =====================================================================
+//  PHASE 3 — Termine, Schäden, Fotos, Dokumente (privater Speicher)
+// =====================================================================
+
+enum AppointmentKind {
+  INSPECTION
+  CONSULTATION
+  OTHER
+}
+
+enum AppointmentStatus {
+  PLANNED
+  CONFIRMED
+  DONE
+  CANCELLED
+  NO_SHOW
+}
+
+enum InspectionStatus {
+  IN_PROGRESS
+  FINISHED
+}
+
+enum MediaBucket {
+  PRIVATE
+  PUBLIC
+}
+
+enum ScanStatus {
+  PENDING
+  CLEAN
+  FAILED
+}
+
+enum PhotoCategory {
+  OVERVIEW
+  DAMAGE
+  DETAIL
+  PLATE
+  VIN
+  ODOMETER
+  INTERIOR
+  UNDERBODY
+  REQUEST
+  OTHER
+}
+
+enum DocumentCategory {
+  REGISTRATION
+  INSURANCE_LETTER
+  POWER_OF_ATTORNEY
+  ASSIGNMENT
+  REPAIR_INVOICE
+  REPORT
+  OTHER
+}
+
+enum DamageArea {
+  FRONT
+  REAR
+  LEFT
+  RIGHT
+  ROOF
+  UNDERBODY
+  WHEELS
+  GLASS
+  INTERIOR
+  OTHER
+}
+
+/// Termin eines Sachverständigen an einem Fall. Ein Gutachter kann nicht doppelt gebucht werden:
+/// das erzwingt die Datenbank selbst (EXCLUDE-Constraint über Zeiträume), auch bei gleichzeitigen Anfragen.
+model Appointment {
+  id              String            @id @default(cuid())
+  caseId          String            @map("case_id")
+  expertId        String            @map("expert_id")
+  kind            AppointmentKind   @default(INSPECTION)
+  status          AppointmentStatus @default(PLANNED)
+  startsAt        DateTime          @map("starts_at")
+  endsAt          DateTime          @map("ends_at")
+  location        String?
+  notes           String?
+  cancelledReason String?           @map("cancelled_reason")
+  createdById     String?           @map("created_by_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  case       Case        @relation(fields: [caseId], references: [id])
+  expert     User        @relation("AppointmentExpert", fields: [expertId], references: [id])
+  createdBy  User?       @relation("AppointmentCreator", fields: [createdById], references: [id])
+  inspection Inspection?
+
+  @@index([expertId, startsAt, endsAt])
+  @@index([startsAt])
+  @@index([caseId, startsAt])
+  @@index([status, startsAt])
+  @@map("appointments")
+}
+
+/// Besichtigungsprotokoll zu einem Termin (mobiler Workflow).
+model Inspection {
+  id            String           @id @default(cuid())
+  appointmentId String           @unique @map("appointment_id")
+  caseId        String           @map("case_id")
+  status        InspectionStatus @default(IN_PROGRESS)
+  startedAt     DateTime         @default(now()) @map("started_at")
+  finishedAt    DateTime?        @map("finished_at")
+  weather       String?
+  odometer      Int?
+  note          String?
+  startedById   String?          @map("started_by_id")
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  case        Case        @relation(fields: [caseId], references: [id])
+
+  @@index([caseId])
+  @@map("inspections")
+}
+
+model Damage {
+  id          String     @id @default(cuid())
+  caseId      String     @map("case_id")
+  area        DamageArea
+  component   String
+  damageType  String?    @map("damage_type")
+  description String?
+  repairKind  String?    @map("repair_kind")
+  sortOrder   Int        @default(0) @map("sort_order")
+  createdById String?    @map("created_by_id")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+
+  case      Case        @relation(fields: [caseId], references: [id])
+  createdBy User?       @relation(fields: [createdById], references: [id])
+  photos    CasePhoto[]
+
+  @@index([caseId, sortOrder])
+  @@map("damages")
+}
+
+/// Datei im Speicher. Der Schlüssel ist zufällig (nie Dateiname oder Fallnummer); der Original-Dateiname wird nicht gespeichert.
+model Media {
+  id           String      @id @default(cuid())
+  storageKey   String      @unique @map("storage_key")
+  thumbKey     String?     @unique @map("thumb_key")
+  bucket       MediaBucket @default(PRIVATE)
+  mimeType     String      @map("mime_type")
+  sizeBytes    Int         @map("size_bytes")
+  sha256       String
+  scanStatus   ScanStatus  @default(PENDING) @map("scan_status")
+  uploadedById String?     @map("uploaded_by_id")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  deletedAt    DateTime?   @map("deleted_at")
+
+  uploadedBy User?              @relation(fields: [uploadedById], references: [id])
+  photo      CasePhoto?
+  document   Document?
+  inquiry    InquiryAttachment?
+
+  @@index([createdAt])
+  @@map("media")
+}
+
+model CasePhoto {
+  id          String        @id @default(cuid())
+  mediaId     String        @unique @map("media_id")
+  caseId      String        @map("case_id")
+  category    PhotoCategory @default(DAMAGE)
+  title       String?
+  description String?
+  sortOrder   Int           @default(0) @map("sort_order")
+  damageId    String?       @map("damage_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  deletedAt   DateTime?     @map("deleted_at")
+
+  media  Media   @relation(fields: [mediaId], references: [id])
+  case   Case    @relation(fields: [caseId], references: [id])
+  damage Damage? @relation(fields: [damageId], references: [id])
+
+  @@index([caseId, sortOrder])
+  @@index([caseId, category])
+  @@map("case_photos")
+}
+
+model Document {
+  id          String           @id @default(cuid())
+  mediaId     String           @unique @map("media_id")
+  caseId      String?          @map("case_id")
+  customerId  String?          @map("customer_id")
+  category    DocumentCategory @default(OTHER)
+  title       String
+  versionOfId String?          @map("version_of_id")
+  createdById String?          @map("created_by_id")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  deletedAt   DateTime?        @map("deleted_at")
+
+  media     Media     @relation(fields: [mediaId], references: [id])
+  case      Case?     @relation(fields: [caseId], references: [id])
+  customer  Customer? @relation(fields: [customerId], references: [id])
+  versionOf Document? @relation("DocumentVersions", fields: [versionOfId], references: [id])
+  versions  Document[] @relation("DocumentVersions")
+
+  @@index([caseId, createdAt])
+  @@index([customerId, createdAt])
+  @@map("documents")
 }

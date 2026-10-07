@@ -276,6 +276,17 @@ export async function convertLead(user: AuthUser, leadId: string, input: Convert
 
       const created = await createCaseTx(tx, user.id, { customerId, vehicleId, data: input.case, status: initialCaseStatus(lead.status), fromLeadId: leadId });
 
+      // Aus der Anfrage gespeicherte Dateien gehören jetzt zum Fall (dieselbe Datei, keine Kopie).
+      const stored = await tx.inquiryAttachment.findMany({ where: { inquiry: { lead: { id: leadId } }, mediaId: { not: null } }, orderBy: { createdAt: 'asc' } });
+      let order = 0;
+      for (const a of stored) {
+        if (a.kind === 'registration') {
+          await tx.document.create({ data: { mediaId: a.mediaId!, caseId: created.id, customerId, category: 'REGISTRATION', title: 'Fahrzeugschein (aus Anfrage)', createdById: user.id } });
+        } else {
+          await tx.casePhoto.create({ data: { mediaId: a.mediaId!, caseId: created.id, category: 'REQUEST', title: 'Foto aus der Anfrage', sortOrder: ++order } });
+        }
+      }
+
       const now = new Date();
       await tx.lead.update({
         where: { id: leadId },
@@ -283,7 +294,7 @@ export async function convertLead(user: AuthUser, leadId: string, input: Convert
       });
       await tx.leadStatusHistory.create({ data: { leadId, fromStatus: lead.status, toStatus: 'CONVERTED', actorId: user.id, reason: `Fall ${created.caseNumber}` } });
       await writeAudit(
-        { actorId: user.id, action: 'lead.convert', entityType: 'Lead', entityId: leadId, summary: `Anfrage in Fall ${created.caseNumber} umgewandelt`, after: { caseId: created.id, caseNumber: created.caseNumber, customerId, vehicleId } },
+        { actorId: user.id, action: 'lead.convert', entityType: 'Lead', entityId: leadId, summary: `Anfrage in Fall ${created.caseNumber} umgewandelt`, after: { caseId: created.id, caseNumber: created.caseNumber, customerId, vehicleId, files: stored.length } },
         tx,
       );
       return { caseId: created.id, caseNumber: created.caseNumber, customerId, vehicleId };

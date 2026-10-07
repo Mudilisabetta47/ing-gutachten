@@ -214,9 +214,9 @@ export function NoteForm({ action, id, extra = {} }: { action: Act; id: string; 
 }
 
 /* ------------------------------------------------------------------ Bestätigung (Modal) ------------------------------------------------------------------ */
-export function ConfirmForm({ action, id, label, confirm, title, danger = false, extra = {}, confirmLabel }: { action: Act; id: string; label: string; confirm: string; title?: string; danger?: boolean; extra?: Record<string, string>; confirmLabel?: string }) {
+export function ConfirmForm({ action, id, label, confirm, title, danger = false, primary = false, extra = {}, confirmLabel }: { action: Act; id: string; label: string; confirm: string; title?: string; danger?: boolean; primary?: boolean; extra?: Record<string, string>; confirmLabel?: string }) {
   return (
-    <ConfirmModal trigger={label} title={title ?? label} text={confirm} triggerClassName={`adm-btn ${danger ? 'adm-btn-danger' : 'adm-btn-secondary'}`}>
+    <ConfirmModal trigger={label} title={title ?? label} text={confirm} triggerClassName={`adm-btn ${danger ? 'adm-btn-danger' : primary ? '' : 'adm-btn-secondary'}`}>
       {(close) => <ConfirmBody action={action} id={id} extra={extra} close={close} danger={danger} label={confirmLabel ?? label} />}
     </ConfirmModal>
   );

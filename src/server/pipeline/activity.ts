@@ -7,7 +7,7 @@ export type ActivityItem = { id: string; at: Date; actor: string | null; text: s
 const name = (a?: { firstName: string; lastName: string } | null) => (a ? `${a.firstName} ${a.lastName}`.trim() : null);
 
 /** Audit-Aktionen, die schon aus eigenen Tabellen (Statushistorie, Notizen) kommen – nicht doppelt anzeigen. */
-const COVERED_BY_TABLES = new Set(['case.status_change', 'lead.status_change', 'note.add', 'case.create', 'customer.create', 'vehicle.create']);
+const COVERED_BY_TABLES = new Set(['case.status_change', 'lead.status_change', 'note.add', 'case.create', 'customer.create', 'vehicle.create', 'media.download']);
 
 const AUDIT_TEXT: Record<string, string> = {
   'case.create': 'hat den Fall angelegt.',
@@ -15,6 +15,19 @@ const AUDIT_TEXT: Record<string, string> = {
   'case.assign': 'hat die Zuständigkeit geändert.',
   'case.archive': 'hat den Fall archiviert.',
   'case.restore': 'hat den Fall wiederhergestellt.',
+  'appointment.create': 'hat einen Termin angelegt.',
+  'appointment.update': 'hat einen Termin geändert.',
+  'appointment.status_change': 'hat einen Termin aktualisiert.',
+  'photo.add': 'hat ein Foto hinzugefügt.',
+  'photo.update': 'hat ein Foto bearbeitet.',
+  'photo.delete': 'hat ein Foto gelöscht.',
+  'document.add': 'hat ein Dokument hinzugefügt.',
+  'document.delete': 'hat ein Dokument gelöscht.',
+  'damage.add': 'hat einen Schaden erfasst.',
+  'damage.update': 'hat einen Schaden bearbeitet.',
+  'damage.delete': 'hat einen Schaden gelöscht.',
+  'inspection.start': 'hat die Besichtigung begonnen.',
+  'inspection.finish': 'hat die Besichtigung abgeschlossen.',
   'lead.update': 'hat die Anfrage bearbeitet.',
   'lead.notification_failed': 'E-Mail-Benachrichtigung fehlgeschlagen.',
   'lead.assign': 'hat die Zuständigkeit geändert.',

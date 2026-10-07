@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getMailConfig, MailConfigError, MailError, type MailAttachment } from '@/lib/mail';
 import { rateLimit } from '@/lib/rate-limit';
 import { isDbConfigured } from '@/server/db';
-import { markNotification, persistInquiry, sanitizeTracking, type AttachmentMeta } from '@/server/pipeline/intake';
+import { markNotification, persistInquiry, sanitizeTracking, storeInquiryFiles, type AttachmentMeta, type IntakeFile } from '@/server/pipeline/intake';
 import {
   clean,
   detectType,
@@ -86,6 +86,7 @@ export async function POST(req: Request) {
 
   const attachments: MailAttachment[] = [];
   const attachmentMeta: AttachmentMeta[] = [];
+  const intakeFiles: IntakeFile[] = [];
   let total = 0;
 
   const take = async (file: File, label: string, index: number, allowed: readonly string[], maxBytes: number) => {
@@ -97,13 +98,15 @@ export async function POST(req: Request) {
     total += bytes.byteLength;
     const filename = `${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}${index ? `-${index}` : ''}.${kind.ext}`;
     attachments.push({ filename, contentBase64: Buffer.from(bytes).toString('base64'), mime: kind.mime });
-    attachmentMeta.push({
+    const meta: AttachmentMeta = {
       kind: label === 'Fahrzeugschein' ? 'registration' : 'photo',
       fileName: filename, // serverseitig vergeben, nie der Original-Dateiname
       mimeType: kind.mime,
       sizeBytes: bytes.byteLength,
       sha256: createHash('sha256').update(bytes).digest('hex'),
-    });
+    };
+    attachmentMeta.push(meta);
+    intakeFiles.push({ ...meta, bytes });
     return null;
   };
 
@@ -133,6 +136,8 @@ export async function POST(req: Request) {
     try {
       const res = await persistInquiry({ fields, attachments: attachmentMeta, tracking, ip });
       persisted = { state: 'saved', leadId: res.leadId };
+      // Dateien (falls ein privater Speicher eingerichtet ist) sichern – best effort, die Anfrage ist bereits gespeichert.
+      if (intakeFiles.length) await storeInquiryFiles(res.inquiryId, intakeFiles);
     } catch (err) {
       // Nur Fehlerart ins Log – keine Formularinhalte, keine personenbezogenen Daten.
       console.error('[anfrage] DATABASE_PERSISTENCE_FAILED', err instanceof Error ? err.name : 'unknown', (err as { code?: string })?.code ?? '');

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 import './admin.css';
+import { readTheme } from '@/server/admin/theme';
 
 export const metadata: Metadata = {
   title: { default: 'ING Operating System', template: '%s · ING OS' },
@@ -13,9 +14,8 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function AdminRootLayout({ children }: { children: ReactNode }) {
-  // Darstellung (Dunkel/Hell/System) kommt aus einem Cookie nur für /admin → der Server rendert sofort richtig, kein Aufblitzen.
-  const pref = (await cookies()).get('ing_theme')?.value;
-  const theme = pref === 'light' || pref === 'system' ? pref : 'dark';
+  // Darstellung (Hell = Standard, Dunkel, System) kommt aus einem Cookie nur für /admin → der Server rendert sofort richtig, kein Aufblitzen.
+  const theme = readTheme(await cookies());
   return (
     <div className="adm-root" data-theme={theme} style={{ minHeight: '100svh' }}>
       {children}

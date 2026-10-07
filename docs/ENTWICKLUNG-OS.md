@@ -57,3 +57,12 @@ Ohne `DATABASE_URL` baut und läuft die öffentliche Website unverändert; `/adm
 - **Dev-Daten:** `npm run seed:demo -- fixtures` (markiert `(Demo)`/`@demo.ing.test`), `npm run seed:demo -- clear` räumt Demo-Benutzer und Pipeline-Daten (nur lokal).
 - **Admin-Design-System:** `src/app/admin/admin.css` (Tokens für Dunkel/Hell/System), Komponenten in `src/components/admin/`. Neue Admin-Seiten nutzen ausschließlich diese Bausteine (PageHeader/DetailHeader, SummaryBar, Tabs, Section/Rows, Timeline, `dt`-Tabellen mit `data-slot`, Drawer/Toast/ConfirmModal, Forms).
 - **Datenschutz:** siehe `docs/DATENSCHUTZ-TODO.md`.
+
+## Phase 3 – Termine, Fotos, Dokumente, Schäden, Besichtigung
+
+- **Termine:** `Appointment` (Besichtigung/Beratung/Sonstiges). Ein Gutachter kann nicht doppelt gebucht werden – das erzwingt ein `EXCLUDE`-Constraint in PostgreSQL (auch bei gleichzeitigen Anfragen). Ein aktiver Besichtigungstermin setzt den Fall automatisch auf „Termin vereinbart“ (Absage → „Termin offen“); „Termin vereinbart“ ist manuell nur mit echtem Termin möglich.
+- **Besichtigung:** mobiler Workflow `/admin/faelle/<Nr>/erfassung` (Fahrzeug → Fotos → Schäden → Notiz → Abschluss). Abschluss: Termin erledigt, Fall „Besichtigt“.
+- **Speicher:** `src/server/storage` (`LocalDriver` für Entwicklung, `S3Driver` für Produktion). Konfiguration in `.env.example`. Uploads laufen über `/api/admin/media/upload` (Browser verkleinert Fotos, Limit 4,4 MB wegen Vercel), Abruf über `/api/admin/media/<id>` – immer mit Sitzung und Rechteprüfung am Fall.
+- **Tests:** `npm run test:db` (91 Tests, u. a. parallele Doppelbuchung, Dateizugriff je Rolle, Upload-Prüfung, Rollback bei Fehlern).
+- **Hinweis S3-Treiber:** nur der LocalDriver ist automatisiert getestet; der S3Driver ist gegen einen echten Bucket noch nicht geprüft.
+- **Standard-Darstellung des Admin ist jetzt Hell** (Dunkel/System im Konto-Menü wählbar).

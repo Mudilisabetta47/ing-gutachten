@@ -79,7 +79,8 @@ test('Pflichtbegründung: Storno und Wiederöffnen', () => {
 
 test('Umwandlung: Startstatus des Falls und Gutachtenart', () => {
   assert.equal(initialCaseStatus('NEW'), 'NEW');
-  assert.equal(initialCaseStatus('APPOINTMENT_SET'), 'APPOINTMENT_SET');
+  assert.equal(initialCaseStatus('APPOINTMENT_SET'), 'APPOINTMENT_PENDING', '„Termin vereinbart“ braucht im Fall einen echten Termin');
+  assert.equal(initialCaseStatus('APPOINTMENT_PENDING'), 'APPOINTMENT_PENDING');
   assert.equal(serviceFromReason('Unfall'), 'ACCIDENT_REPORT');
   assert.equal(serviceFromReason('Leasingrückgabe'), 'VALUATION');
   assert.equal(serviceFromReason('???'), 'OTHER');

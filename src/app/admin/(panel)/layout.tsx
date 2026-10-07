@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 import { requireUser } from '@/server/auth/guards';
+import { readTheme } from '@/server/admin/theme';
 import { NAV_GROUPS, navFor } from '@/server/admin/nav';
 import { ROLE_LABELS } from '@/server/auth/permissions';
 import { dashboardCounts } from '@/server/pipeline/today';
@@ -13,8 +14,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
   const user = await requireUser({ allowPasswordChange: true });
   const has = (p: Parameters<typeof navFor>[0] extends (p: infer P) => boolean ? P : never) => user.permissions.has(p);
   const jar = await cookies();
-  const pref = jar.get('ing_theme')?.value;
-  const theme = pref === 'light' || pref === 'system' ? pref : 'dark';
+  const theme = readTheme(jar);
 
   // Hinweise und Zähler: echte Daten, nur soweit die Rolle sie sehen darf.
   const c = user.mustChangePassword ? null : await dashboardCounts(user);

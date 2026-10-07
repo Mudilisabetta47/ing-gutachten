@@ -83,10 +83,13 @@ export function caseReasonRequired(from: CaseStatusKey, to: CaseStatusKey): bool
   return to === 'CANCELLED' || CASE_TERMINAL.includes(from);
 }
 
-/** Aus dem Anfragestatus abgeleiteter Startstatus des Falls bei der Umwandlung. */
+/**
+ * Aus dem Anfragestatus abgeleiteter Startstatus des Falls bei der Umwandlung.
+ * „Termin vereinbart“ gibt es im Fall nur mit einem echten Termin – deshalb startet auch ein
+ * Fall aus einer Anfrage mit „Termin vereinbart“ als „Termin offen“; der Termin wird im Fall angelegt.
+ */
 export function initialCaseStatus(lead: LeadStatusKey): CaseStatusKey {
-  if (lead === 'APPOINTMENT_SET') return 'APPOINTMENT_SET';
-  if (lead === 'APPOINTMENT_PENDING') return 'APPOINTMENT_PENDING';
+  if (lead === 'APPOINTMENT_SET' || lead === 'APPOINTMENT_PENDING') return 'APPOINTMENT_PENDING';
   return 'NEW';
 }
 

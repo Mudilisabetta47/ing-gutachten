@@ -1,6 +1,7 @@
 import 'server-only';
 import { getMailConfig, MailConfigError } from '@/lib/mail';
 import { SITE_URL } from '@/lib/content';
+import { getStorage } from '@/server/storage';
 
 /** Betriebsstatus für das Dashboard und die Einstellungen – ohne Geheimnisse. */
 export function getSystemStatus() {
@@ -13,7 +14,10 @@ export function getSystemStatus() {
   }
   return {
     mail,
-    storage: { ok: Boolean(process.env.S3_BUCKET || process.env.STORAGE_DRIVER === 'local'), label: process.env.S3_BUCKET ? 'S3-kompatibel' : process.env.STORAGE_DRIVER === 'local' ? 'lokal (Entwicklung)' : 'nicht konfiguriert' },
+    storage: (() => {
+      const d = getStorage();
+      return { ok: d !== null, label: d?.id === 's3' ? 'S3-kompatibel (privat)' : d?.id === 'local' ? 'lokal (nur Entwicklung)' : 'nicht konfiguriert' };
+    })(),
     siteUrl: SITE_URL,
     environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? 'unbekannt',
   };

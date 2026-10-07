@@ -1,7 +1,7 @@
 import test, { beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { db } from '@/server/db';
-import { assertTestDb, resetDb, makeUser, asAuthUser, makeLead, CUSTOMER, VEHICLE } from './helpers';
+import { assertTestDb, resetDb, makeUser, asAuthUser, makeLead, makeAppointment, CUSTOMER, VEHICLE } from './helpers';
 import { markNotification, persistInquiry } from '@/server/pipeline/intake';
 import { addLeadNote, changeLeadStatus, convertLead, findLeadDuplicates, getLead, listLeads, updateLead } from '@/server/pipeline/leads';
 import { archiveCustomer, createCustomer, listCustomers, restoreCustomer, updateCustomer } from '@/server/pipeline/customers';
@@ -150,12 +150,12 @@ test('Umwandlung: Kunde + Fahrzeug + Fall in EINER Transaktion; Lead & Inquiry b
   for (const a of ['customer.create', 'vehicle.create', 'case.create', 'lead.convert']) assert.ok(actions.includes(a), a);
 });
 
-test('Umwandlung: Startstatus folgt dem Anfragestatus (Termin vereinbart → Fall mit Termin)', async () => {
+test('Umwandlung: „Termin vereinbart“ in der Anfrage → Fall startet als „Termin offen“ (der Termin wird im Fall angelegt)', async () => {
   const u = await office();
   const { leadId } = await makeLead();
   await changeLeadStatus(u, leadId, 'APPOINTMENT_SET');
   const r = await convertLead(u, leadId, convertInput());
-  assert.equal((await getCase(u, r.caseNumber)).status, 'APPOINTMENT_SET');
+  assert.equal((await getCase(u, r.caseNumber)).status, 'APPOINTMENT_PENDING');
 });
 
 test('Umwandlung mit bestehendem Kunden/Fahrzeug: keine Dublette, kein Überschreiben', async () => {
@@ -240,7 +240,10 @@ test('Fallstatus: zentrale Prüfung, Pflichtbegründung, Historie, closedAt, Wie
   const r = await convertLead(u, leadId, convertInput());
   await assert.rejects(changeCaseStatus(u, r.caseId, 'REPORT_SENT'), DomainError, 'Überspringen verboten');
   await assert.rejects(changeCaseStatus(u, r.caseId, 'CANCELLED'), /Begründung/);
-  await changeCaseStatus(u, r.caseId, 'APPOINTMENT_SET');
+  await assert.rejects(changeCaseStatus(u, r.caseId, 'APPOINTMENT_SET'), /Termin anlegen/, '„Termin vereinbart“ gibt es nur mit einem echten Termin');
+  const expert = await makeUser({ role: 'EXPERT' });
+  await makeAppointment(u, r.caseId, expert.user.id); // der Termin setzt den Status automatisch
+  assert.equal((await db.case.findUniqueOrThrow({ where: { id: r.caseId } })).status, 'APPOINTMENT_SET');
   await changeCaseStatus(u, r.caseId, 'CANCELLED', 'Kunde hat verkauft');
   let c = await db.case.findUniqueOrThrow({ where: { id: r.caseId } });
   assert.equal(c.status, 'CANCELLED');
@@ -262,7 +265,8 @@ test('Aktivitäts-Feed: Historie, Notizen und Ereignisse in einer Zeitleiste', a
   const { leadId } = await makeLead();
   const r = await convertLead(u, leadId, convertInput());
   await addCaseNote(u, r.caseId, { body: 'Termin telefonisch bestätigt' });
-  await changeCaseStatus(u, r.caseId, 'APPOINTMENT_SET');
+  const expert = await makeUser({ role: 'EXPERT' });
+  await makeAppointment(u, r.caseId, expert.user.id);
   const feed = await caseActivity(r.caseId, { includeNotes: true });
   const texts = feed.map((f) => f.text).join(' | ');
   assert.match(texts, /hat den Fall angelegt/);

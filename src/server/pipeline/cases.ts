@@ -155,6 +155,10 @@ export async function changeCaseStatus(user: AuthUser, id: string, to: CaseStatu
       throw new ForbiddenError();
     }
     if (!canCaseTransition(c.status, to)) throw new DomainError('Dieser Statuswechsel ist nicht erlaubt.');
+    // „Termin vereinbart“ gibt es nur mit einem echten, aktiven Termin (der Termin selbst setzt den Status automatisch).
+    if (to === 'APPOINTMENT_SET' && (await tx.appointment.count({ where: { caseId: id, status: { in: ['PLANNED', 'CONFIRMED'] } } })) === 0) {
+      throw new DomainError('Bitte zuerst unter „Termine“ einen Termin anlegen – der Status wird dann automatisch gesetzt.');
+    }
     const cleanReason = reason?.trim().slice(0, 500) || null;
     if (caseReasonRequired(c.status, to) && !cleanReason) throw new DomainError('Bitte eine Begründung angeben.');
 
