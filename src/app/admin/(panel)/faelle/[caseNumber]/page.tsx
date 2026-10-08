@@ -26,6 +26,10 @@ import { AREA_LABELS, DAMAGE_AREAS, DAMAGE_TYPES, REPAIR_KINDS, listDamages } fr
 import { toBerlinLocalInput } from '@/lib/berlin';
 import { AppointmentForm, AppointmentStatusForm, DamageForm, MediaUploader, PhotoGallery } from '@/components/admin/work';
 import { DamageMap } from '@/components/admin/DamageMap';
+import { CalcEditor, type CalcVersion } from '@/components/admin/CalcEditor';
+import { defaultRates, listCalculations } from '@/server/pipeline/calculations';
+import { caseValuation } from '@/server/pipeline/valuation';
+import { ValuationPanel } from '@/components/admin/ValuationPanel';
 
 export const metadata: Metadata = { title: 'Fall' };
 
@@ -37,8 +41,6 @@ const TABS = [
 const WIDE = new Set(['schaden', 'kalkulation', 'bewertung', 'gutachten', 'rechnung', 'kommunikation']);
 
 const LATER: Record<string, [string, string]> = {
-  kalkulation: ['Kalkulation in Entwicklung', 'Die Schadenkalkulation mit Positionen, Arbeitswerten und Versionen wird als Nächstes gebaut.'],
-  bewertung: ['Bewertung in Entwicklung', 'Wiederbeschaffungswert, Restwert, Wertminderung und Nutzungsausfall werden als Nächstes gebaut.'],
   gutachten: ['Gutachten in Entwicklung', 'Der Gutachten-Editor mit Prüfung und PDF folgt nach Kalkulation und Bewertung.'],
   rechnung: ['Rechnungen in Entwicklung', 'Rechnungen, Zahlungen und Mahnwesen folgen.'],
   kommunikation: ['Kommunikation in Entwicklung', 'E-Mail-Vorlagen, Telefonnotizen und der Kommunikationsverlauf folgen.'],
@@ -78,6 +80,17 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
     tab === 'schaden' || tab === 'fotos' ? listDamages(user, c.id) : Promise.resolve([]),
   ]);
   const [checklist, refs] = await Promise.all([caseChecklist(user, c.id), caseRefOptions(user)]);
+  const canCalcRead = user.permissions.has('calculations.read.all') || (user.permissions.has('calculations.read.own') && isOwn);
+  const canCalcWrite = (user.permissions.has('calculations.write.all') || (user.permissions.has('calculations.write.own') && isOwn)) && !c.deletedAt;
+  const calcs = tab === 'kalkulation' && canCalcRead ? await listCalculations(user, c.id) : [];
+  const calcVersions: CalcVersion[] = calcs.map((k) => ({
+    id: k.id, version: k.version, status: k.status, title: k.title, note: k.note, ratesSource: k.ratesSource, updatedAt: k.updatedAt.toISOString(), finalizedAt: k.finalizedAt?.toISOString() ?? null, head: k.head,
+    items: k.items.map(({ ref, kind, laborCategory, description, partNumber, partId, damageId, quantityX100, minutes, unitPriceCents, discountBp, priceSource, priceDate, note }) => ({ ref, kind, laborCategory: laborCategory ?? null, description, partNumber, partId, damageId, quantityX100, minutes, unitPriceCents, discountBp, priceSource, priceDate, note })),
+  }));
+  const canValRead = user.permissions.has('valuations.read.all') || (user.permissions.has('valuations.read.own') && isOwn);
+  const canValWrite = (user.permissions.has('valuations.write.all') || (user.permissions.has('valuations.write.own') && isOwn)) && !c.deletedAt;
+  const val = tab === 'bewertung' && canValRead ? await caseValuation(user, c.id) : null;
+  const workshopRates = tab === 'kalkulation' && canCalcRead && calcs.length === 0 ? (await defaultRates(c.id)).rateBodyCents != null : false;
   const photoLabels: [string, string][] = PHOTO_CATEGORIES.map((k) => [k, PHOTO_LABELS[k]]);
   const docLabels: [string, string][] = DOCUMENT_CATEGORIES.map((k) => [k, DOCUMENT_LABELS[k]]);
   const damageOptions = damages.map((d) => ({ id: d.id, label: `${AREA_LABELS[d.area]}: ${d.component}` }));
@@ -269,6 +282,15 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
         </Section>
       );
     }
+    if (tab === 'kalkulation')
+      return canCalcRead
+        ? <Section title="Schadenkalkulation"><CalcEditor caseId={c.id} caseNumber={caseNumber} versions={calcVersions} canWrite={canCalcWrite} hasWorkshopRates={workshopRates} /></Section>
+        : <EmptyState icon="lock" title="Kein Zugriff">Für die Kalkulation fehlt die Berechtigung.</EmptyState>;
+    if (tab === 'bewertung')
+      return val
+        ? <Section title="Bewertung"><ValuationPanel caseId={c.id} caseNumber={caseNumber} canWrite={canValWrite} calc={val.calc ? { version: val.calc.version, status: val.calc.status, netCents: val.calc.netCents, grossCents: val.calc.grossCents, vatBp: val.calc.vatBp } : null} calcHours={val.calc ? val.calc.minutes / 60 : null}
+            entries={val.entries.map((e) => ({ ...e, createdAt: e.createdAt.toISOString() }))} comparables={val.comparables} /></Section>
+        : <EmptyState icon="lock" title="Kein Zugriff">Für die Bewertung fehlt die Berechtigung.</EmptyState>;
     if (LATER[tab]) return <EmptyState icon="clock" title={LATER[tab][0]}>{LATER[tab][1]}</EmptyState>;
     return (
       <div className="adm-grid-2">

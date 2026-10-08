@@ -24,6 +24,6 @@ export async function loadCaseFor(user: AuthUser, caseId: string, mode: 'read' |
 }
 
 /** Fachliche Recht (`*.all` oder `*.own` + zugewiesen) – zusätzlich zur Fallprüfung. */
-export function canOnCase(user: AuthUser, base: 'photos' | 'documents' | 'appointments', mode: 'read' | 'write', c: { assignedExpertId: string | null }): boolean {
+export function canOnCase(user: AuthUser, base: 'photos' | 'documents' | 'appointments' | 'calculations' | 'valuations' | 'reports' | 'tasks' | 'communication', mode: 'read' | 'write', c: { assignedExpertId: string | null }): boolean {
   return has(user, `${base}.${mode}.all` as Permission) || (has(user, `${base}.${mode}.own` as Permission) && c.assignedExpertId === user.id);
 }

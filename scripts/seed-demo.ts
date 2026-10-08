@@ -53,7 +53,12 @@ async function fixtures(db: PrismaClient) {
   const customer = await db.customer.create({ data: { firstName: 'Erika', lastName: 'Fixture (Demo)', email: 'erika.fixture@demo.ing.test', phone: '0511 5550100', phoneNorm: '05115550100', street: 'Beispielweg 1', postalCode: '30159', city: 'Hannover' } });
   const vehicle = await db.vehicle.create({ data: { customerId: customer.id, manufacturer: 'VW', model: 'Golf VIII', licensePlate: 'H-DM 2026', licensePlateNorm: 'HDM2026', fuelType: 'DIESEL' } });
   const rows = await db.$queryRaw<{ last_value: number }[]>`INSERT INTO case_counters (year, last_value, updated_at) VALUES (${year}, 1, now()) ON CONFLICT (year) DO UPDATE SET last_value = case_counters.last_value + 1, updated_at = now() RETURNING last_value`;
-  const c = await db.case.create({ data: { caseNumber: `ING-${year}-${String(rows[0].last_value).padStart(5, '0')}`, status: 'APPOINTMENT_SET', customerId: customer.id, vehicleId: vehicle.id, assignedExpertId: expert.id, createdById: office.id, description: 'Heckschaden (Demo-Fixture)', inspectionLocation: 'Hannover' } });
+  // Stammdaten für die Demo: Werkstatt mit Stundensätzen (Demo-Werte, keine Marktpreise) und eine Versicherung
+  const demoOrg = async (name: string, kind: 'WORKSHOP' | 'INSURANCE', extra: Record<string, number> = {}) =>
+    (await db.organization.findFirst({ where: { name, kind, deletedAt: null } })) ?? db.organization.create({ data: { name, kind, city: 'Hannover', ...extra } });
+  const workshop = await demoOrg('Musterwerkstatt (Demo)', 'WORKSHOP', { rateBodyCents: 12500, rateMechanicCents: 11000, rateElectricCents: 12000, ratePaintCents: 13500, partsMarkupBp: 1000, paintMaterialBp: 3500 });
+  const insurance = await demoOrg('Beispiel-Versicherung (Demo)', 'INSURANCE');
+  const c = await db.case.create({ data: { workshopOrgId: workshop.id, insuranceOrgId: insurance.id, claimType: 'LIABILITY', caseNumber: `ING-${year}-${String(rows[0].last_value).padStart(5, '0')}`, status: 'APPOINTMENT_SET', customerId: customer.id, vehicleId: vehicle.id, assignedExpertId: expert.id, createdById: office.id, description: 'Heckschaden (Demo-Fixture)', inspectionLocation: 'Hannover' } });
   await db.caseStatusHistory.create({ data: { caseId: c.id, toStatus: 'NEW', actorId: office.id, reason: 'Demo-Fixture' } });
   // Demo-Schäden für die visuelle Schadenkarte (jeder Zustand einmal)
   await db.damage.createMany({

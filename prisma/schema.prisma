@@ -557,24 +557,27 @@ model Case {
   closedAt  DateTime? @map("closed_at")
   deletedAt DateTime? @map("deleted_at")
 
-  customer       Customer            @relation(fields: [customerId], references: [id])
-  vehicle        Vehicle             @relation(fields: [vehicleId], references: [id])
-  assignedExpert User?               @relation("CaseExpert", fields: [assignedExpertId], references: [id])
-  createdBy      User?               @relation("CaseCreator", fields: [createdById], references: [id])
-  location       Location?           @relation(fields: [locationId], references: [id])
-  insuranceOrg   Organization?       @relation("CaseInsurance", fields: [insuranceOrgId], references: [id])
-  lawyerOrg      Organization?       @relation("CaseLawyer", fields: [lawyerOrgId], references: [id])
-  workshopOrg    Organization?       @relation("CaseWorkshop", fields: [workshopOrgId], references: [id])
-  dealershipOrg  Organization?       @relation("CaseDealership", fields: [dealershipOrgId], references: [id])
-  partnerOrg     Organization?       @relation("CasePartner", fields: [partnerOrgId], references: [id])
-  history        CaseStatusHistory[]
-  notes          Note[]
-  lead           Lead?               @relation("LeadConvertedCase")
-  appointments   Appointment[]
-  inspections    Inspection[]
-  damages        Damage[]
-  photos         CasePhoto[]
-  documents      Document[]
+  customer         Customer              @relation(fields: [customerId], references: [id])
+  vehicle          Vehicle               @relation(fields: [vehicleId], references: [id])
+  assignedExpert   User?                 @relation("CaseExpert", fields: [assignedExpertId], references: [id])
+  createdBy        User?                 @relation("CaseCreator", fields: [createdById], references: [id])
+  location         Location?             @relation(fields: [locationId], references: [id])
+  insuranceOrg     Organization?         @relation("CaseInsurance", fields: [insuranceOrgId], references: [id])
+  lawyerOrg        Organization?         @relation("CaseLawyer", fields: [lawyerOrgId], references: [id])
+  workshopOrg      Organization?         @relation("CaseWorkshop", fields: [workshopOrgId], references: [id])
+  dealershipOrg    Organization?         @relation("CaseDealership", fields: [dealershipOrgId], references: [id])
+  partnerOrg       Organization?         @relation("CasePartner", fields: [partnerOrgId], references: [id])
+  history          CaseStatusHistory[]
+  notes            Note[]
+  lead             Lead?                 @relation("LeadConvertedCase")
+  appointments     Appointment[]
+  inspections      Inspection[]
+  damages          Damage[]
+  calculations     Calculation[]
+  valuationEntries ValuationEntry[]
+  comparables      ValuationComparable[]
+  photos           CasePhoto[]
+  documents        Document[]
 
   @@index([status, createdAt])
   @@index([customerId])
@@ -1314,4 +1317,158 @@ model VehicleDataHistory {
 
   @@index([vehicleId, at])
   @@map("vehicle_data_history")
+}
+
+/**
+ * ============================================================ Kalkulation ============================================================
+ */
+
+enum CalcStatus {
+  DRAFT
+  FINAL
+}
+
+enum CalcItemKind {
+  PART
+  LABOR
+  PAINT
+  MISC
+}
+
+/// Reparaturkalkulation eines Falls. Jede Fassung ist eine eigene Version; freigegebene (FINAL) Versionen sind unveränderlich.
+model Calculation {
+  id                String     @id @default(cuid())
+  caseId            String     @map("case_id")
+  version           Int
+  status            CalcStatus @default(DRAFT)
+  title             String?
+  /// Mehrwertsteuer in Basispunkten (1900 = 19 %), 0 = ohne MwSt (vorsteuerabzugsberechtigt)
+  vatBp             Int        @default(1900) @map("vat_bp")
+  /// Minuten je Arbeitswert (AW); Standard 5 (12 AW = 1 Stunde)
+  minutesPerAw      Int        @default(5) @map("minutes_per_aw")
+  /// Stundensätze dieser Version (Kopie – spätere Änderungen an Stammdaten verändern alte Kalkulationen nicht)
+  rateBodyCents     Int?       @map("rate_body_cents")
+  rateMechanicCents Int?       @map("rate_mechanic_cents")
+  rateElectricCents Int?       @map("rate_electric_cents")
+  ratePaintCents    Int?       @map("rate_paint_cents")
+  partsMarkupBp     Int        @default(0) @map("parts_markup_bp")
+  paintMaterialBp   Int        @default(0) @map("paint_material_bp")
+  note              String?
+  /// Herkunft der Sätze (z. B. "Werkstatt: Beispiel (Demo)" oder "manuell")
+  ratesSource       String?    @map("rates_source")
+  createdById       String?    @map("created_by_id")
+  finalizedById     String?    @map("finalized_by_id")
+  finalizedAt       DateTime?  @map("finalized_at")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+
+  case  Case              @relation(fields: [caseId], references: [id])
+  items CalculationItem[]
+
+  @@unique([caseId, version])
+  @@index([caseId, status])
+  @@map("calculations")
+}
+
+model CalculationItem {
+  id             String       @id @default(cuid())
+  calculationId  String       @map("calculation_id")
+  /// stabile Kennung über Versionen hinweg (für den Versionsvergleich)
+  ref            String
+  position       Int
+  kind           CalcItemKind
+  /// BODY | MECHANIC | ELECTRIC (nur bei Arbeitslohn)
+  laborCategory  String?      @map("labor_category")
+  description    String
+  partNumber     String?      @map("part_number")
+  /// Bauteil der Schadenkarte bzw. verknüpfter Schaden (nur zur Orientierung)
+  partId         String?      @map("part_id")
+  damageId       String?      @map("damage_id")
+  quantityX100   Int          @default(100) @map("quantity_x100")
+  minutes        Int          @default(0)
+  unitPriceCents Int          @default(0) @map("unit_price_cents")
+  discountBp     Int          @default(0) @map("discount_bp")
+  /// Herkunft des Preises (z. B. Händler, Werkstatt-KV, manuell) und Stand
+  priceSource    String?      @map("price_source")
+  priceDate      DateTime?    @map("price_date") @db.Date
+  note           String?
+
+  calculation Calculation @relation(fields: [calculationId], references: [id], onDelete: Cascade)
+
+  @@index([calculationId, position])
+  @@map("calculation_items")
+}
+
+/**
+ * ============================================================ Bewertung ============================================================
+ */
+
+enum ValuationType {
+  REPLACEMENT_VALUE
+  RESIDUAL_VALUE
+  RESIDUAL_OFFER
+  DIMINISHED_VALUE
+  USAGE_LOSS
+  REPAIR_DURATION
+  REPLACEMENT_DURATION
+}
+
+enum TaxMode {
+  GROSS
+  NET
+  /// Differenzbesteuerung / ohne ausgewiesene MwSt – keine Umrechnung
+  NONE
+}
+
+/// Bewertungswerte eines Falls. Einträge werden nie überschrieben: Änderungen = neuer Eintrag, der alte bleibt nachvollziehbar (zurückgezogen).
+/// Je Typ ist höchstens ein Eintrag „gewählt“ und fließt in die Auswertung ein.
+model ValuationEntry {
+  id            String        @id @default(cuid())
+  caseId        String        @map("case_id")
+  type          ValuationType
+  /// Bezeichnung, z. B. Bieter bei Restwertangeboten oder „Tagessatz Gruppe F“
+  label         String?
+  amountCents   Int?          @map("amount_cents")
+  /// Tage (Nutzungsausfall, Dauer) bzw. Kilometer-/Zusatzangabe in `mileage`
+  days          Int?
+  taxMode       TaxMode       @default(GROSS) @map("tax_mode")
+  /// Herkunft: MANUAL, VERGLEICH (aus Vergleichsfahrzeugen), ANGEBOT, oder Anbieterkürzel (DAT, Börse …) – nur was wirklich vorliegt
+  source        String        @default("MANUAL")
+  sourceRef     String?       @map("source_ref")
+  referenceDate DateTime?     @map("reference_date") @db.Date
+  validUntil    DateTime?     @map("valid_until") @db.Date
+  note          String?
+  selected      Boolean       @default(false)
+  createdById   String?       @map("created_by_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  withdrawnAt   DateTime?     @map("withdrawn_at")
+  withdrawnById String?       @map("withdrawn_by_id")
+
+  case Case @relation(fields: [caseId], references: [id])
+
+  @@index([caseId, type])
+  @@map("valuation_entries")
+}
+
+/// Vergleichsfahrzeuge (Inserate/Angebote) als Grundlage für den Wiederbeschaffungswert – nur Verweis und eingetragene Werte, keine automatische Übernahme.
+model ValuationComparable {
+  id          String    @id @default(cuid())
+  caseId      String    @map("case_id")
+  title       String
+  priceCents  Int       @map("price_cents")
+  mileage     Int?
+  firstReg    DateTime? @map("first_reg") @db.Date
+  location    String?
+  sourceRef   String?   @map("source_ref")
+  seenOn      DateTime? @map("seen_on") @db.Date
+  note        String?
+  included    Boolean   @default(true)
+  createdById String?   @map("created_by_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  case Case @relation(fields: [caseId], references: [id])
+
+  @@index([caseId])
+  @@map("valuation_comparables")
 }
