@@ -113,7 +113,7 @@ async function main() {
       // die Einträge der Demo-Benutzer mit entfernt werden – gegen echte Datenbanken verweigert _guard das Skript.
       // Pipeline-Daten verweisen auf Benutzer → zuerst leeren (lokale Entwicklungsdatenbank, _guard erzwingt das).
       await db.$executeRawUnsafe(
-        'TRUNCATE TABLE inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters RESTART IDENTITY CASCADE',
+        'TRUNCATE TABLE inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters, invoice_counters, report_counters, invoices, tasks, notifications, service_items RESTART IDENTITY CASCADE',
       );
       const demo = await db.user.findMany({ where: { email: { endsWith: '@demo.ing.test' } }, select: { id: true } });
       const ids = demo.map((u) => u.id);

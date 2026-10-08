@@ -164,3 +164,29 @@ export async function restoreCustomer(user: AuthUser, id: string) {
     await writeAudit({ actorId: user.id, action: 'customer.restore', entityType: 'Customer', entityId: id, summary: 'Kunde wiederhergestellt' }, tx);
   });
 }
+
+/**
+ * DSGVO: Personendaten eines archivierten Kunden unwiderruflich entfernen.
+ * Bleibt bewusst erhalten: Fälle, Fahrzeuge und bereits ausgestellte Rechnungen samt Empfängeranschrift – für sie gelten gesetzliche
+ * Aufbewahrungsfristen (Buchführungsunterlagen, § 147 AO). Sie werden nach Fristablauf separat bereinigt.
+ */
+export async function anonymizeCustomer(user: AuthUser, id: string) {
+  if (!has(user, 'data.anonymize')) throw new ForbiddenError();
+  return db.$transaction(async (tx) => {
+    const c = await tx.customer.findFirst({ where: { id }, select: { id: true, deletedAt: true, anonymizedAt: true } });
+    if (!c) throw notFoundError('Kunde');
+    if (c.anonymizedAt) throw new DomainError('Dieser Kunde ist bereits anonymisiert.', 'conflict');
+    if (!c.deletedAt) throw new DomainError('Nur archivierte Kunden können anonymisiert werden. Bitte zuerst archivieren.', 'conflict');
+    const open = await tx.case.count({ where: { customerId: id, status: { notIn: [...CASE_TERMINAL] } } });
+    if (open > 0) throw new DomainError(`Der Kunde hat noch ${open} offene Fälle.`, 'conflict');
+    const unpaid = await tx.invoice.findMany({ where: { customerId: id, status: { in: ['DRAFT', 'ISSUED'] } }, select: { status: true, grossCents: true, payments: { where: { reversedAt: null }, select: { amountCents: true } } } });
+    if (unpaid.some((i) => i.status === 'DRAFT' || i.grossCents > i.payments.reduce((n, p) => n + p.amountCents, 0))) throw new DomainError('Es gibt noch Rechnungsentwürfe oder offene Rechnungen zu diesem Kunden.', 'conflict');
+    await tx.customer.update({ where: { id }, data: { company: null, firstName: 'Anonymisiert', lastName: 'Anonymisiert', email: null, phone: null, phoneNorm: null, street: null, postalCode: null, city: null, anonymizedAt: new Date() } });
+    const notes = await tx.note.updateMany({ where: { customerId: id }, data: { body: '[anonymisiert]' } });
+    const docs = await tx.document.findMany({ where: { customerId: id, deletedAt: null }, select: { id: true, mediaId: true } });
+    const now = new Date();
+    for (const d of docs) { await tx.document.update({ where: { id: d.id }, data: { deletedAt: now } }); await tx.media.update({ where: { id: d.mediaId }, data: { deletedAt: now } }); }
+    await tx.task.deleteMany({ where: { customerId: id } });
+    await writeAudit({ actorId: user.id, action: 'customer.anonymize', entityType: 'Customer', entityId: id, summary: 'Kunde anonymisiert (DSGVO)', after: { notes: notes.count, documents: docs.length } }, tx);
+  });
+}

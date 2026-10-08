@@ -10,7 +10,7 @@ import { AdminIcon } from '@/components/admin/AdminIcon';
 import { DrawerHost, OpenDrawer } from '@/components/admin/Overlay';
 import { Alert, AsideBlock, Avatar, Badge, DetailHeader, EmptyState, Rows, Section, StatusPill, SummaryBar, Tabs, Timeline, fmtDate, fmtWhen, phoneHref, qp } from '@/components/admin/ui';
 import { ConfirmForm, NoteForm } from '@/components/admin/forms';
-import { archiveCustomerAction, customerNoteAction, restoreCustomerAction } from '../actions';
+import { anonymizeCustomerAction, archiveCustomerAction, customerNoteAction, restoreCustomerAction } from '../actions';
 import { deleteDocumentAction } from '../../faelle/work-actions';
 import { APPT_LABELS, KIND_LABELS, customerAppointments } from '@/server/pipeline/appointments';
 import { DOCUMENT_CATEGORIES, DOCUMENT_LABELS, listDocuments } from '@/server/pipeline/media';
@@ -182,7 +182,11 @@ export default async function CustomerDetailPage({ params, searchParams }: { par
           {canDelete && (
             <AsideBlock title="Verwaltung">
               {c.deletedAt
-                ? <ConfirmForm action={restoreCustomerAction} id={id} label="Wiederherstellen" title="Kunde wiederherstellen?" confirm="Der Kunde erscheint wieder in den Listen." />
+                ? <div style={{ display: 'grid', gap: 8 }}>
+                    {!c.anonymizedAt && <ConfirmForm action={restoreCustomerAction} id={id} label="Wiederherstellen" title="Kunde wiederherstellen?" confirm="Der Kunde erscheint wieder in den Listen." />}
+                    {!c.anonymizedAt && user.permissions.has('data.anonymize') && <ConfirmForm action={anonymizeCustomerAction} id={id} label="Anonymisieren (DSGVO)" title="Kunde unwiderruflich anonymisieren?" confirm="Name, Kontaktdaten, Anschrift, Notizen und Kundendokumente werden endgültig entfernt. Fälle, Fahrzeuge und bereits ausgestellte Rechnungen bleiben wegen gesetzlicher Aufbewahrungsfristen unverändert erhalten. Das lässt sich nicht rückgängig machen." danger confirmLabel="Endgültig anonymisieren" />}
+                    {c.anonymizedAt && <p className="t-3" style={{ margin: 0 }}>Anonymisiert am {fmtDate(c.anonymizedAt)}.</p>}
+                  </div>
                 : <ConfirmForm action={archiveCustomerAction} id={id} label="Kunde archivieren" title="Kunde archivieren?" confirm="Der Kunde verschwindet aus den Listen, alle Daten bleiben erhalten. Nur möglich, wenn kein Fall mehr offen ist." danger />}
             </AsideBlock>
           )}

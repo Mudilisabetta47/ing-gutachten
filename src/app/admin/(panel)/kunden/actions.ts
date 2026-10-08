@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { authorize } from '@/server/auth/guards';
 import { echo, toFormState, type FormState } from '@/server/admin/form';
-import { addCustomerNote, archiveCustomer, createCustomer, restoreCustomer, updateCustomer } from '@/server/pipeline/customers';
+import { addCustomerNote, archiveCustomer, createCustomer, restoreCustomer, anonymizeCustomer, updateCustomer } from '@/server/pipeline/customers';
 import { createVehicle } from '@/server/pipeline/vehicles';
 import { customerFields, str, vehicleFields } from '@/server/admin/fields';
 
@@ -81,4 +81,16 @@ export async function createVehicleAction(_p: FormState, fd: FormData): Promise<
   }
   revalidatePath(`/admin/kunden/${customerId}`);
   redirect(`/admin/kunden/${customerId}/?tab=fahrzeuge`);
+}
+
+export async function anonymizeCustomerAction(_p: FormState, fd: FormData): Promise<FormState> {
+  const id = str(fd, 'id');
+  try {
+    const user = await authorize('data.anonymize');
+    await anonymizeCustomer(user, id);
+  } catch (e) {
+    return toFormState(e);
+  }
+  revalidatePath('/admin/kunden');
+  redirect(`/admin/kunden/${id}/`);
 }
