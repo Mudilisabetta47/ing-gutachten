@@ -996,3 +996,24 @@ dialog.adm-lightbox[open] { display: grid; grid-template-columns: minmax(0, 1fr)
 .com-note header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: var(--fs-xs); color: rgb(var(--a-text-3)); }
 .com-note p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .com-mention { color: rgb(var(--a-blue-text)); font-weight: 600; }
+
+/* ------------------------------------------------------------ Dashboard-Pipeline */
+.dash-pipe { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.dash-pipe a { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); border-radius: var(--r-lg); background: rgb(var(--a-s1)); text-decoration: none; color: inherit; }
+.dash-pipe a:hover { border-color: rgb(var(--a-border) / var(--a-b-strong)); background: rgb(var(--a-s2)); }
+.dash-pipe .n { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dash-pipe .l { font-size: var(--fs-xs); color: rgb(var(--a-text-2)); }
+
+/* ------------------------------------------------------------ Auswertungen */
+.an-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.an-bars li { display: grid; grid-template-columns: 76px 1fr auto; gap: 10px; align-items: center; font-size: var(--fs-sm); }
+.an-bars .l { color: rgb(var(--a-text-2)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-bars .b { height: 10px; border-radius: 99px; background: rgb(var(--a-s2)); overflow: hidden; }
+.an-bars .b i { display: block; height: 100%; background: rgb(var(--a-blue)); border-radius: 99px; min-width: 2px; }
+.an-bars .v { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 36px; text-align: right; }
+.int-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.int-card { border: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); border-radius: var(--r-lg); padding: 14px; background: rgb(var(--a-s1)); display: grid; gap: 6px; align-content: start; }
+.int-card h3 { margin: 0; font-size: var(--fs-md); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.int-card p { margin: 0; font-size: var(--fs-sm); color: rgb(var(--a-text-2)); }
+.perm-matrix th, .perm-matrix td { text-align: center; }
+.perm-matrix th:first-child, .perm-matrix td:first-child { text-align: left; }

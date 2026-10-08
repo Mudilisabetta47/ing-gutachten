@@ -80,3 +80,12 @@ export async function dashboardCounts(user: AuthUser) {
   ]);
   return { newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue: followUpsDue === null && !tasks ? null : (followUpsDue ?? 0) + (tasks?.followUpsDue ?? 0), appointmentsToday, reviewsPending, tasks, unreadNotes, finance };
 }
+
+/** Fälle je Status (Pipeline) im Sichtbereich des Benutzers; nur aktive Status des aktuellen Modells. */
+export async function casePipeline(user: AuthUser) {
+  const scope = caseScope(user, 'read');
+  if (!scope) return null;
+  const rows = await db.case.groupBy({ by: ['status'], where: { AND: [scope, { deletedAt: null }] }, _count: { _all: true } });
+  const by = new Map(rows.map((r) => [r.status as string, r._count._all]));
+  return ['NEW', 'APPOINTMENT_PENDING', 'APPOINTMENT_SET', 'INSPECTED', 'CALCULATION', 'REPORT_DRAFT', 'REVIEW', 'APPROVED', 'SENT', 'BILLING'].map((status) => ({ status, count: by.get(status) ?? 0 }));
+}

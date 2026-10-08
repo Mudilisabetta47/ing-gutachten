@@ -27,8 +27,8 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Pro
     <>
       <PageHeader title="Rechnungen" intro="Rechnungen aller Fälle. Neue Rechnungen legen Sie im Fall unter „Rechnung“ an." actions={canExport ? <a className="adm-btn adm-btn-secondary" href={`/api/admin/rechnungen/export/?${new URLSearchParams({ ...(status ? { status } : {}), ...(q ? { q } : {}) }).toString()}`}><AdminIcon name="files" />CSV-Export</a> : undefined} />
       <Kpis>
-        <Kpi label="Offen" value={fmtEuro(stats.open)} note={`${stats.openCount} Rechnungen`} />
-        <Kpi label="Überfällig" value={fmtEuro(stats.overdue)} note={`${stats.overdueCount} Rechnungen`} warn={stats.overdueCount > 0} href="/admin/mahnwesen" />
+        <Kpi label="Offen" value={fmtEuro(stats.open)} note={`${stats.openCount} ${stats.openCount === 1 ? 'Rechnung' : 'Rechnungen'}`} />
+        <Kpi label="Überfällig" value={fmtEuro(stats.overdue)} note={`${stats.overdueCount} ${stats.overdueCount === 1 ? 'Rechnung' : 'Rechnungen'}`} warn={stats.overdueCount > 0} href="/admin/mahnwesen" />
         <Kpi label="Umsatz diesen Monat (netto)" value={fmtEuro(stats.revenueMonth)} />
         <Kpi label="Zahlungseingang diesen Monat" value={fmtEuro(stats.paidMonth)} />
         <Kpi label="Entwürfe" value={stats.drafts} />

@@ -30,16 +30,16 @@ export const ADMIN_NAV: NavItem[] = [
 
   { href: '/admin/anfragen', label: 'Anfragen', icon: 'inbox', group: 'Arbeit', anyOf: ['leads.read'], phase: 2, ready: true, badge: 'leads' },
   { href: '/admin/faelle', label: 'Fälle', icon: 'case', group: 'Arbeit', anyOf: CASES, phase: 2, ready: true },
-  { href: '/admin/besichtigungen', label: 'Besichtigungen', icon: 'camera', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: false },
+  { href: '/admin/besichtigungen', label: 'Besichtigungen', icon: 'camera', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: true },
   { href: '/admin/gutachten', label: 'Gutachten', icon: 'doc', group: 'Arbeit', anyOf: ['reports.read.all', 'reports.read.own'], phase: 4, ready: true, badge: 'reports' },
-  { href: '/admin/nachbesichtigungen', label: 'Nachbesichtigungen', icon: 'eye', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: false },
+  { href: '/admin/nachbesichtigungen', label: 'Nachbesichtigungen', icon: 'eye', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: true },
   { href: '/admin/aufgaben', label: 'Aufgaben', icon: 'checksq', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own'], phase: 4, ready: true },
   { href: '/admin/wiedervorlagen', label: 'Wiedervorlagen', icon: 'repeat', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own', 'leads.read'], phase: 4, ready: true, badge: 'reminders' },
 
-  { href: '/admin/kalkulationen', label: 'Schadenkalkulation', icon: 'calc', group: 'Kalkulation & Bewertung', anyOf: ['calculations.read.all', 'calculations.read.own'], phase: 4, ready: false },
-  { href: '/admin/bewertungen', label: 'Fahrzeugbewertung', icon: 'gauge', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: false },
-  { href: '/admin/restwerte', label: 'Restwert', icon: 'coins', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: false },
-  { href: '/admin/nutzungsausfall', label: 'Nutzungsausfall', icon: 'clock', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: false },
+  { href: '/admin/kalkulationen', label: 'Schadenkalkulation', icon: 'calc', group: 'Kalkulation & Bewertung', anyOf: ['calculations.read.all', 'calculations.read.own'], phase: 4, ready: true },
+  { href: '/admin/bewertungen', label: 'Fahrzeugbewertung', icon: 'gauge', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: true },
+  { href: '/admin/restwerte', label: 'Restwert', icon: 'coins', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: true },
+  { href: '/admin/nutzungsausfall', label: 'Nutzungsausfall', icon: 'clock', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: true },
   { href: '/admin/fahrzeugdaten', label: 'Fahrzeugdatenbank', icon: 'car', group: 'Kalkulation & Bewertung', anyOf: ['vehicledata.manage'], phase: 4, ready: true },
 
   { href: '/admin/kunden', label: 'Kunden', icon: 'users', group: 'Stammdaten', anyOf: ['customers.read', 'customers.read.own'], phase: 2, ready: true },
@@ -51,16 +51,16 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/stammdaten/autohaeuser', label: 'Autohäuser', icon: 'building', group: 'Stammdaten', anyOf: ['masterdata.read', 'masterdata.write'], phase: 4, ready: true },
   { href: '/admin/stammdaten/partner', label: 'Vermittler / Partner', icon: 'handshake', group: 'Stammdaten', anyOf: ['masterdata.read', 'masterdata.write'], phase: 4, ready: true },
 
-  { href: '/admin/dokumente', label: 'Dokumentenakte', icon: 'folder', group: 'Dokumente', anyOf: ['documents.read.all', 'documents.read.own'], phase: 4, ready: false },
-  { href: '/admin/fotos', label: 'Fotodokumentation', icon: 'photo', group: 'Dokumente', anyOf: ['photos.read.all', 'photos.read.own'], phase: 4, ready: false },
+  { href: '/admin/dokumente', label: 'Dokumentenakte', icon: 'folder', group: 'Dokumente', anyOf: ['documents.read.all', 'documents.read.own'], phase: 4, ready: true },
+  { href: '/admin/fotos', label: 'Fotodokumentation', icon: 'photo', group: 'Dokumente', anyOf: ['photos.read.all', 'photos.read.own'], phase: 4, ready: true },
   { href: '/admin/vorlagen', label: 'Vorlagen', icon: 'template', group: 'Dokumente', anyOf: ['templates.write'], phase: 4, ready: true },
-  { href: '/admin/archiv', label: 'Export / Archiv', icon: 'archive', group: 'Dokumente', anyOf: ['data.export', 'cases.delete'], phase: 4, ready: false },
+  { href: '/admin/archiv', label: 'Export / Archiv', icon: 'archive', group: 'Dokumente', anyOf: ['data.export', 'cases.delete'], phase: 4, ready: true },
 
   { href: '/admin/rechnungen', label: 'Rechnungen', icon: 'receipt', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: true, badge: 'invoices' },
   { href: '/admin/zahlungen', label: 'Zahlungen', icon: 'wallet', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: true },
   { href: '/admin/mahnwesen', label: 'Mahnwesen', icon: 'alert', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: true },
   { href: '/admin/provisionen', label: 'Provisionen', icon: 'coins', group: 'Finanzen', anyOf: ['invoices.write'], phase: 4, ready: false, note: 'rechtl. Prüfung' },
-  { href: '/admin/auswertungen', label: 'Auswertungen', icon: 'chart', group: 'Finanzen', anyOf: ['kpi.all', 'kpi.revenue'], phase: 4, ready: false },
+  { href: '/admin/auswertungen', label: 'Auswertungen', icon: 'chart', group: 'Finanzen', anyOf: ['kpi.all', 'kpi.revenue'], phase: 4, ready: true },
 
   { href: '/admin/website', label: 'Inhalte', icon: 'globe', group: 'Website', anyOf: ['cms.read'], phase: 5, ready: false },
   { href: '/admin/regionen', label: 'Regionen', icon: 'map', group: 'Website', anyOf: ['seo.read'], phase: 5, ready: false },
@@ -69,10 +69,10 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/anfragen?quelle=website_form', label: 'Formularanfragen', icon: 'mail', group: 'Website', anyOf: ['leads.read'], phase: 2, ready: true },
 
   { href: '/admin/benutzer', label: 'Benutzer', icon: 'user', group: 'System', anyOf: ['users.read'], phase: 1, ready: true },
-  { href: '/admin/rollen', label: 'Rollen & Rechte', icon: 'lock', group: 'System', anyOf: ['users.read'], phase: 4, ready: false },
+  { href: '/admin/rollen', label: 'Rollen & Rechte', icon: 'lock', group: 'System', anyOf: ['users.read'], phase: 4, ready: true },
   { href: '/admin/standorte', label: 'Standorte', icon: 'map', group: 'System', anyOf: ['masterdata.write', 'locations.write', 'users.read'], phase: 4, ready: true },
   { href: '/admin/leistungen', label: 'Leistungen & Preise', icon: 'tag', group: 'System', anyOf: ['invoices.read'], phase: 4, ready: true },
-  { href: '/admin/schnittstellen', label: 'Schnittstellen', icon: 'plug', group: 'System', anyOf: ['integrations.read', 'settings.read'], phase: 4, ready: false },
+  { href: '/admin/schnittstellen', label: 'Schnittstellen', icon: 'plug', group: 'System', anyOf: ['integrations.read', 'settings.read'], phase: 4, ready: true },
   { href: '/admin/protokoll', label: 'Protokoll', icon: 'log', group: 'System', anyOf: ['audit.read', 'audit.read.own'], phase: 1, ready: true },
   { href: '/admin/einstellungen', label: 'Einstellungen', icon: 'settings', group: 'System', anyOf: ['settings.read'], phase: 1, ready: true },
 ];

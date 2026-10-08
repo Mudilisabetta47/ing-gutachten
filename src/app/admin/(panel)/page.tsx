@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { db } from '@/server/db';
 import { requireUser, can } from '@/server/auth/guards';
 import { getSystemStatus } from '@/server/admin/status';
-import { dashboardCounts, todayOverview } from '@/server/pipeline/today';
+import { casePipeline, dashboardCounts, todayOverview } from '@/server/pipeline/today';
+import { dueForToday } from '@/server/pipeline/tasks';
+import { fmtEuro } from '@/lib/money';
 import { CASE_LABELS, LEAD_LABELS } from '@/lib/workflow';
 import { AdminIcon } from '@/components/admin/AdminIcon';
 import { Badge, EmptyState, Kpi, Kpis, PageHeader, Section, StatusPill, Timeline, fmtWhen, phoneHref, type TimelineItem } from '@/components/admin/ui';
@@ -11,6 +13,9 @@ import { Badge, EmptyState, Kpi, Kpis, PageHeader, Section, StatusPill, Timeline
 export const metadata: Metadata = { title: 'Dashboard' };
 
 const ACTION_LABEL: Record<string, string> = {
+  'invoice.create': 'hat einen Rechnungsentwurf angelegt', 'invoice.issue': 'hat eine Rechnung ausgestellt', 'invoice.cancel': 'hat eine Rechnung storniert', 'payment.add': 'hat eine Zahlung erfasst', 'payment.reverse': 'hat eine Zahlung storniert',
+  'dunning.create': 'hat eine Mahnung vorbereitet', 'dunning.issue': 'hat eine Mahnung ausgestellt', 'task.create': 'hat eine Aufgabe angelegt', 'task.complete': 'hat eine Aufgabe erledigt', 'call.log': 'hat einen Anruf protokolliert',
+  'report.create': 'hat ein Gutachten angelegt', 'report.submit': 'hat ein Gutachten zur Prüfung eingereicht', 'report.approve': 'hat ein Gutachten freigegeben', 'report.sent': 'hat den Gutachten-Versand erfasst',
   'auth.login': 'hat sich angemeldet', 'auth.logout': 'hat sich abgemeldet', 'auth.login_failed': 'Fehlgeschlagene Anmeldung', 'auth.login_throttled': 'Anmeldung gedrosselt',
   'auth.password_change': 'hat das Passwort geändert', 'user.create': 'hat einen Benutzer angelegt', 'user.update': 'hat einen Benutzer geändert', 'user.role_change': 'hat eine Rolle geändert',
   'user.deactivate': 'hat einen Benutzer deaktiviert', 'user.password_reset': 'hat ein Passwort zurückgesetzt', 'settings.update': 'hat eine Einstellung geändert',
@@ -33,9 +38,11 @@ const dateLong = () => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 
 export default async function DashboardPage() {
   const user = await requireUser();
   const seeAll = can(user, 'audit.read');
-  const [counts, today, audit] = await Promise.all([
+  const [counts, today, pipeline, myTasks, audit] = await Promise.all([
     dashboardCounts(user),
     todayOverview(user),
+    casePipeline(user),
+    dueForToday(user, 5),
     db.auditLog.findMany({
       where: seeAll ? {} : { actorId: user.id },
       orderBy: { createdAt: 'desc' },
@@ -48,7 +55,7 @@ export default async function DashboardPage() {
     text: ACTION_LABEL[a.action] ?? a.action, kind: a.action.includes('status') ? 'status' : a.action.startsWith('note') ? 'note' : 'system',
   }));
   const status = can(user, 'settings.read') ? getSystemStatus() : null;
-  const hasKpi = counts.newLeads !== null || counts.openCases !== null;
+  const hasKpi = counts.newLeads !== null || counts.openCases !== null || counts.tasks !== null || counts.finance !== null;
   const now = Date.now();
 
   return (
@@ -62,12 +69,26 @@ export default async function DashboardPage() {
           {counts.appointmentsToday !== null && <Kpi label="Termine heute" value={counts.appointmentsToday} href="/admin/termine?ansicht=tag" testId="count-appts-today" />}
           {counts.reportsOpen !== null && <Kpi label="Gutachten offen" value={counts.reportsOpen} href="/admin/faelle?status=IN_PROGRESS" />}
           {counts.followUpsDue !== null && <Kpi label="Wiedervorlagen fällig" value={counts.followUpsDue} href="/admin/heute" />}
+          {counts.tasks && <Kpi label="Aufgaben fällig" value={counts.tasks.overdue + counts.tasks.dueToday} href="/admin/aufgaben/?faellig=1" warn={counts.tasks.overdue > 0} note={counts.tasks.overdue ? `${counts.tasks.overdue} überfällig` : undefined} />}
+          {counts.reviewsPending !== null && <Kpi label="Gutachten zur Prüfung" value={counts.reviewsPending} href="/admin/gutachten?status=IN_REVIEW" />}
+          {counts.finance && <Kpi label="Offene Rechnungen" value={fmtEuro(counts.finance.open)} href="/admin/rechnungen/" note={`${counts.finance.openCount} ${counts.finance.openCount === 1 ? 'Rechnung' : 'Rechnungen'}`} />}
+          {counts.finance && <Kpi label="Überfällig" value={fmtEuro(counts.finance.overdue)} href="/admin/mahnwesen/" warn={counts.finance.overdueCount > 0} note={`${counts.finance.overdueCount} ${counts.finance.overdueCount === 1 ? 'Rechnung' : 'Rechnungen'}`} />}
           {counts.customers !== null && <Kpi label="Kunden" value={counts.customers} href="/admin/kunden" />}
         </Kpis>
       )}
 
       <div className="adm-work" style={{ marginTop: 28 }}>
         <div style={{ minWidth: 0 }}>
+          {pipeline && pipeline.some((p) => p.count > 0) && (
+            <Section title="Pipeline">
+              <ol className="dash-pipe" aria-label="Fälle je Status">
+                {pipeline.map((p) => (
+                  <li key={p.status}><Link href={`/admin/faelle?status=${p.status}`}><span className="n">{p.count}</span><span className="l">{CASE_LABELS[p.status as keyof typeof CASE_LABELS]}</span></Link></li>
+                ))}
+              </ol>
+            </Section>
+          )}
+
           {counts.newLeads !== null && (
             <Section title="Neue Anfragen" aside={<Link href="/admin/anfragen?status=NEW" className="adm-link">Alle anzeigen</Link>}>
               {today.newLeads.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Keine neuen Anfragen – alles bearbeitet.</p> : (
@@ -124,6 +145,19 @@ export default async function DashboardPage() {
             )}
             <Link href="/admin/heute" className="adm-btn adm-btn-secondary adm-btn-sm" style={{ marginTop: 10 }}>Heute öffnen</Link>
           </div>
+          {counts.tasks && (
+            <div className="adm-aside-block">
+              <h3>Meine Aufgaben</h3>
+              {myTasks.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Heute ist nichts fällig.</p> : (
+                <ul className="adm-list">
+                  {myTasks.map((t) => (
+                    <li key={t.id}><span className="main"><Link href={t.caseNumber ? `/admin/faelle/${t.caseNumber}/?tab=aufgaben` : '/admin/aufgaben/'} className="stretch">{t.title}</Link><span className={`secondary ${t.overdue ? 't-danger' : ''}`}>{t.overdue ? 'Überfällig' : 'Heute'}{t.caseNumber ? ` · ${t.caseNumber}` : ''}</span></span></li>
+                  ))}
+                </ul>
+              )}
+              <Link href="/admin/aufgaben" className="adm-btn adm-btn-secondary adm-btn-sm" style={{ marginTop: 10 }}>Alle Aufgaben</Link>
+            </div>
+          )}
           {counts.followUpsDue !== null && (
             <div className="adm-aside-block">
               <h3>Wiedervorlagen</h3>
