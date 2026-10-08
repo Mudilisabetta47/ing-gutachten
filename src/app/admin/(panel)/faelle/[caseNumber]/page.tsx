@@ -30,6 +30,7 @@ import { CalcEditor, type CalcVersion } from '@/components/admin/CalcEditor';
 import { defaultRates, listCalculations } from '@/server/pipeline/calculations';
 import { caseValuation } from '@/server/pipeline/valuation';
 import { ReportTab } from './tabs/ReportTab';
+import { InvoiceTab } from './tabs/InvoiceTab';
 import { ValuationPanel } from '@/components/admin/ValuationPanel';
 
 export const metadata: Metadata = { title: 'Fall' };
@@ -42,7 +43,6 @@ const TABS = [
 const WIDE = new Set(['schaden', 'kalkulation', 'bewertung', 'gutachten', 'rechnung', 'kommunikation']);
 
 const LATER: Record<string, [string, string]> = {
-  rechnung: ['Rechnungen in Entwicklung', 'Rechnungen, Zahlungen und Mahnwesen folgen.'],
   kommunikation: ['Kommunikation in Entwicklung', 'E-Mail-Vorlagen, Telefonnotizen und der Kommunikationsverlauf folgen.'],
 };
 
@@ -51,7 +51,8 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
   const { caseNumber } = await params;
   const sp = await searchParams;
   const wanted = qp(sp.tab);
-  const tab = TABS.find(([k]) => k === wanted)?.[0] ?? 'uebersicht';
+  const visibleTabs = TABS.filter(([k]) => k !== 'rechnung' || user.permissions.has('invoices.read'));
+  const tab = visibleTabs.find(([k]) => k === wanted)?.[0] ?? 'uebersicht';
   const c = await orNotFound(getCase(user, caseNumber));
 
   const isOwn = c.assignedExpert?.id === user.id;
@@ -293,6 +294,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
         : <EmptyState icon="lock" title="Kein Zugriff">Für die Bewertung fehlt die Berechtigung.</EmptyState>;
     if (tab === 'gutachten')
       return <ReportTab user={user} caseId={c.id} caseNumber={caseNumber} wanted={qp(sp.bericht)} canCreate={(user.permissions.has('reports.write.all') || (user.permissions.has('reports.write.own') && isOwn)) && !c.deletedAt} />;
+    if (tab === 'rechnung') return <InvoiceTab user={user} caseId={c.id} caseNumber={caseNumber} wanted={qp(sp.rechnung)} />;
     if (LATER[tab]) return <EmptyState icon="clock" title={LATER[tab][0]}>{LATER[tab][1]}</EmptyState>;
     return (
       <div className="adm-grid-2">
@@ -353,7 +355,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
 
       {c.deletedAt && <div style={{ marginTop: 16 }}><Alert tone="danger">Dieser Fall ist archiviert und nur für die Leitung sichtbar.</Alert></div>}
 
-      <Tabs label="Fallbereiche" active={tab} items={TABS.map(([k, l]) => ({ key: k, label: l, href: k === 'uebersicht' ? base : `${base}?tab=${k}`, count: k === 'fotos' ? work.counts.photos || undefined : k === 'dokumente' ? work.counts.documents || undefined : k === 'termine' ? work.counts.appointments || undefined : k === 'schaden' ? work.counts.damages || undefined : undefined }))} />
+      <Tabs label="Fallbereiche" active={tab} items={visibleTabs.map(([k, l]) => ({ key: k, label: l, href: k === 'uebersicht' ? base : `${base}?tab=${k}`, count: k === 'fotos' ? work.counts.photos || undefined : k === 'dokumente' ? work.counts.documents || undefined : k === 'termine' ? work.counts.appointments || undefined : k === 'schaden' ? work.counts.damages || undefined : undefined }))} />
 
       <div className={WIDE.has(tab) ? 'adm-work adm-work-wide' : 'adm-work'}>
         <div style={{ minWidth: 0 }}><Main /></div>

@@ -56,9 +56,9 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/vorlagen', label: 'Vorlagen', icon: 'template', group: 'Dokumente', anyOf: ['templates.write'], phase: 4, ready: true },
   { href: '/admin/archiv', label: 'Export / Archiv', icon: 'archive', group: 'Dokumente', anyOf: ['data.export', 'cases.delete'], phase: 4, ready: false },
 
-  { href: '/admin/rechnungen', label: 'Rechnungen', icon: 'receipt', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: false, badge: 'invoices' },
-  { href: '/admin/zahlungen', label: 'Zahlungen', icon: 'wallet', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: false },
-  { href: '/admin/mahnwesen', label: 'Mahnwesen', icon: 'alert', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: false },
+  { href: '/admin/rechnungen', label: 'Rechnungen', icon: 'receipt', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: true, badge: 'invoices' },
+  { href: '/admin/zahlungen', label: 'Zahlungen', icon: 'wallet', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: true },
+  { href: '/admin/mahnwesen', label: 'Mahnwesen', icon: 'alert', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: true },
   { href: '/admin/provisionen', label: 'Provisionen', icon: 'coins', group: 'Finanzen', anyOf: ['invoices.write'], phase: 4, ready: false, note: 'rechtl. Prüfung' },
   { href: '/admin/auswertungen', label: 'Auswertungen', icon: 'chart', group: 'Finanzen', anyOf: ['kpi.all', 'kpi.revenue'], phase: 4, ready: false },
 
@@ -71,7 +71,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/benutzer', label: 'Benutzer', icon: 'user', group: 'System', anyOf: ['users.read'], phase: 1, ready: true },
   { href: '/admin/rollen', label: 'Rollen & Rechte', icon: 'lock', group: 'System', anyOf: ['users.read'], phase: 4, ready: false },
   { href: '/admin/standorte', label: 'Standorte', icon: 'map', group: 'System', anyOf: ['masterdata.write', 'locations.write', 'users.read'], phase: 4, ready: true },
-  { href: '/admin/leistungen', label: 'Leistungen & Preise', icon: 'tag', group: 'System', anyOf: ['settings.read'], phase: 4, ready: false },
+  { href: '/admin/leistungen', label: 'Leistungen & Preise', icon: 'tag', group: 'System', anyOf: ['invoices.read'], phase: 4, ready: true },
   { href: '/admin/schnittstellen', label: 'Schnittstellen', icon: 'plug', group: 'System', anyOf: ['integrations.read', 'settings.read'], phase: 4, ready: false },
   { href: '/admin/protokoll', label: 'Protokoll', icon: 'log', group: 'System', anyOf: ['audit.read', 'audit.read.own'], phase: 1, ready: true },
   { href: '/admin/einstellungen', label: 'Einstellungen', icon: 'settings', group: 'System', anyOf: ['settings.read'], phase: 1, ready: true },

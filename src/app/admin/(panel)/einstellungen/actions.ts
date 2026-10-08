@@ -37,3 +37,16 @@ export async function saveUploadsAction(_p: FormState, fd: FormData): Promise<Fo
   revalidatePath('/admin/einstellungen');
   return { ok: true, message: 'Datei-Limits gespeichert.' };
 }
+
+export async function saveCompanyAction(_p: FormState, fd: FormData): Promise<FormState> {
+  const values = echo(fd);
+  try {
+    const actor = await authorize('settings.write');
+    const g = (k: string) => String(fd.get(k) ?? '');
+    await setSetting('company', { name: g('name'), street: g('street'), postalCode: g('postalCode'), city: g('city'), phone: g('phone'), email: g('email'), website: g('website'), taxId: g('taxId'), bank: g('bank'), footer: g('footer') }, actor.id);
+  } catch (e) {
+    return toFormState(e, values);
+  }
+  revalidatePath('/admin/einstellungen');
+  return { ok: true, message: 'Unternehmensdaten gespeichert.' };
+}

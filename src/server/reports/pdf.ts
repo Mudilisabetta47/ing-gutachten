@@ -43,9 +43,9 @@ export class ReportPdf {
   private y = 0;
   private pages: PDFPage[] = [];
 
-  private constructor(private opts: { number: string; caseNumber: string; company: PdfCompany; draft: boolean; title: string }) {}
+  private constructor(private opts: { number: string; caseNumber: string; company: PdfCompany; draft: boolean; title: string; label?: string; footerLeft?: string }) {}
 
-  static async create(opts: { number: string; caseNumber: string; company: PdfCompany; draft: boolean; title: string }) {
+  static async create(opts: { number: string; caseNumber: string; company: PdfCompany; draft: boolean; title: string; label?: string; footerLeft?: string }) {
     const r = new ReportPdf(opts);
     r.doc = await PDFDocument.create();
     r.doc.setTitle(pdfSafe(opts.title));
@@ -195,16 +195,17 @@ export class ReportPdf {
     const n = this.pages.length;
     this.pages.forEach((p, i) => {
       p.drawText(pdfSafe(this.opts.company.name), { x: M.l, y: A4[1] - 40, size: 10, font: this.bold, color: INK });
-      p.drawText(pdfSafe(`Gutachten ${this.opts.number}`), { x: A4[0] - M.r - this.bold.widthOfTextAtSize(pdfSafe(`Gutachten ${this.opts.number}`), 10), y: A4[1] - 40, size: 10, font: this.bold, color: BRAND });
+      const head = pdfSafe(`${this.opts.label ?? 'Gutachten'} ${this.opts.number}`);
+      p.drawText(head, { x: A4[0] - M.r - this.bold.widthOfTextAtSize(head, 10), y: A4[1] - 40, size: 10, font: this.bold, color: BRAND });
       p.drawLine({ start: { x: M.l, y: A4[1] - 48 }, end: { x: A4[0] - M.r, y: A4[1] - 48 }, thickness: 0.6, color: LINE });
-      const left = pdfSafe([`Fall ${this.opts.caseNumber}`, this.opts.company.footer].filter(Boolean).join('  ·  '));
+      const left = pdfSafe([this.opts.footerLeft ?? `Fall ${this.opts.caseNumber}`, this.opts.company.footer].filter(Boolean).join('  ·  '));
       p.drawLine({ start: { x: M.l, y: 46 }, end: { x: A4[0] - M.r, y: 46 }, thickness: 0.4, color: LINE });
       p.drawText(left.slice(0, 110), { x: M.l, y: 32, size: 8, font: this.font, color: MUTED });
       const pg = `Seite ${i + 1} von ${n}`;
       p.drawText(pg, { x: A4[0] - M.r - this.font.widthOfTextAtSize(pg, 8), y: 32, size: 8, font: this.font, color: MUTED });
       if (this.opts.draft) {
         p.drawText('ENTWURF', { x: 110, y: 300, size: 110, font: this.bold, color: rgb(0.85, 0.2, 0.15), opacity: 0.1, rotate: degrees(40) });
-        p.drawText('Entwurf - nicht zur Weitergabe bestimmt', { x: M.l, y: A4[1] - 60, size: 8.5, font: this.font, color: rgb(0.75, 0.2, 0.15) });
+        p.drawText(this.opts.draft ? 'Entwurf - nicht zur Weitergabe bestimmt' : '', { x: M.l, y: A4[1] - 60, size: 8.5, font: this.font, color: rgb(0.75, 0.2, 0.15) });
       }
     });
     return this.doc.save();

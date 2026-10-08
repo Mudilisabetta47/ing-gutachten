@@ -412,6 +412,7 @@ model LeadStatusHistory {
 }
 
 model Customer {
+  invoices   Invoice[]
   id         String       @id @default(cuid())
   type       CustomerType @default(PRIVATE)
   company    String?
@@ -579,6 +580,7 @@ model Case {
   comparables      ValuationComparable[]
   photos           CasePhoto[]
   documents        Document[]
+  invoices         Invoice[]
 
   @@index([status, createdAt])
   @@index([customerId])
@@ -1578,4 +1580,164 @@ model TextBlock {
   deletedAt   DateTime? @map("deleted_at")
 
   @@map("text_blocks")
+}
+
+/**
+ * ============================================================ Rechnungen ============================================================
+ */
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  BANK
+  CASH
+  CARD
+  OFFSET
+  OTHER
+}
+
+enum DunningStatus {
+  DRAFT
+  ISSUED
+  CANCELLED
+}
+
+model InvoiceCounter {
+  year      Int      @id
+  lastValue Int      @default(0) @map("last_value")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("invoice_counters")
+}
+
+/// Rechnung. Die Nummer wird erst bei der Ausstellung vergeben (lückenlos); ausgestellte Rechnungen sind unveränderlich (DB-Trigger) und können nur storniert werden.
+model Invoice {
+  id         String        @id @default(cuid())
+  caseId     String?       @map("case_id")
+  customerId String        @map("customer_id")
+  number     String?       @unique
+  status     InvoiceStatus @default(DRAFT)
+
+  /// Empfänger als Kopie zum Zeitpunkt der Erstellung (spätere Änderungen am Kunden ändern die Rechnung nicht)
+  recipientName       String  @map("recipient_name")
+  recipientStreet     String? @map("recipient_street")
+  recipientPostalCode String? @map("recipient_postal_code")
+  recipientCity       String? @map("recipient_city")
+  recipientOrgId      String? @map("recipient_org_id")
+  /// z. B. Schadennummer / Aktenzeichen des Empfängers
+  recipientRef        String? @map("recipient_ref")
+
+  serviceDate      DateTime? @map("service_date") @db.Date
+  issueDate        DateTime? @map("issue_date") @db.Date
+  dueDate          DateTime? @map("due_date") @db.Date
+  paymentTermsDays Int       @default(14) @map("payment_terms_days")
+  introText        String?   @map("intro_text")
+  footerText       String?   @map("footer_text")
+
+  netCents   Int @default(0) @map("net_cents")
+  vatCents   Int @default(0) @map("vat_cents")
+  grossCents Int @default(0) @map("gross_cents")
+
+  cancelledAt   DateTime? @map("cancelled_at")
+  cancelledById String?   @map("cancelled_by_id")
+  cancelReason  String?   @map("cancel_reason")
+  issuedAt      DateTime? @map("issued_at")
+  issuedById    String?   @map("issued_by_id")
+  createdById   String?   @map("created_by_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  case     Case?           @relation(fields: [caseId], references: [id])
+  customer Customer        @relation(fields: [customerId], references: [id])
+  items    InvoiceItem[]
+  payments Payment[]
+  dunnings DunningNotice[]
+
+  @@index([caseId])
+  @@index([customerId])
+  @@index([status, dueDate])
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id             String  @id @default(cuid())
+  invoiceId      String  @map("invoice_id")
+  position       Int
+  description    String
+  quantityX100   Int     @default(100) @map("quantity_x100")
+  unit           String?
+  /// Netto-Einzelpreis in Cent
+  unitPriceCents Int     @map("unit_price_cents")
+  vatBp          Int     @default(1900) @map("vat_bp")
+  serviceId      String? @map("service_id")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId, position])
+  @@map("invoice_items")
+}
+
+/// Zahlungseingang. Wird nie gelöscht – ein Irrtum wird durch Stornierung (reversed) korrigiert.
+model Payment {
+  id            String        @id @default(cuid())
+  invoiceId     String        @map("invoice_id")
+  amountCents   Int           @map("amount_cents")
+  paidOn        DateTime      @map("paid_on") @db.Date
+  method        PaymentMethod @default(BANK)
+  reference     String?
+  note          String?
+  createdById   String?       @map("created_by_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  reversedAt    DateTime?     @map("reversed_at")
+  reversedById  String?       @map("reversed_by_id")
+  reverseReason String?       @map("reverse_reason")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+  @@index([paidOn])
+  @@map("payments")
+}
+
+/// Mahnung (Stufe 1–3). Gebühren und Zinsen trägt der Betrieb selbst ein (keine automatische Berechnung); nichts wird automatisch versendet.
+model DunningNotice {
+  id            String        @id @default(cuid())
+  invoiceId     String        @map("invoice_id")
+  level         Int
+  status        DunningStatus @default(DRAFT)
+  issueDate     DateTime?     @map("issue_date") @db.Date
+  dueDate       DateTime?     @map("due_date") @db.Date
+  feeCents      Int           @default(0) @map("fee_cents")
+  interestCents Int           @default(0) @map("interest_cents")
+  text          String?
+  createdById   String?       @map("created_by_id")
+  issuedById    String?       @map("issued_by_id")
+  issuedAt      DateTime?     @map("issued_at")
+  cancelledAt   DateTime?     @map("cancelled_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+  @@map("dunning_notices")
+}
+
+/// Leistungskatalog (Vorlagen für Rechnungspositionen). Es werden keine Preise vorgegeben.
+model ServiceItem {
+  id             String    @id @default(cuid())
+  name           String
+  description    String?
+  unit           String?
+  unitPriceCents Int       @map("unit_price_cents")
+  vatBp          Int       @default(1900) @map("vat_bp")
+  sortOrder      Int       @default(0) @map("sort_order")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  @@map("service_items")
 }

@@ -89,6 +89,18 @@ async function fixtures(db: PrismaClient) {
       { caseId: c.id, expertId: expert.id, kind: 'CONSULTATION', status: 'CONFIRMED', startsAt: at(2, 9), endsAt: at(2, 10), location: 'Telefon (Demo)', createdById: office.id },
     ],
   });
+  // Demo-Unternehmensdaten (nur wenn noch keine hinterlegt sind) – ohne sie ließe sich keine Rechnung ausstellen.
+  if (!(await db.systemSetting.findUnique({ where: { key: 'company' } }))) {
+    await db.systemSetting.create({ data: { key: 'company', value: { name: 'ING Gutachten (Demo)', street: 'Musterstraße 1', postalCode: '30159', city: 'Hannover', phone: '0511 0000000', email: 'info@demo.ing.test', website: '', taxId: 'Steuernr. 00/000/00000 (Demo)', bank: 'IBAN DE00 0000 0000 0000 0000 00 (Demo)', footer: '' } } });
+  }
+  // Demo-Leistungen mit Platzhalterpreisen – das System gibt keine echten Preise vor.
+  if ((await db.serviceItem.count()) === 0) {
+    await db.serviceItem.createMany({ data: [
+      { name: 'Gutachterhonorar (Demo)', unit: 'pauschal', unitPriceCents: 45000, vatBp: 1900, sortOrder: 1 },
+      { name: 'Fahrtkosten (Demo)', unit: 'km', unitPriceCents: 70, vatBp: 1900, sortOrder: 2 },
+      { name: 'Fotokosten (Demo)', unit: 'pauschal', unitPriceCents: 2500, vatBp: 1900, sortOrder: 3 },
+    ] });
+  }
   console.log('Fixtures angelegt: 4 Anfragen, 1 Kunde, 1 Fahrzeug, 1 Fall mit 2 Terminen (dem Demo-Gutachter zugewiesen).');
 }
 

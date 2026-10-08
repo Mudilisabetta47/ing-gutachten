@@ -4,13 +4,13 @@ import { getSetting } from '@/server/settings';
 import { getSystemStatus } from '@/server/admin/status';
 import type { ReactNode } from 'react';
 import { Badge, PageHeader, Rows, Section } from '@/components/admin/ui';
-import { NumberingForm, UploadsForm } from './SettingsForms';
+import { CompanyForm, NumberingForm, UploadsForm } from './SettingsForms';
 
 export const metadata: Metadata = { title: 'Einstellungen' };
 
 export default async function SettingsPage() {
   const user = await requirePagePermission('settings.read');
-  const [numbering, uploads] = await Promise.all([getSetting('numbering'), getSetting('uploads')]);
+  const [numbering, uploads, company] = await Promise.all([getSetting('numbering'), getSetting('uploads'), getSetting('company')]);
   const status = getSystemStatus();
   const readOnly = !can(user, 'settings.write');
 
@@ -31,6 +31,7 @@ export default async function SettingsPage() {
           </Section>
         </div>
         <div style={{ display: 'grid', gap: 20 }}>
+          <CompanyForm value={company} readOnly={readOnly} />
           <NumberingForm value={numbering} readOnly={readOnly} />
           <UploadsForm value={uploads} readOnly={readOnly} />
         </div>
