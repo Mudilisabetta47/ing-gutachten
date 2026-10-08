@@ -25,6 +25,7 @@ import { DOCUMENT_CATEGORIES, DOCUMENT_LABELS, PHOTO_CATEGORIES, PHOTO_LABELS, l
 import { AREA_LABELS, DAMAGE_AREAS, DAMAGE_TYPES, REPAIR_KINDS, listDamages } from '@/server/pipeline/damages';
 import { toBerlinLocalInput } from '@/lib/berlin';
 import { AppointmentForm, AppointmentStatusForm, DamageForm, MediaUploader, PhotoGallery } from '@/components/admin/work';
+import { DamageMap } from '@/components/admin/DamageMap';
 
 export const metadata: Metadata = { title: 'Fall' };
 
@@ -32,6 +33,8 @@ const TABS = [
   ['uebersicht', 'Übersicht'], ['fahrzeug', 'Fahrzeug'], ['schaden', 'Schaden'], ['fotos', 'Fotos'], ['kalkulation', 'Kalkulation'], ['bewertung', 'Bewertung'],
   ['gutachten', 'Gutachten'], ['dokumente', 'Dokumente'], ['termine', 'Termine'], ['kommunikation', 'Kommunikation'], ['rechnung', 'Rechnung'], ['historie', 'Verlauf'],
 ] as const;
+
+const WIDE = new Set(['schaden', 'kalkulation', 'bewertung', 'gutachten', 'rechnung', 'kommunikation']);
 
 const LATER: Record<string, [string, string]> = {
   kalkulation: ['Kalkulation in Entwicklung', 'Die Schadenkalkulation mit Positionen, Arbeitswerten und Versionen wird als Nächstes gebaut.'],
@@ -68,7 +71,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
   const [notes, activity, experts, photos, docs, appts, damages] = await Promise.all([
     tab === 'uebersicht' ? caseNotes(user, c.id) : Promise.resolve([]),
     caseActivity(c.id, { includeNotes: c.internalsVisible }),
-    canExpertList || work.can.apptsWrite ? listExperts(user) : Promise.resolve([]),
+    canExpertList ? listExperts(user) : Promise.resolve([]),
     (tab === 'fotos' || tab === 'schaden') && work.can.photosRead && work.storage ? listCasePhotos(user, c.id) : Promise.resolve([]),
     tab === 'dokumente' && work.can.docsRead ? listDocuments(user, { caseId: c.id }) : Promise.resolve([]),
     tab === 'termine' || tab === 'uebersicht' ? (work.can.apptsRead ? caseAppointments(user, c.id) : Promise.resolve([])) : Promise.resolve([]),
@@ -159,6 +162,13 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
     if (tab === 'schaden')
       return c.internalsVisible ? (
         <>
+        <Section title={`Schäden am Fahrzeug · ${damages.length}`}>
+          <DamageMap
+            caseId={c.id} caseNumber={caseNumber} canWrite={canWrite && !c.deletedAt} damageTypes={DAMAGE_TYPES} repairKinds={REPAIR_KINDS}
+            damages={damages.map((d) => ({ id: d.id, partId: d.partId, view: d.view, kind: d.kind, severity: d.severity, component: d.component, area: d.area, damageType: d.damageType, repairKind: d.repairKind, description: d.description, priorNote: d.priorNote, photoIds: photos.filter((p) => p.damageId === d.id).map((p) => p.id) }))}
+            photos={photos.map((p) => ({ id: p.id, mediaId: p.mediaId, label: p.title || PHOTO_LABELS[p.category] || p.category, damageId: p.damageId }))}
+          />
+        </Section>
         <Section title="Schaden und Beteiligte" aside={canWrite && !c.deletedAt ? <OpenDrawer id="edit" icon="edit" className="adm-btn adm-btn-secondary adm-btn-sm">Bearbeiten</OpenDrawer> : undefined}>
           <Rows items={[
             ['Schadendatum', fmtDate(c.damageDate)], ['Unfalldatum', fmtDate(c.accidentDate)], ['Besichtigungsort', c.inspectionLocation],
@@ -167,23 +177,6 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
             ['Rechtsanwalt', c.lawyer], ['Werkstatt', c.repairShop],
           ]} />
           <p style={{ margin: '14px 0 0', whiteSpace: 'pre-wrap' }}>{c.description || <span className="t-3">Keine Beschreibung.</span>}</p>
-        </Section>
-        <Section title={`Schäden am Fahrzeug · ${damages.length}`} aside={canWrite && !c.deletedAt ? <OpenDrawer id="damage-new" icon="plus" className="adm-btn adm-btn-secondary adm-btn-sm">Schaden</OpenDrawer> : undefined}>
-          {damages.length === 0 ? <p className="t-3" style={{ margin: 0 }}>Noch keine Einzelschäden erfasst.</p> : (
-            <ul className="adm-list">
-              {damages.map((d) => (
-                <li key={d.id} style={{ alignItems: 'flex-start' }}>
-                  <span className="main"><span>{AREA_LABELS[d.area]} · {d.component}</span><span className="secondary">{[d.damageType, d.repairKind].filter(Boolean).join(' · ') || '–'}{d._count.photos ? ` · ${d._count.photos} Foto(s)` : ''}</span>{d.description && <span className="secondary">{d.description}</span>}</span>
-                  {canWrite && !c.deletedAt && (
-                    <span style={{ display: 'flex', gap: 4 }}>
-                      <OpenDrawer id={`damage-${d.id}`} icon="edit" className="adm-btn adm-btn-quiet adm-btn-icon adm-btn-sm"><span className="sr-only-adm">Schaden bearbeiten</span></OpenDrawer>
-                      <ConfirmForm action={deleteDamageAction} id={d.id} extra={{ caseNumber }} label="Löschen" title="Schaden löschen?" confirm="Der Schaden wird gelöscht; zugeordnete Fotos bleiben erhalten." danger />
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
         </Section>
         </>
       ) : (
@@ -338,7 +331,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
 
       <Tabs label="Fallbereiche" active={tab} items={TABS.map(([k, l]) => ({ key: k, label: l, href: k === 'uebersicht' ? base : `${base}?tab=${k}`, count: k === 'fotos' ? work.counts.photos || undefined : k === 'dokumente' ? work.counts.documents || undefined : k === 'termine' ? work.counts.appointments || undefined : k === 'schaden' ? work.counts.damages || undefined : undefined }))} />
 
-      <div className="adm-work">
+      <div className={WIDE.has(tab) ? 'adm-work adm-work-wide' : 'adm-work'}>
         <div style={{ minWidth: 0 }}><Main /></div>
         <aside aria-label="Bearbeitung">
           <AsideBlock title="Status">

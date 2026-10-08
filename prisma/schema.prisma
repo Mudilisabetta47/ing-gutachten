@@ -776,25 +776,48 @@ model Inspection {
   @@map("inspections")
 }
 
+enum DamageKind {
+  CURRENT
+  PRIOR
+  USAGE
+  REPAIRED
+  CHECK
+}
+
+enum DamageSeverity {
+  LIGHT
+  MEDIUM
+  HEAVY
+}
+
 model Damage {
-  id          String     @id @default(cuid())
-  caseId      String     @map("case_id")
+  id          String          @id @default(cuid())
+  caseId      String          @map("case_id")
   area        DamageArea
   component   String
-  damageType  String?    @map("damage_type")
+  damageType  String?         @map("damage_type")
   description String?
-  repairKind  String?    @map("repair_kind")
-  sortOrder   Int        @default(0) @map("sort_order")
-  createdById String?    @map("created_by_id")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-  deletedAt   DateTime?  @map("deleted_at")
+  repairKind  String?         @map("repair_kind")
+  /// Bauteil-Kennung aus der visuellen Karte (z. B. "door_fl"); null = Freitext-Bauteil
+  partId      String?         @map("part_id")
+  /// Ansicht, in der der Schaden markiert wurde (z. B. "FRONT_LEFT")
+  view        String?
+  kind        DamageKind      @default(CURRENT)
+  severity    DamageSeverity?
+  /// Hinweis zum Vorschaden bzw. zur Prüfung
+  priorNote   String?         @map("prior_note")
+  sortOrder   Int             @default(0) @map("sort_order")
+  createdById String?         @map("created_by_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  deletedAt   DateTime?       @map("deleted_at")
 
   case      Case        @relation(fields: [caseId], references: [id])
   createdBy User?       @relation(fields: [createdById], references: [id])
   photos    CasePhoto[]
 
   @@index([caseId, sortOrder])
+  @@index([caseId, partId])
   @@map("damages")
 }
 

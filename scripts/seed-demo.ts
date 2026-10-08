@@ -55,6 +55,17 @@ async function fixtures(db: PrismaClient) {
   const rows = await db.$queryRaw<{ last_value: number }[]>`INSERT INTO case_counters (year, last_value, updated_at) VALUES (${year}, 1, now()) ON CONFLICT (year) DO UPDATE SET last_value = case_counters.last_value + 1, updated_at = now() RETURNING last_value`;
   const c = await db.case.create({ data: { caseNumber: `ING-${year}-${String(rows[0].last_value).padStart(5, '0')}`, status: 'APPOINTMENT_SET', customerId: customer.id, vehicleId: vehicle.id, assignedExpertId: expert.id, createdById: office.id, description: 'Heckschaden (Demo-Fixture)', inspectionLocation: 'Hannover' } });
   await db.caseStatusHistory.create({ data: { caseId: c.id, toStatus: 'NEW', actorId: office.id, reason: 'Demo-Fixture' } });
+  // Demo-Schäden für die visuelle Schadenkarte (jeder Zustand einmal)
+  await db.damage.createMany({
+    data: [
+      { caseId: c.id, area: 'REAR', component: 'Stoßfänger hinten', partId: 'bumper_rear', view: 'REAR_LEFT', kind: 'CURRENT', severity: 'HEAVY', damageType: 'Verformung', repairKind: 'Ersetzen', description: 'Heckanprall (Demo)', sortOrder: 1, createdById: expert.id },
+      { caseId: c.id, area: 'REAR', component: 'Heckklappe / Kofferraumdeckel', partId: 'trunk', view: 'REAR_LEFT', kind: 'CURRENT', severity: 'MEDIUM', damageType: 'Delle', repairKind: 'Ausbeulen', description: 'Eindrückung (Demo)', sortOrder: 2, createdById: expert.id },
+      { caseId: c.id, area: 'LEFT', component: 'Kotflügel vorn links', partId: 'fender_fl', view: 'FRONT_LEFT', kind: 'PRIOR', severity: 'LIGHT', damageType: 'Kratzer', repairKind: 'Lackieren', priorNote: 'Alter Parkschaden laut Halter (Demo)', sortOrder: 3, createdById: expert.id },
+      { caseId: c.id, area: 'RIGHT', component: 'Außenspiegel rechts', partId: 'mirror_r', view: 'RIGHT', kind: 'USAGE', severity: 'LIGHT', damageType: 'Kratzer', description: 'Gebrauchsspuren (Demo)', sortOrder: 4, createdById: expert.id },
+      { caseId: c.id, area: 'FRONT', component: 'Stoßfänger vorn', partId: 'bumper_front', view: 'FRONT', kind: 'REPAIRED', priorNote: 'Reparatur laut Rechnung 2025 (Demo)', sortOrder: 5, createdById: expert.id },
+      { caseId: c.id, area: 'LEFT', component: 'Tür hinten links', partId: 'door_rl', view: 'LEFT', kind: 'CHECK', priorNote: 'Spaltmaß prüfen (Demo)', sortOrder: 6, createdById: expert.id },
+    ],
+  });
   // Termine: einer heute (in ca. einer Stunde), einer in zwei Tagen – damit Kalender, „Heute“ und Dashboard etwas zeigen.
   // „heute“ immer in der Zukunft, solange der Tag es hergibt (bis 21 Uhr), damit „Heute“ den Termin als nächsten zeigt
   const berlinHour = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Berlin' }).formatToParts(new Date()).find((p) => p.type === 'hour')?.value ?? '12');
