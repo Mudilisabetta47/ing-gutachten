@@ -31,20 +31,20 @@ import { defaultRates, listCalculations } from '@/server/pipeline/calculations';
 import { caseValuation } from '@/server/pipeline/valuation';
 import { ReportTab } from './tabs/ReportTab';
 import { InvoiceTab } from './tabs/InvoiceTab';
+import { TaskTab } from './tabs/TaskTab';
+import { pinnedNotes } from '@/server/pipeline/communication';
+import { CommunicationTab } from './tabs/CommunicationTab';
 import { ValuationPanel } from '@/components/admin/ValuationPanel';
 
 export const metadata: Metadata = { title: 'Fall' };
 
 const TABS = [
   ['uebersicht', 'Übersicht'], ['fahrzeug', 'Fahrzeug'], ['schaden', 'Schaden'], ['fotos', 'Fotos'], ['kalkulation', 'Kalkulation'], ['bewertung', 'Bewertung'],
-  ['gutachten', 'Gutachten'], ['dokumente', 'Dokumente'], ['termine', 'Termine'], ['kommunikation', 'Kommunikation'], ['rechnung', 'Rechnung'], ['historie', 'Verlauf'],
+  ['gutachten', 'Gutachten'], ['dokumente', 'Dokumente'], ['termine', 'Termine'], ['kommunikation', 'Kommunikation'], ['aufgaben', 'Aufgaben'], ['rechnung', 'Rechnung'], ['historie', 'Verlauf'],
 ] as const;
 
-const WIDE = new Set(['schaden', 'kalkulation', 'bewertung', 'gutachten', 'rechnung', 'kommunikation']);
+const WIDE = new Set(['schaden', 'kalkulation', 'bewertung', 'gutachten', 'rechnung', 'kommunikation', 'aufgaben']);
 
-const LATER: Record<string, [string, string]> = {
-  kommunikation: ['Kommunikation in Entwicklung', 'E-Mail-Vorlagen, Telefonnotizen und der Kommunikationsverlauf folgen.'],
-};
 
 export default async function CaseDetailPage({ params, searchParams }: { params: Promise<{ caseNumber: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await requirePagePermission('cases.read.all', 'cases.read.own');
@@ -80,7 +80,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
     tab === 'termine' || tab === 'uebersicht' ? (work.can.apptsRead ? caseAppointments(user, c.id) : Promise.resolve([])) : Promise.resolve([]),
     tab === 'schaden' || tab === 'fotos' ? listDamages(user, c.id) : Promise.resolve([]),
   ]);
-  const [checklist, refs] = await Promise.all([caseChecklist(user, c.id), caseRefOptions(user)]);
+  const [checklist, refs, pinned] = await Promise.all([caseChecklist(user, c.id), caseRefOptions(user), pinnedNotes(user, c.id)]);
   const canCalcRead = user.permissions.has('calculations.read.all') || (user.permissions.has('calculations.read.own') && isOwn);
   const canCalcWrite = (user.permissions.has('calculations.write.all') || (user.permissions.has('calculations.write.own') && isOwn)) && !c.deletedAt;
   const calcs = tab === 'kalkulation' && canCalcRead ? await listCalculations(user, c.id) : [];
@@ -295,7 +295,8 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
     if (tab === 'gutachten')
       return <ReportTab user={user} caseId={c.id} caseNumber={caseNumber} wanted={qp(sp.bericht)} canCreate={(user.permissions.has('reports.write.all') || (user.permissions.has('reports.write.own') && isOwn)) && !c.deletedAt} />;
     if (tab === 'rechnung') return <InvoiceTab user={user} caseId={c.id} caseNumber={caseNumber} wanted={qp(sp.rechnung)} />;
-    if (LATER[tab]) return <EmptyState icon="clock" title={LATER[tab][0]}>{LATER[tab][1]}</EmptyState>;
+    if (tab === 'aufgaben') return <TaskTab user={user} caseId={c.id} caseNumber={caseNumber} />;
+    if (tab === 'kommunikation') return <CommunicationTab user={user} caseId={c.id} caseNumber={caseNumber} assignedExpertId={c.assignedExpert?.id ?? null} phone={c.customer.phone ?? null} />;
     return (
       <div className="adm-grid-2">
         <Section title="Statusverlauf">
@@ -340,6 +341,7 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
       />
 
       {c.pinnedNote && <div style={{ marginTop: 14 }}><Alert tone="info" icon="pin"><b>Angeheftet:</b> {c.pinnedNote}</Alert></div>}
+      {pinned.map((n) => <div key={n.id} style={{ marginTop: 10 }}><Alert tone="info" icon="pin"><b>Angeheftet ({n.author ?? 'System'}):</b> {n.body}</Alert></div>)}
       <CaseProgress status={c.status} />
 
       <SummaryBar

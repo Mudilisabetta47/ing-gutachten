@@ -33,8 +33,8 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/besichtigungen', label: 'Besichtigungen', icon: 'camera', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: false },
   { href: '/admin/gutachten', label: 'Gutachten', icon: 'doc', group: 'Arbeit', anyOf: ['reports.read.all', 'reports.read.own'], phase: 4, ready: true, badge: 'reports' },
   { href: '/admin/nachbesichtigungen', label: 'Nachbesichtigungen', icon: 'eye', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: false },
-  { href: '/admin/aufgaben', label: 'Aufgaben', icon: 'checksq', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own'], phase: 4, ready: false },
-  { href: '/admin/wiedervorlagen', label: 'Wiedervorlagen', icon: 'repeat', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own', 'leads.read'], phase: 4, ready: false, badge: 'reminders' },
+  { href: '/admin/aufgaben', label: 'Aufgaben', icon: 'checksq', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own'], phase: 4, ready: true },
+  { href: '/admin/wiedervorlagen', label: 'Wiedervorlagen', icon: 'repeat', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own', 'leads.read'], phase: 4, ready: true, badge: 'reminders' },
 
   { href: '/admin/kalkulationen', label: 'Schadenkalkulation', icon: 'calc', group: 'Kalkulation & Bewertung', anyOf: ['calculations.read.all', 'calculations.read.own'], phase: 4, ready: false },
   { href: '/admin/bewertungen', label: 'Fahrzeugbewertung', icon: 'gauge', group: 'Kalkulation & Bewertung', anyOf: ['valuations.read.all', 'valuations.read.own'], phase: 4, ready: false },

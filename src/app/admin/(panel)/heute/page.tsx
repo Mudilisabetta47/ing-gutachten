@@ -6,6 +6,8 @@ import { CASE_LABELS, LEAD_LABELS } from '@/lib/workflow';
 import { AdminIcon } from '@/components/admin/AdminIcon';
 import { Badge, EmptyState, PageHeader, Section, StatusPill, fmtWhen, mapsHref, phoneHref } from '@/components/admin/ui';
 import { APPT_LABELS, KIND_LABELS } from '@/server/pipeline/appointments';
+import { assignees, dueForToday } from '@/server/pipeline/tasks';
+import { TaskList } from '@/components/admin/TaskParts';
 
 export const metadata: Metadata = { title: 'Heute' };
 
@@ -14,6 +16,9 @@ const dateLong = () => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 
 export default async function TodayPage() {
   const user = await requirePagePermission('leads.read', 'cases.read.all', 'cases.read.own');
   const t = await todayOverview(user);
+  const myTasks = await dueForToday(user);
+  const canTaskWrite = user.permissions.has('tasks.write.all') || user.permissions.has('tasks.write.own');
+  const taskPeople = canTaskWrite ? await assignees(user) : [];
   const canLeads = user.permissions.has('leads.read');
   const now = Date.now();
   const next = t.next;
@@ -62,6 +67,12 @@ export default async function TodayPage() {
           </ul>
         )}
       </Section>
+
+      {(myTasks.length > 0 || user.permissions.has('tasks.read.own') || user.permissions.has('tasks.read.all')) && (
+        <Section title={`Meine Aufgaben · ${myTasks.length}`} aside={<Link href="/admin/aufgaben" className="adm-link">Alle Aufgaben</Link>}>
+          <TaskList tasks={myTasks.map((x) => ({ ...x, completedAt: undefined, createdAt: undefined }) as never)} people={taskPeople} canWrite={canTaskWrite} empty="Heute ist nichts fällig." />
+        </Section>
+      )}
 
       {canLeads && (
         <Section title={`Neue Anfragen · ${t.newLeads.length}`} aside={<Link href="/admin/anfragen?status=NEW" className="adm-link">Alle</Link>}>

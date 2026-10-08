@@ -18,17 +18,21 @@ export default async function PanelLayout({ children }: { children: ReactNode })
 
   // Hinweise und Zähler: echte Daten, nur soweit die Rolle sie sehen darf.
   const c = user.mustChangePassword ? null : await dashboardCounts(user);
-  const badge: Record<string, number | null | undefined> = { leads: c?.newLeads, reports: c?.reviewsPending, invoices: null, reminders: c?.followUpsDue };
+  const badge: Record<string, number | null | undefined> = { leads: c?.newLeads, reports: c?.reviewsPending, invoices: c?.finance?.overdueCount, reminders: c?.followUpsDue };
   const nav = navFor(has).map(({ href, label, icon, group, ready, phase, note, badge: b }) => ({ href, label, icon, group, ready, phase, note, count: (b && badge[b]) || undefined }));
   const notices: ShellNotice[] = [];
   if (c?.newLeads) notices.push({ id: 'new', label: 'Neue Anfragen', href: '/admin/anfragen?status=NEW', count: c.newLeads, tone: 'info' });
   if (c?.failedMail) notices.push({ id: 'mail', label: 'Ohne Mail-Benachrichtigung', href: '/admin/anfragen?mail=failed', count: c.failedMail, tone: 'warn' });
   if (c?.followUpsDue) notices.push({ id: 'fu', label: 'Fällige Wiedervorlagen', href: '/admin/heute', count: c.followUpsDue, tone: 'warn' });
+  if (c?.tasks && (c.tasks.overdue || c.tasks.dueToday)) notices.push({ id: 'tasks', label: 'Aufgaben fällig oder überfällig', href: '/admin/aufgaben/?faellig=1', count: c.tasks.overdue + c.tasks.dueToday, tone: c.tasks.overdue ? 'warn' : 'info' });
+  if (c?.unreadNotes) notices.push({ id: 'notes', label: 'Neue Hinweise & Erwähnungen', href: '/admin/aufgaben/', count: c.unreadNotes, tone: 'info' });
+  if (c?.finance?.overdueCount) notices.push({ id: 'overdue', label: 'Überfällige Rechnungen', href: '/admin/rechnungen/?status=OVERDUE', count: c.finance.overdueCount, tone: 'warn' });
   if (c?.reviewsPending) notices.push({ id: 'reviews', label: 'Gutachten zur Prüfung', href: '/admin/gutachten?status=IN_REVIEW', count: c.reviewsPending, tone: 'info' });
   if (c?.unassigned) notices.push({ id: 'unassigned', label: 'Fälle ohne Sachverständigen', href: '/admin/faelle?status=open&sv=none', count: c.unassigned, tone: 'warn' });
 
   const actions: ShellAction[] = [];
   if (has('cases.write.all')) actions.push({ id: 'new-case', label: 'Neuer Fall', href: '/admin/faelle/neu/', icon: 'case' });
+  if (has('tasks.write.all') || has('tasks.write.own')) actions.push({ id: 'new-task', label: 'Neue Aufgabe', href: '/admin/aufgaben/?neu=1', icon: 'checksq' });
   if (has('customers.write')) actions.push({ id: 'new-customer', label: 'Neuer Kunde', href: '/admin/kunden/neu/', icon: 'users' });
   if (has('users.write')) actions.push({ id: 'new-user', label: 'Neuer Benutzer', href: '/admin/benutzer/neu/', icon: 'user' });
 

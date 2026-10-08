@@ -39,14 +39,16 @@ enum Role {
 }
 
 model User {
-  id           String  @id @default(cuid())
-  email        String  @unique
+  tasksAssigned Task[]         @relation("TaskAssignee")
+  notifications Notification[]
+  id            String         @id @default(cuid())
+  email         String         @unique
   /// Argon2id-Hash. Niemals Klartext, niemals ein schneller Hash.
-  passwordHash String  @map("password_hash")
-  firstName    String  @map("first_name")
-  lastName     String  @map("last_name")
-  role         Role    @default(OFFICE)
-  isActive     Boolean @default(true) @map("is_active")
+  passwordHash  String         @map("password_hash")
+  firstName     String         @map("first_name")
+  lastName      String         @map("last_name")
+  role          Role           @default(OFFICE)
+  isActive      Boolean        @default(true) @map("is_active")
 
   /// Brute-Force-Schutz pro Konto (zusätzlich zur Drosselung je IP in LoginAttempt).
   failedLogins       Int       @default(0) @map("failed_logins")
@@ -340,6 +342,7 @@ model InquiryAttachment {
 
 /// Bearbeitbarer Arbeitsvorgang. Bleibt nach der Umwandlung erhalten (Status CONVERTED + Verweise).
 model Lead {
+  tasks     Task[]
   id        String     @id @default(cuid())
   inquiryId String?    @unique @map("inquiry_id")
   status    LeadStatus @default(NEW)
@@ -412,6 +415,7 @@ model LeadStatusHistory {
 }
 
 model Customer {
+  tasks      Task[]
   invoices   Invoice[]
   id         String       @id @default(cuid())
   type       CustomerType @default(PRIVATE)
@@ -511,6 +515,7 @@ model Vehicle {
 }
 
 model Case {
+  tasks       Task[]
   id          String      @id @default(cuid())
   /// z. B. ING-2026-000123 – vergeben über CaseCounter, race-condition-sicher.
   caseNumber  String      @unique @map("case_number")
@@ -634,6 +639,15 @@ model Note {
   customerId String?  @map("customer_id")
   caseId     String?  @map("case_id")
   createdAt  DateTime @default(now()) @map("created_at")
+
+  /// angeheftet: erscheint oben (z. B. „Kunde nur nachmittags erreichbar“)
+  pinned        Boolean        @default(false)
+  /// false = intern (nur Mitarbeiter), true = extern (darf in Mitteilungen an Dritte einfließen)
+  external      Boolean        @default(false)
+  mentionIds    String[]       @default([]) @map("mention_ids")
+  callDirection CallDirection? @map("call_direction")
+  callPhone     String?        @map("call_phone")
+  callOutcome   String?        @map("call_outcome")
 
   author   User?     @relation(fields: [authorId], references: [id])
   lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
@@ -1740,4 +1754,72 @@ model ServiceItem {
   deletedAt      DateTime? @map("deleted_at")
 
   @@map("service_items")
+}
+
+// =====================================================================
+//  PHASE 4 (M7) - Aufgaben, Wiedervorlagen, Kommunikation, Benachrichtigungen
+// =====================================================================
+
+enum TaskKind {
+  TASK
+  FOLLOW_UP
+}
+
+enum TaskStatus {
+  OPEN
+  DONE
+  CANCELLED
+}
+
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+model Task {
+  id            String       @id @default(cuid())
+  kind          TaskKind     @default(TASK)
+  status        TaskStatus   @default(OPEN)
+  title         String
+  description   String?
+  priority      CasePriority @default(NORMAL)
+  /// Fälligkeitstag (Berlin); Wiedervorlagen haben immer einen
+  dueDate       DateTime?    @map("due_date") @db.Date
+  assigneeId    String?      @map("assignee_id")
+  createdById   String?      @map("created_by_id")
+  caseId        String?      @map("case_id")
+  leadId        String?      @map("lead_id")
+  customerId    String?      @map("customer_id")
+  completedAt   DateTime?    @map("completed_at")
+  completedById String?      @map("completed_by_id")
+  snoozeCount   Int          @default(0) @map("snooze_count")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  assignee User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  case     Case?     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([assigneeId, status, dueDate])
+  @@index([status, dueDate])
+  @@index([caseId])
+  @@index([leadId])
+  @@map("tasks")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  /// MENTION | TASK_ASSIGNED
+  kind      String
+  text      String
+  href      String?
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
 }

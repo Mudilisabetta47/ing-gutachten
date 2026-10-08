@@ -984,3 +984,15 @@ dialog.adm-lightbox[open] { display: grid; grid-template-columns: minmax(0, 1fr)
 .inv-items td { vertical-align: middle; }
 .inv-items td .adm-input { min-width: 0; }
 .dt .num, .dt th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------ Aufgaben & Kommunikation */
+.task-form { display: grid; gap: 12px; }
+.task-list > li { gap: 10px; }
+.task-list > li.is-overdue { box-shadow: inset 3px 0 0 rgb(var(--a-danger)); padding-left: 10px; }
+.task-check { width: 18px; height: 18px; margin-top: 3px; flex: none; accent-color: rgb(var(--a-blue)); }
+.task-due.is-late { color: rgb(var(--a-danger)); font-weight: 600; }
+.com-note { border: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); border-radius: var(--r-lg); padding: 10px 12px; display: grid; gap: 6px; background: rgb(var(--a-s1)); }
+.com-note.is-pinned { border-color: rgb(var(--a-warning) / .5); background: rgb(var(--a-warning) / .07); }
+.com-note header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: var(--fs-xs); color: rgb(var(--a-text-3)); }
+.com-note p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.com-mention { color: rgb(var(--a-blue-text)); font-weight: 600; }

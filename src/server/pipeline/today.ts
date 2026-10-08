@@ -4,6 +4,8 @@ import type { AuthUser } from '@/server/auth/session-types';
 import { berlinDayRange, berlinToday } from '@/lib/berlin';
 import { CASE_TERMINAL } from '@/lib/workflow';
 import { caseScope, has } from './access';
+import { taskStats, unreadNotifications } from './tasks';
+import { financeStats } from './invoices';
 
 /**
  * Daten für „Heute“ und das Dashboard – ausschließlich echte Datensätze, jeweils nach den
@@ -59,7 +61,7 @@ export async function dashboardCounts(user: AuthUser) {
   const canLeads = has(user, 'leads.read');
   const dayEnd = berlinDayRange(berlinToday())!.end;
   const reportScope = has(user, 'reports.read.all') ? {} : has(user, 'reports.read.own') ? { case: { assignedExpertId: user.id } } : null;
-  const [newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday, reviewsPending] = await Promise.all([
+  const [newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday, reviewsPending, tasks, unreadNotes, finance] = await Promise.all([
     canLeads ? db.lead.count({ where: { deletedAt: null, status: 'NEW' } }) : null,
     canLeads ? db.lead.count({ where: { deletedAt: null, notificationStatus: 'FAILED', status: { notIn: ['CONVERTED', 'SPAM', 'CLOSED'] } } }) : null,
     scope ? db.case.count({ where: { AND: [scope, { deletedAt: null, status: { notIn: [...CASE_TERMINAL] } }] } }) : null,
@@ -72,6 +74,9 @@ export async function dashboardCounts(user: AuthUser) {
       ? db.appointment.count({ where: { ...(has(user, 'appointments.read.all') ? {} : { expertId: user.id }), startsAt: { gte: berlinDayRange(berlinToday())!.start, lt: dayEnd }, status: { in: ['PLANNED', 'CONFIRMED', 'DONE'] } } })
       : null,
     has(user, 'reports.review') ? db.report.count({ where: { status: 'IN_REVIEW', case: { deletedAt: null } } }) : null,
+    taskStats(user),
+    unreadNotifications(user),
+    has(user, 'invoices.read') ? financeStats(user) : null,
   ]);
-  return { newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday, reviewsPending };
+  return { newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue: followUpsDue === null && !tasks ? null : (followUpsDue ?? 0) + (tasks?.followUpsDue ?? 0), appointmentsToday, reviewsPending, tasks, unreadNotes, finance };
 }
