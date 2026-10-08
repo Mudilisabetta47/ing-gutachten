@@ -203,6 +203,8 @@ export async function createReport(user: AuthUser, caseId: string) {
     const rows = await tx.$queryRaw<{ last_value: number }[]>`INSERT INTO report_counters (year, last_value, updated_at) VALUES (${year}, 1, now()) ON CONFLICT (year) DO UPDATE SET last_value = report_counters.last_value + 1, updated_at = now() RETURNING last_value`;
     const number = `${reportPrefix}-${year}-${String(Number(rows[0].last_value)).padStart(reportDigits, '0')}`;
     const rep = await tx.report.create({ data: { caseId, number, authorId: user.id, content: defaultContent() as unknown as Prisma.InputJsonValue } });
+    const st = (await tx.case.findUnique({ where: { id: caseId }, select: { status: true } }))?.status;
+    if (st === 'INSPECTED' || st === 'CALCULATION') await systemCaseStatus(tx, user.id, caseId, 'REPORT_DRAFT', `Gutachten ${number} begonnen`);
     await writeAudit({ actorId: user.id, action: 'report.create', entityType: 'Case', entityId: caseId, summary: `Gutachten ${number} angelegt`, after: { reportId: rep.id, number } }, tx);
     return rep;
   });

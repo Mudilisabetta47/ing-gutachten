@@ -6,7 +6,7 @@ import { AdminIcon, type IconName } from './AdminIcon';
 
 export type Command = { id: string; label: string; href: string; icon: IconName };
 type Hit = { id: string; label: string; sub: string; href: string };
-type Result = { query: string; cases: Hit[]; customers: Hit[]; vehicles: Hit[]; leads: Hit[] };
+type Result = { query: string; cases: Hit[]; customers: Hit[]; vehicles: Hit[]; leads: Hit[]; invoices: Hit[]; reports: Hit[]; tasks: Hit[] };
 type Row = { key: string; group: string; label: string; sub?: string; href: string; icon: IconName };
 
 const GROUPS: [keyof Omit<Result, 'query'>, string, IconName][] = [
@@ -14,6 +14,9 @@ const GROUPS: [keyof Omit<Result, 'query'>, string, IconName][] = [
   ['customers', 'Kunden', 'users'],
   ['vehicles', 'Fahrzeuge', 'car'],
   ['leads', 'Anfragen', 'inbox'],
+  ['invoices', 'Rechnungen', 'receipt'],
+  ['reports', 'Gutachten', 'doc'],
+  ['tasks', 'Aufgaben', 'checksq'],
 ];
 
 /**

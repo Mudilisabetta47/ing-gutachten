@@ -10,6 +10,7 @@ import { DomainError, notFoundError } from '@/server/errors';
 import { CALC_KINDS, LABOR_CATEGORIES, totals, type CalcHeader, type CalcKind, type CalcLine, type CalcTotals, type LaborCategory } from '@/lib/calc';
 import { PART_BY_ID } from '@/lib/vehicle-model';
 import { canOnCase, loadCaseFor } from './case-access';
+import { systemCaseStatus } from './cases';
 
 /* ------------------------------------------------------------ Zugriff */
 
@@ -136,6 +137,8 @@ export async function createCalculation(user: AuthUser, caseId: string, opts: { 
         : { caseId, version, status: 'DRAFT', createdById: user.id, ...defaults },
       include: { items: true },
     });
+    // „Besichtigt“ → „Kalkulation“ ergibt sich aus dem Beginn der Kalkulation (andere Status bleiben unberührt)
+    if ((await tx.case.findUnique({ where: { id: caseId }, select: { status: true } }))?.status === 'INSPECTED') await systemCaseStatus(tx, user.id, caseId, 'CALCULATION', 'Kalkulation begonnen');
     await writeAudit({ actorId: user.id, action: 'calculation.create', entityType: 'Case', entityId: caseId, summary: `Kalkulation Version ${version} angelegt${src ? ` (Kopie von V${src.version})` : ''}`, after: { calculationId: calc.id, version } }, tx);
     return toDto(calc);
   });

@@ -10,6 +10,8 @@ import { assignExpert, createCase } from '@/server/pipeline/cases';
 import { createInvoice, issueInvoice, saveInvoice, addPayment } from '@/server/pipeline/invoices';
 import { setSetting } from '@/server/settings';
 import { ForbiddenError } from '@/server/auth/errors';
+import { globalSearch } from '@/server/pipeline/search';
+import { createTask } from '@/server/pipeline/tasks';
 
 assertTestDb();
 beforeEach(resetDb);
@@ -114,4 +116,20 @@ test('Datenexport: nur mit Recht, Formeln entschärft, protokolliert; Archivübe
   await db.case.update({ where: { id: w.c2.id }, data: { deletedAt: new Date() } });
   assert.deepEqual(await archiveOverview(w.owner), { archivedCases: 1, archivedCustomers: 0 });
   await assert.rejects(archiveOverview(w.exp), ForbiddenError);
+});
+
+test('Globale Suche: Rechnungen, Gutachten und Aufgaben nur im Sichtbereich', async () => {
+  const w = await world();
+  await setSetting('company', { name: 'Muster', street: 'S 1', postalCode: '30159', city: 'Hannover', phone: '', email: '', website: '', taxId: 'DE1', bank: '', footer: '' }, w.owner.id);
+  const inv = await createInvoice(w.acc, { caseId: w.c1.id });
+  await saveInvoice(w.acc, inv.id, { recipient: { name: 'Suchkunde GmbH', street: 'S', postalCode: '1', city: 'C' }, items: [{ description: 'Honorar', quantityX100: 100, unitPriceCents: 10000, vatBp: 1900 }] });
+  const issued = await issueInvoice(w.acc, inv.id);
+  await createTask(w.office, { title: 'Suchaufgabe Reifen', assigneeId: w.office.id });
+  await createTask(w.exp2, { title: 'Suchaufgabe privat' });
+  assert.equal((await globalSearch(w.acc, 'Suchkunde')).invoices.length, 1);
+  assert.equal((await globalSearch(w.acc, issued.number!)).invoices[0].label, issued.number);
+  assert.equal((await globalSearch(w.exp, 'Suchkunde')).invoices.length, 0, 'Gutachter: keine Rechnungen');
+  assert.equal((await globalSearch(w.office, 'Suchaufgabe')).tasks.length, 2, 'Büro mit tasks.read.all sieht alle');
+  assert.deepEqual((await globalSearch(w.exp2, 'Suchaufgabe')).tasks.map((t) => t.label), ['Suchaufgabe privat']);
+  assert.equal((await globalSearch(w.exp, 'Suchaufgabe')).tasks.length, 0);
 });
