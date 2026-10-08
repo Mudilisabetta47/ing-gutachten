@@ -18,12 +18,13 @@ export default async function PanelLayout({ children }: { children: ReactNode })
 
   // Hinweise und Zähler: echte Daten, nur soweit die Rolle sie sehen darf.
   const c = user.mustChangePassword ? null : await dashboardCounts(user);
-  const badge: Record<string, number | null | undefined> = { leads: c?.newLeads, reports: null, invoices: null, reminders: c?.followUpsDue };
+  const badge: Record<string, number | null | undefined> = { leads: c?.newLeads, reports: c?.reviewsPending, invoices: null, reminders: c?.followUpsDue };
   const nav = navFor(has).map(({ href, label, icon, group, ready, phase, note, badge: b }) => ({ href, label, icon, group, ready, phase, note, count: (b && badge[b]) || undefined }));
   const notices: ShellNotice[] = [];
   if (c?.newLeads) notices.push({ id: 'new', label: 'Neue Anfragen', href: '/admin/anfragen?status=NEW', count: c.newLeads, tone: 'info' });
   if (c?.failedMail) notices.push({ id: 'mail', label: 'Ohne Mail-Benachrichtigung', href: '/admin/anfragen?mail=failed', count: c.failedMail, tone: 'warn' });
   if (c?.followUpsDue) notices.push({ id: 'fu', label: 'Fällige Wiedervorlagen', href: '/admin/heute', count: c.followUpsDue, tone: 'warn' });
+  if (c?.reviewsPending) notices.push({ id: 'reviews', label: 'Gutachten zur Prüfung', href: '/admin/gutachten?status=IN_REVIEW', count: c.reviewsPending, tone: 'info' });
   if (c?.unassigned) notices.push({ id: 'unassigned', label: 'Fälle ohne Sachverständigen', href: '/admin/faelle?status=open&sv=none', count: c.unassigned, tone: 'warn' });
 
   const actions: ShellAction[] = [];

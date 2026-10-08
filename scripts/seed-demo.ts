@@ -23,6 +23,7 @@ export const DEMO_USERS: { email: string; firstName: string; lastName: string; r
   { email: 'gutachter@demo.ing.test', firstName: 'Gerd', lastName: 'Gutachter', role: 'EXPERT', isExpert: true },
   { email: 'buchhaltung@demo.ing.test', firstName: 'Bea', lastName: 'Bilanz', role: 'ACCOUNTING' },
   { email: 'redaktion@demo.ing.test', firstName: 'Rita', lastName: 'Redaktion', role: 'CONTENT_MANAGER' },
+  { email: 'pruefer@demo.ing.test', firstName: 'Paul', lastName: 'Prüfer', role: 'REVIEWER' },
 ];
 
 async function fixtures(db: PrismaClient) {

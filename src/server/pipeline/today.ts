@@ -58,18 +58,20 @@ export async function dashboardCounts(user: AuthUser) {
   const scope = caseScope(user, 'read');
   const canLeads = has(user, 'leads.read');
   const dayEnd = berlinDayRange(berlinToday())!.end;
-  const [newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday] = await Promise.all([
+  const reportScope = has(user, 'reports.read.all') ? {} : has(user, 'reports.read.own') ? { case: { assignedExpertId: user.id } } : null;
+  const [newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday, reviewsPending] = await Promise.all([
     canLeads ? db.lead.count({ where: { deletedAt: null, status: 'NEW' } }) : null,
     canLeads ? db.lead.count({ where: { deletedAt: null, notificationStatus: 'FAILED', status: { notIn: ['CONVERTED', 'SPAM', 'CLOSED'] } } }) : null,
     scope ? db.case.count({ where: { AND: [scope, { deletedAt: null, status: { notIn: [...CASE_TERMINAL] } }] } }) : null,
     scope && has(user, 'cases.read.all') ? db.case.count({ where: { deletedAt: null, assignedExpertId: null, status: { notIn: [...CASE_TERMINAL] } } }) : null,
     has(user, 'customers.read') ? db.customer.count({ where: { deletedAt: null } }) : null,
-    // „Gutachten offen“: Fälle, in denen das Gutachten noch erstellt oder freigegeben werden muss
-    scope ? db.case.count({ where: { AND: [scope, { deletedAt: null, status: { in: ['INSPECTED', 'DOCUMENTS_MISSING', 'IN_PROGRESS', 'REPORT_READY'] } }] } }) : null,
+    // „Gutachten offen“: Gutachten, die noch geschrieben, geprüft oder freigegeben werden müssen
+    reportScope ? db.report.count({ where: { AND: [reportScope, { case: { deletedAt: null }, status: { in: ['DRAFT', 'CHANGES_REQUESTED', 'IN_REVIEW', 'APPROVED'] } }] } }) : null,
     canLeads ? db.lead.count({ where: { deletedAt: null, status: { notIn: ['CONVERTED', 'CLOSED', 'SPAM'] }, nextActionAt: { lt: dayEnd } } }) : null,
     has(user, 'appointments.read.all') || has(user, 'appointments.read.own')
       ? db.appointment.count({ where: { ...(has(user, 'appointments.read.all') ? {} : { expertId: user.id }), startsAt: { gte: berlinDayRange(berlinToday())!.start, lt: dayEnd }, status: { in: ['PLANNED', 'CONFIRMED', 'DONE'] } } })
       : null,
+    has(user, 'reports.review') ? db.report.count({ where: { status: 'IN_REVIEW', case: { deletedAt: null } } }) : null,
   ]);
-  return { newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday };
+  return { newLeads, failedMail, openCases, unassigned, customers, reportsOpen, followUpsDue, appointmentsToday, reviewsPending };
 }

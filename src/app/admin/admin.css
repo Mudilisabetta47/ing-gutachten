@@ -929,3 +929,43 @@ dialog.adm-lightbox[open] { display: grid; grid-template-columns: minmax(0, 1fr)
 .val-main { display: grid; gap: 2px; flex: 1; min-width: 0; }
 .val-main b { font-size: 16px; font-variant-numeric: tabular-nums; }
 .val-form { padding-top: 10px; border-top: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); }
+
+/* ============================================================ Gutachten-Editor ============================================================ */
+.rep { display: grid; gap: 12px; }
+.rep-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; }
+.rep-head-l { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.rep-panel { padding: 14px; display: grid; gap: 10px; }
+.rep-grid { display: grid; grid-template-columns: 230px minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
+.rep-chapters { padding: 10px; position: sticky; top: calc(var(--topbar-h, 56px) + 56px); }
+.rep-chapters-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.rep-chapters ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rep-chapters li { display: flex; align-items: center; gap: 6px; border-radius: var(--r-md); padding-right: 2px; }
+.rep-chapters li.is-on { background: rgb(var(--a-blue) / .1); }
+.rep-chapters li.is-off button { opacity: .5; text-decoration: line-through; }
+.rep-chapters li > input { margin-left: 6px; accent-color: rgb(var(--a-blue)); }
+.rep-chapters li > button { flex: 1; text-align: left; background: none; border: 0; font: inherit; font-size: var(--fs-sm); padding: 7px 6px; cursor: pointer; color: inherit; display: flex; gap: 6px; align-items: center; min-width: 0; }
+.rep-chapters li.is-on > button { font-weight: 600; }
+.rep-mv { display: inline-flex; } .rep-mv button { background: none; border: 0; cursor: pointer; color: rgb(var(--a-text-3)); padding: 2px 4px; font-size: 13px; } .rep-mv button:hover:not(:disabled) { color: rgb(var(--a-text)); } .rep-mv button:disabled { opacity: .25; }
+.rep-editor { padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.rep-ed-top { display: flex; gap: 8px; align-items: center; }
+.rep-ed-title { font-weight: 700; font-size: 16px; height: 40px; }
+.rep-tools { display: flex; flex-wrap: wrap; gap: 14px; }
+.rep-tools select { max-width: 260px; height: 34px; }
+.rep-text { font-family: inherit; line-height: 1.5; resize: vertical; min-height: 220px; }
+.rep-preview { border: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); border-radius: var(--r-md); padding: 8px 12px; background: rgb(var(--a-s2) / .5); }
+.rep-preview summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: rgb(var(--a-text-2)); }
+.rep-preview-text { white-space: pre-wrap; margin-top: 8px; line-height: 1.5; }
+.rep-preview-text mark { background: rgb(var(--a-warning) / .25); color: inherit; border-radius: 3px; padding: 0 3px; }
+.rep-side { display: grid; gap: 12px; position: sticky; top: calc(var(--topbar-h, 56px) + 56px); max-height: calc(100vh - var(--topbar-h, 56px) - 72px); overflow: auto; }
+.rep-box { padding: 12px; display: grid; gap: 8px; }
+.rep-box-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rep-issues { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.rep-issues button { width: 100%; text-align: left; background: none; border: 0; font: inherit; font-size: 12.5px; padding: 4px 2px; cursor: pointer; display: flex; gap: 8px; color: inherit; }
+.rep-issues .is-error span { color: rgb(var(--a-danger)); font-weight: 800; } .rep-issues .is-warn span { color: rgb(var(--a-warning)); font-weight: 800; }
+.rep-versions { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.rep-comment { border: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); border-radius: var(--r-md); padding: 8px 10px; display: grid; gap: 4px; font-size: var(--fs-sm); background: rgb(var(--a-s1)); }
+.rep-comment.is-done { opacity: .55; }
+.rep-ch-comments { display: grid; gap: 8px; border-top: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); padding-top: 10px; }
+.rep-comment-new { display: flex; gap: 8px; }
+@media (max-width: 1250px) { .rep-grid { grid-template-columns: 200px minmax(0, 1fr); } .rep-side { grid-column: 1 / -1; position: static; max-height: none; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
+@media (max-width: 760px) { .rep-grid { grid-template-columns: 1fr; } .rep-chapters { position: static; } }

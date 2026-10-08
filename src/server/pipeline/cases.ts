@@ -204,6 +204,20 @@ export async function changeCaseStatus(user: AuthUser, id: string, to: CaseStatu
   });
 }
 
+/**
+ * Statuswechsel, der aus einem anderen Vorgang folgt (z. B. Gutachten eingereicht → „Prüfung“). Die Berechtigung hat der aufrufende Dienst
+ * bereits geprüft. Ist der Wechsel im aktuellen Status nicht zulässig, bleibt der Status unverändert (Rückgabe false) – kein Fehler.
+ */
+export async function systemCaseStatus(tx: Prisma.TransactionClient, actorId: string | null, caseId: string, to: CaseStatusKey, reason: string): Promise<boolean> {
+  const c = await tx.case.findFirst({ where: { id: caseId, deletedAt: null }, select: { status: true } });
+  if (!c || c.status === to || !canCaseTransition(c.status, to)) return false;
+  const res = await tx.case.updateMany({ where: { id: caseId, status: c.status }, data: { status: to, closedAt: CASE_TERMINAL.includes(to) ? new Date() : null } });
+  if (res.count !== 1) return false;
+  await tx.caseStatusHistory.create({ data: { caseId, fromStatus: c.status, toStatus: to, actorId, reason } });
+  await writeAudit({ actorId, action: 'case.status_change', entityType: 'Case', entityId: caseId, summary: `Status ${c.status} → ${to} (${reason})`, before: { status: c.status }, after: { status: to } }, tx);
+  return true;
+}
+
 export async function assignExpert(user: AuthUser, id: string, expertId: string | null) {
   if (!has(user, 'cases.assign')) throw new ForbiddenError();
   return db.$transaction(async (tx) => {

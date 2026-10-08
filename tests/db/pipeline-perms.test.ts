@@ -87,7 +87,7 @@ test('Website-Rolle (CONTENT_MANAGER): NULL Zugriff auf Kundendaten – überall
   await assert.rejects(listCases(w.content, {}), ForbiddenError);
   await assert.rejects(getCase(w.content, w.a.k.caseNumber), ForbiddenError);
   await assert.rejects(globalSearch(w.content, 'Alpha'), ForbiddenError);
-  assert.deepEqual(await dashboardCounts(w.content), { newLeads: null, failedMail: null, openCases: null, unassigned: null, customers: null, reportsOpen: null, followUpsDue: null, appointmentsToday: null });
+  assert.deepEqual(await dashboardCounts(w.content), { newLeads: null, failedMail: null, openCases: null, unassigned: null, customers: null, reportsOpen: null, followUpsDue: null, appointmentsToday: null, reviewsPending: null });
   assert.deepEqual(await todayOverview(w.content), { newLeads: [], dueLeads: [], workCases: [], appointments: [], next: null });
 });
 
@@ -165,7 +165,7 @@ test('Dashboard & Heute: echte Zahlen (0 bleibt 0), rollenbezogen', async () => 
   const empty = await asAuthUser((await makeUser({ role: 'OFFICE' })).user.id);
   await resetDb();
   const o = await asAuthUser((await makeUser({ role: 'OFFICE' })).user.id);
-  assert.deepEqual(await dashboardCounts(o), { newLeads: 0, failedMail: 0, openCases: 0, unassigned: 0, customers: 0, reportsOpen: 0, followUpsDue: 0, appointmentsToday: 0 });
+  assert.deepEqual(await dashboardCounts(o), { newLeads: 0, failedMail: 0, openCases: 0, unassigned: 0, customers: 0, reportsOpen: 0, followUpsDue: 0, appointmentsToday: 0, reviewsPending: null });
   const { leadId } = await makeLead();
   await changeLeadStatus(o, leadId, 'CONTACTED');
   await makeLead({ name: 'Zweite Anfrage' });

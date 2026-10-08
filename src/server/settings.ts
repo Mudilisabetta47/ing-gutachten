@@ -15,6 +15,20 @@ export const SETTINGS = {
     caseDigits: z.number().int().min(3).max(8),
     invoicePrefix: z.string().trim().min(1).max(10).regex(/^[A-Za-z0-9-]+$/),
     invoiceDigits: z.number().int().min(3).max(8),
+    reportPrefix: z.string().trim().min(1).max(10).regex(/^[A-Za-z0-9-]+$/).default('GA'),
+    reportDigits: z.number().int().min(3).max(8).default(5),
+  }),
+  company: z.object({
+    name: z.string().trim().min(1).max(120),
+    street: z.string().trim().max(120),
+    postalCode: z.string().trim().max(10),
+    city: z.string().trim().max(80),
+    phone: z.string().trim().max(40),
+    email: z.string().trim().max(120),
+    website: z.string().trim().max(120),
+    taxId: z.string().trim().max(40),
+    bank: z.string().trim().max(200),
+    footer: z.string().trim().max(300),
   }),
   uploads: z.object({
     maxPhotoMb: z.number().min(1).max(50),
@@ -27,7 +41,8 @@ export type SettingKey = keyof typeof SETTINGS;
 export type SettingValue<K extends SettingKey> = z.infer<(typeof SETTINGS)[K]>;
 
 export const SETTING_DEFAULTS: { [K in SettingKey]: SettingValue<K> } = {
-  numbering: { casePrefix: 'ING', caseDigits: 5, invoicePrefix: 'RE', invoiceDigits: 5 },
+  numbering: { casePrefix: 'ING', caseDigits: 5, invoicePrefix: 'RE', invoiceDigits: 5, reportPrefix: 'GA', reportDigits: 5 },
+  company: { name: 'ING Gutachten', street: '', postalCode: '', city: '', phone: '', email: '', website: '', taxId: '', bank: '', footer: '' },
   uploads: { maxPhotoMb: 15, maxDocumentMb: 25, maxFilesPerUpload: 20 },
 };
 

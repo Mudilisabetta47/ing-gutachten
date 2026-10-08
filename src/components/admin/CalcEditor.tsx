@@ -79,6 +79,7 @@ export function CalcEditor({ caseId, caseNumber, versions, canWrite, hasWorkshop
   // Zwischenspeicher: Beim Wechseln zwischen Versionen gehen lokale (bereits automatisch gespeicherte) Stände nicht verloren, auch bevor die Seite neu geladen wurde
   const store = useRef(new Map<string, Snap>());
   const [tick, setTick] = useState(0);
+  const bumpTick = useCallback(() => setTick((n) => n + 1), []);
 
   if (!cur) {
     return (
@@ -111,7 +112,7 @@ export function CalcEditor({ caseId, caseNumber, versions, canWrite, hasWorkshop
         </div>
       </div>
       {cmp !== null && <DiffView a={liveVersion(versions.find((v) => v.version === cmp)!, store.current.get(versions.find((v) => v.version === cmp)!.id))} b={liveVersion(cur, store.current.get(cur.id))} tick={tick} />}
-      <Editor key={`${cur.id}-${cur.status}`} store={store} onSaved={() => setTick((n) => n + 1)} v={cur} caseNumber={caseNumber} canWrite={canWrite && cur.status === 'DRAFT'} onChanged={() => router.refresh()} />
+      <Editor key={`${cur.id}-${cur.status}`} store={store} onSaved={bumpTick} v={cur} caseNumber={caseNumber} canWrite={canWrite && cur.status === 'DRAFT'} onChanged={() => router.refresh()} />
     </div>
   );
 }
@@ -165,7 +166,7 @@ function Editor({ v, store, onSaved, caseNumber, canWrite, onChanged }: { v: Cal
     const r = await saveCalcAction({ calcId: v.id, caseNumber, data: payload(), token: token.current });
     if (r.ok) { token.current = r.updatedAt!; setSave({ state: dirty.current ? 'dirty' : 'saved', at: r.updatedAt }); onSaved(); }
     else { dirty.current = true; setSave({ state: 'error', error: r.error }); }
-  }, [v.id, caseNumber, payload, allValid]);
+  }, [v.id, caseNumber, payload, allValid, onSaved]);
 
   // Autosave: 900 ms nach der letzten Änderung
   useEffect(() => {

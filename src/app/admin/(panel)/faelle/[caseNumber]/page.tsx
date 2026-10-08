@@ -29,6 +29,7 @@ import { DamageMap } from '@/components/admin/DamageMap';
 import { CalcEditor, type CalcVersion } from '@/components/admin/CalcEditor';
 import { defaultRates, listCalculations } from '@/server/pipeline/calculations';
 import { caseValuation } from '@/server/pipeline/valuation';
+import { ReportTab } from './tabs/ReportTab';
 import { ValuationPanel } from '@/components/admin/ValuationPanel';
 
 export const metadata: Metadata = { title: 'Fall' };
@@ -41,7 +42,6 @@ const TABS = [
 const WIDE = new Set(['schaden', 'kalkulation', 'bewertung', 'gutachten', 'rechnung', 'kommunikation']);
 
 const LATER: Record<string, [string, string]> = {
-  gutachten: ['Gutachten in Entwicklung', 'Der Gutachten-Editor mit Prüfung und PDF folgt nach Kalkulation und Bewertung.'],
   rechnung: ['Rechnungen in Entwicklung', 'Rechnungen, Zahlungen und Mahnwesen folgen.'],
   kommunikation: ['Kommunikation in Entwicklung', 'E-Mail-Vorlagen, Telefonnotizen und der Kommunikationsverlauf folgen.'],
 };
@@ -291,6 +291,8 @@ export default async function CaseDetailPage({ params, searchParams }: { params:
         ? <Section title="Bewertung"><ValuationPanel caseId={c.id} caseNumber={caseNumber} canWrite={canValWrite} calc={val.calc ? { version: val.calc.version, status: val.calc.status, netCents: val.calc.netCents, grossCents: val.calc.grossCents, vatBp: val.calc.vatBp } : null} calcHours={val.calc ? val.calc.minutes / 60 : null}
             entries={val.entries.map((e) => ({ ...e, createdAt: e.createdAt.toISOString() }))} comparables={val.comparables} /></Section>
         : <EmptyState icon="lock" title="Kein Zugriff">Für die Bewertung fehlt die Berechtigung.</EmptyState>;
+    if (tab === 'gutachten')
+      return <ReportTab user={user} caseId={c.id} caseNumber={caseNumber} wanted={qp(sp.bericht)} canCreate={(user.permissions.has('reports.write.all') || (user.permissions.has('reports.write.own') && isOwn)) && !c.deletedAt} />;
     if (LATER[tab]) return <EmptyState icon="clock" title={LATER[tab][0]}>{LATER[tab][1]}</EmptyState>;
     return (
       <div className="adm-grid-2">

@@ -575,6 +575,7 @@ model Case {
   damages          Damage[]
   calculations     Calculation[]
   valuationEntries ValuationEntry[]
+  reports          Report[]
   comparables      ValuationComparable[]
   photos           CasePhoto[]
   documents        Document[]
@@ -1471,4 +1472,110 @@ model ValuationComparable {
 
   @@index([caseId])
   @@map("valuation_comparables")
+}
+
+/**
+ * ============================================================ Gutachten ============================================================
+ */
+
+enum ReportStatus {
+  DRAFT
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  SENT
+}
+
+model ReportCounter {
+  year      Int      @id
+  lastValue Int      @default(0) @map("last_value")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("report_counters")
+}
+
+/// Gutachten eines Falls (Nummer GA-JJJJ-NNNNN). `content` = Kapitel mit Texten und Variablen; die Daten werden erst bei Einreichung/Freigabe eingefroren (ReportVersion).
+model Report {
+  id           String       @id @default(cuid())
+  caseId       String       @map("case_id")
+  number       String       @unique
+  status       ReportStatus @default(DRAFT)
+  /// Fassung des Gutachtens; steigt bei jeder Einreichung zur Prüfung
+  revision     Int          @default(1)
+  title        String?
+  content      Json
+  /// Zähler für Autosave (optimistische Sperre)
+  saveCounter  Int          @default(0) @map("save_counter")
+  authorId     String?      @map("author_id")
+  submittedAt  DateTime?    @map("submitted_at")
+  reviewerId   String?      @map("reviewer_id")
+  approvedById String?      @map("approved_by_id")
+  approvedAt   DateTime?    @map("approved_at")
+  sentAt       DateTime?    @map("sent_at")
+  sentById     String?      @map("sent_by_id")
+  sentTo       String?      @map("sent_to")
+  sentChannel  String?      @map("sent_channel")
+  sentNote     String?      @map("sent_note")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  case     Case            @relation(fields: [caseId], references: [id])
+  versions ReportVersion[]
+  comments ReportComment[]
+
+  @@index([caseId])
+  @@index([status])
+  @@map("reports")
+}
+
+/// Unveränderlicher Stand (Einreichung/Freigabe): Inhalt UND die zu diesem Zeitpunkt gültigen Falldaten – das PDF entsteht daraus.
+model ReportVersion {
+  id          String   @id @default(cuid())
+  reportId    String   @map("report_id")
+  revision    Int
+  kind        String
+  content     Json
+  data        Json
+  /// erzeugtes PDF (Dokument im Fall), falls bei diesem Stand eines erstellt wurde
+  documentId  String?  @map("document_id")
+  note        String?
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId, revision])
+  @@map("report_versions")
+}
+
+model ReportComment {
+  id           String    @id @default(cuid())
+  reportId     String    @map("report_id")
+  chapterKey   String?   @map("chapter_key")
+  body         String
+  revision     Int
+  authorId     String?   @map("author_id")
+  resolvedAt   DateTime? @map("resolved_at")
+  resolvedById String?   @map("resolved_by_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@map("report_comments")
+}
+
+/// Textbausteine für Gutachten (vom Büro/Inhaber gepflegt).
+model TextBlock {
+  id          String    @id @default(cuid())
+  title       String
+  category    String?
+  body        String
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdById String?   @map("created_by_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@map("text_blocks")
 }

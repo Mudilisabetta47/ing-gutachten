@@ -31,7 +31,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/admin/anfragen', label: 'Anfragen', icon: 'inbox', group: 'Arbeit', anyOf: ['leads.read'], phase: 2, ready: true, badge: 'leads' },
   { href: '/admin/faelle', label: 'Fälle', icon: 'case', group: 'Arbeit', anyOf: CASES, phase: 2, ready: true },
   { href: '/admin/besichtigungen', label: 'Besichtigungen', icon: 'camera', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: false },
-  { href: '/admin/gutachten', label: 'Gutachten', icon: 'doc', group: 'Arbeit', anyOf: ['reports.read.all', 'reports.read.own'], phase: 4, ready: false, badge: 'reports' },
+  { href: '/admin/gutachten', label: 'Gutachten', icon: 'doc', group: 'Arbeit', anyOf: ['reports.read.all', 'reports.read.own'], phase: 4, ready: true, badge: 'reports' },
   { href: '/admin/nachbesichtigungen', label: 'Nachbesichtigungen', icon: 'eye', group: 'Arbeit', anyOf: ['appointments.read.all', 'appointments.read.own'], phase: 4, ready: false },
   { href: '/admin/aufgaben', label: 'Aufgaben', icon: 'checksq', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own'], phase: 4, ready: false },
   { href: '/admin/wiedervorlagen', label: 'Wiedervorlagen', icon: 'repeat', group: 'Arbeit', anyOf: ['tasks.read.all', 'tasks.read.own', 'leads.read'], phase: 4, ready: false, badge: 'reminders' },
@@ -53,7 +53,7 @@ export const ADMIN_NAV: NavItem[] = [
 
   { href: '/admin/dokumente', label: 'Dokumentenakte', icon: 'folder', group: 'Dokumente', anyOf: ['documents.read.all', 'documents.read.own'], phase: 4, ready: false },
   { href: '/admin/fotos', label: 'Fotodokumentation', icon: 'photo', group: 'Dokumente', anyOf: ['photos.read.all', 'photos.read.own'], phase: 4, ready: false },
-  { href: '/admin/vorlagen', label: 'Vorlagen', icon: 'template', group: 'Dokumente', anyOf: ['templates.write', 'communication.read.all', 'reports.read.all'], phase: 4, ready: false },
+  { href: '/admin/vorlagen', label: 'Vorlagen', icon: 'template', group: 'Dokumente', anyOf: ['templates.write'], phase: 4, ready: true },
   { href: '/admin/archiv', label: 'Export / Archiv', icon: 'archive', group: 'Dokumente', anyOf: ['data.export', 'cases.delete'], phase: 4, ready: false },
 
   { href: '/admin/rechnungen', label: 'Rechnungen', icon: 'receipt', group: 'Finanzen', anyOf: ['invoices.read'], phase: 4, ready: false, badge: 'invoices' },
