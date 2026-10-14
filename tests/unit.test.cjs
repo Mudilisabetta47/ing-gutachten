@@ -386,3 +386,60 @@ test('Speicher-Verschlüsselung: zu kurzer Schlüssel wird abgewiesen, kein Schl
   assert.throws(() => SC.keyRingFromEnv({ STORAGE_ENCRYPTION_KEY: 'kurz' }), /zu kurz/);
   assert.equal(SC.keyRingFromEnv({}), null);
 });
+
+/* ------------------------------------------------------------ Mail: Empfänger-Positivliste */
+const MAIL = lib('mail/index');
+test('Mail-Positivliste: nur freigegebene Adressen/Domains; Staging verlangt sie; MAIL_TO muss freigegeben sein', async () => {
+  const list = MAIL.parseAllowlist(' Test@Beispiel.de, @intern.example ,');
+  assert.deepEqual(list, ['test@beispiel.de', '@intern.example']);
+  assert.ok(MAIL.isRecipientAllowed('TEST@beispiel.de', list) && MAIL.isRecipientAllowed('a@intern.example', list));
+  assert.ok(!MAIL.isRecipientAllowed('kunde@gmail.com', list) && !MAIL.isRecipientAllowed('x@evil-intern.example', list), 'Domain-Anhang darf nicht durch Teilstring umgangen werden');
+  assert.ok(MAIL.isRecipientAllowed('irgendwer@x.de', []), 'leere Liste = keine Einschränkung (Produktion)');
+  const sent = [];
+  const p = MAIL.withAllowlist({ id: 't', async send(m) { sent.push(m.to); } }, list);
+  await p.send({ to: 'test@beispiel.de', from: { email: 'a@b.c', name: 'x' }, subject: 's', html: '', text: '', attachments: [] });
+  await assert.rejects(p.send({ to: 'kunde@gmail.com', from: { email: 'a@b.c', name: 'x' }, subject: 's', html: '', text: '', attachments: [] }), /nicht freigegeben/);
+  assert.deepEqual(sent, ['test@beispiel.de']);
+  const base = { MAIL_PROVIDER: 'dry-run', MAIL_FROM: 'a@b.c', MAIL_TO: 'test@beispiel.de' };
+  assert.throws(() => MAIL.getMailConfig({ ...base, MAIL_PROVIDER: 'brevo', BREVO_API_KEY: 'x', ING_ENV: 'staging' }), /Pflicht/);
+  assert.ok(MAIL.getMailConfig({ ...base, ING_ENV: 'staging', ALLOW_PREVIEW_DRY_RUN: 'true', VERCEL_ENV: 'preview' }), 'Dry-Run versendet nichts → keine Positivliste nötig');
+  assert.throws(() => MAIL.getMailConfig({ ...base, MAIL_ALLOWED_RECIPIENTS: '@intern.example', NODE_ENV: 'development' }), /nicht in MAIL_ALLOWED_RECIPIENTS/);
+  assert.ok(MAIL.getMailConfig({ ...base, MAIL_ALLOWED_RECIPIENTS: 'test@beispiel.de', ING_ENV: 'staging', ALLOW_PREVIEW_DRY_RUN: 'true', VERCEL_ENV: 'preview' }));
+});
+
+/* ------------------------------------------------------------ Fehlerüberwachung */
+const ER = lib('error-report');
+test('Fehlerbericht: personenbezogene Daten, Tokens und Verbindungen werden entfernt', () => {
+  const dirty = 'Kunde erika.mustermann@example.de (0511 1234567) unter postgresql://user:geheim@db.example.com:5432/x und https://a.example/p?token=abc123&x=1 mit Sitzung ' + 'A'.repeat(40);
+  const s = ER.scrub(dirty, 500);
+  assert.ok(!s.includes('erika') && !s.includes('1234567') && !s.includes('geheim') && !s.includes('token=abc') && !s.includes('AAAAAAAA'), s);
+  assert.ok(s.includes('[E-Mail]') && s.includes('[Nummer]') && s.includes('[Datenbank-Verbindung]') && s.includes('https://a.example/p'));
+});
+test('Fehlerbericht: Route ohne Query und ohne IDs, stabile Kennung', () => {
+  const d1 = ER.describeError(new Error('Boom für x@y.de'), { route: '/admin/faelle/cmv8gzabcdefghijklmnop/?tab=a&q=Müller', method: 'GET', kind: 'render' });
+  const d2 = ER.describeError(new Error('Boom für z@w.de'), { route: '/admin/faelle/cmv8gzabcdefghijklmnop/?tab=b', method: 'GET', kind: 'render' });
+  assert.equal(d1.route, '/admin/faelle/[id]/');
+  assert.ok(!JSON.stringify(d1).includes('Müller') && !JSON.stringify(d1).includes('x@y.de'));
+  assert.equal(d1.fingerprint, d2.fingerprint, 'gleicher Fehler → gleiche Kennung');
+  assert.notEqual(d1.fingerprint, ER.describeError(new Error('Etwas anderes'), { route: '/admin/faelle/' }).fingerprint);
+});
+test('Fehlerbericht: Alarm nur über https, entdoppelt, begrenzt, und nie werfend', async () => {
+  ER._resetErrorReporter();
+  const origErr = console.error; console.error = () => {};
+  try {
+    const calls = [];
+    const ok = async (url, init) => { calls.push([url, JSON.parse(init.body)]); return { ok: true }; };
+    const env = { ALERT_WEBHOOK_URL: 'https://hooks.example/abc', ING_ENV: 'staging' };
+    assert.deepEqual(await ER.reportError(new Error('A'), { route: '/x' }, env, ok), { logged: true, alerted: true });
+    assert.deepEqual(await ER.reportError(new Error('A'), { route: '/x' }, env, ok), { logged: true, alerted: false }, 'derselbe Fehler binnen 5 Minuten');
+    assert.match(calls[0][1].text, /ING \(staging\)/);
+    assert.deepEqual(await ER.reportError(new Error('B'), {}, { ALERT_WEBHOOK_URL: 'http://unsicher.example/' }, ok), { logged: true, alerted: false }, 'http wird nicht verwendet');
+    assert.deepEqual(await ER.reportError(new Error('C'), {}, {}, ok), { logged: true, alerted: false }, 'ohne Webhook nur Log');
+    const failing = async () => { throw new Error('Netz weg'); };
+    assert.deepEqual(await ER.reportError(new Error('D'), {}, env, failing), { logged: false, alerted: false }, 'ein kaputter Webhook darf die Anwendung nicht stören');
+    ER._resetErrorReporter();
+    let sent = 0; const count = async () => { sent++; return { ok: true }; };
+    for (let i = 0; i < 25; i++) await ER.reportError(new Error('Fehler ' + i), { route: '/r' + i }, env, count);
+    assert.equal(sent, 10, 'höchstens 10 Alarme pro Minute');
+  } finally { console.error = origErr; }
+});

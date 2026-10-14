@@ -22,7 +22,8 @@
     "db:check": "tsx --env-file=.env scripts/check-db.ts",
     "storage:migrate": "tsx --env-file=.env --conditions=react-server scripts/storage-migrate.ts",
     "mfa:rotate": "tsx --env-file=.env --conditions=react-server scripts/rotate-mfa-key.ts",
-    "secrets:generate": "node scripts/generate-secrets.mjs"
+    "secrets:generate": "node scripts/generate-secrets.mjs",
+    "mail:test": "tsx --env-file=.env scripts/send-test-mail.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1147.0",
