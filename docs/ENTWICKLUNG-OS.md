@@ -66,3 +66,19 @@ Ohne `DATABASE_URL` baut und läuft die öffentliche Website unverändert; `/adm
 - **Tests:** `npm run test:db` (91 Tests, u. a. parallele Doppelbuchung, Dateizugriff je Rolle, Upload-Prüfung, Rollback bei Fehlern).
 - **Hinweis S3-Treiber:** nur der LocalDriver ist automatisiert getestet; der S3Driver ist gegen einen echten Bucket noch nicht geprüft.
 - **Standard-Darstellung des Admin ist jetzt Hell** (Dunkel/System im Konto-Menü wählbar).
+
+
+## Browser-Prüfungen (End-to-End)
+
+Echte Maus-/Tastaturereignisse in Chrome (DevTools-Protokoll, keine Zusatzpakete) gegen den laufenden Server **und die echte Datenbank**. Voraussetzung: lokale Demo-Daten (`npm run seed:demo -- fixtures`), Chrome installiert (`CHROME_BIN` setzt einen anderen Pfad). Immer `BASE` angeben; Port 3100 kann von einem anderen Projekt belegt sein – dann läuft ING auf 3101.
+
+```bash
+BASE=http://localhost:3101 node tests/e2e/studio.e2e.mjs   # Desktop: Fenster, Andocken, Startmenü, Speichern, Rechte
+BASE=http://localhost:3101 node tests/e2e/mfa.e2e.mjs      # Zwei-Faktor-Anmeldung
+BASE=http://localhost:3101 node tests/e2e/mobile.e2e.mjs   # Smartphone: Schadenaufnahme mit Upload
+BASE=http://localhost:3101 node tests/e2e/chain.e2e.mjs    # Schaden → Kalkulation → Gutachten → Freigabe → PDF
+BASE=http://localhost:3101 node tests/e2e/intake.e2e.mjs   # Website-Formular → Eingang → Fall
+BASE=http://localhost:3200 node tests/e2e/perf.e2e.mjs     # LCP/CLS/Übertragung (Produktionsbuild)
+```
+
+Die Skripte räumen ihre Testdaten wieder auf. Für die MFA-Prüfung gegen einen Produktionsbuild `MFA_ENCRYPTION_KEY` beim Start setzen (ohne Schlüssel ist 2FA dort bewusst gesperrt).

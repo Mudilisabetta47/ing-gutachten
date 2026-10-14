@@ -42,6 +42,8 @@ try {
   const setVal = (sel, v) => pg.evalJs(`(()=>{const e=document.querySelector(${JSON.stringify(sel)}); if(!e) return false; const P=e.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:e.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(P,'value').set.call(e,${JSON.stringify(v)}); e.dispatchEvent(new Event('input',{bubbles:true})); e.dispatchEvent(new Event('change',{bubbles:true})); return true})()`);
   const view = async (label) => { await pg.evalJs(`[...document.querySelectorAll('.vi-modes[aria-label="Ansicht"] button')].find(b=>b.textContent.trim()===${JSON.stringify(label)})?.click()`); await sleep(350); };
   const partState = (name) => pg.evalJs(`(()=>{const g=[...document.querySelectorAll('.dm-svg g.is-click')].find(x=>x.getAttribute('aria-label').startsWith(${JSON.stringify(name)})); return g? g.getAttribute('aria-label') : null})()`);
+  /** Wartet, bis die Schaltfläche da und bedienbar ist (Seite fertig geladen), und klickt dann – wie ein Mensch. */
+  const btnWait = async (label, ms = 20000) => { await waitFor(() => pg.evalJs(`[...document.querySelectorAll('button')].some(b=>b.textContent.trim()===${JSON.stringify(label)} && !b.disabled)`), ms); await sleep(300); return btn(label); };
   const confirmYes = () => pg.evalJs('window.confirm = () => true');
 
   /* ---------- B: Fahrzeugbild → Schadenposition ---------- */
@@ -63,12 +65,12 @@ try {
   check('Bauteil „Kotflügel vorn rechts“ ist anklickbar', Boolean(pt));
   await pg.click(pt.x, pt.y);
   await waitFor(async () => (await text()).includes('Eintrag hinzufügen'));
-  await btn('Eintrag hinzufügen');
+  await btnWait('Eintrag hinzufügen');
   await waitFor(() => pg.evalJs(`!!document.querySelector('.dm-form')`));
   await pg.evalJs(`[...document.querySelectorAll('.dm-sev label')].find(l=>/schwer/i.test(l.textContent)).click()`);
   await pg.evalJs(`(()=>{const sels=[...document.querySelectorAll('.dm-form select')]; const set=(s,t)=>{const o=[...s.options].find(o=>o.value===t); Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(s,o.value); s.dispatchEvent(new Event('change',{bubbles:true}));}; set(sels[0],'Verformung'); set(sels[1],'Ersetzen');})()`);
   await setVal('.dm-form textarea', 'E2E Kotflügel eingedrückt');
-  await btn('Eintrag speichern');
+  await btnWait('Eintrag speichern');
   check('Schadenposition gespeichert: Bauteil, Ansicht, Zustand, Schweregrad, Maßnahme', await waitFor(() => sql(`select part_id||'|'||kind||'|'||severity||'|'||repair_kind from damages where case_id='${caseId}' and description like 'E2E %'`) === 'fender_fr|CURRENT|HEAVY|Ersetzen'));
   const withPart = [];
   for (const l of labels) { const v = l; await view(v); const s = await partState('Kotflügel vorn rechts'); if (s) withPart.push([v, s]); }
@@ -77,7 +79,7 @@ try {
 
   /* ---------- Kalkulation aus den Schäden ---------- */
   await pg.goto(`${BASE}/admin/faelle/${nr}/?tab=kalkulation`, 3000);
-  await btn('Kalkulation anlegen');
+  await btnWait('Kalkulation anlegen');
   check('Kalkulation Version 1 angelegt (Fallstatus „Kalkulation“)', await waitFor(() => sql(`select count(*) from calculations where case_id='${caseId}'`) === '1') && sql(`select status from cases where id='${caseId}'`) === 'CALCULATION');
   await sleep(2000);
   // Schaltfläche abwarten (Seite muss geladen und „hydriert“ sein) und notfalls erneut klicken – wie ein Mensch, der nochmal tippt
@@ -100,13 +102,13 @@ try {
 
   /* ---------- C: Gutachten → Prüfung → Freigabe → PDF ---------- */
   await pg.goto(`${BASE}/admin/faelle/${nr}/?tab=gutachten`, 3000);
-  await btn('Gutachten anlegen');
+  await btnWait('Gutachten anlegen');
   check('Gutachten angelegt (GA-JJJJ-NNNNN), Fallstatus „Gutachten-Entwurf“', await waitFor(() => /^GA-\d{4}-\d{5}$/.test(sql(`select number from reports where case_id='${caseId}'`))) && sql(`select status from cases where id='${caseId}'`) === 'REPORT_DRAFT');
   await sleep(2500);
   const draftPdf = await pg.evalJs(`fetch('/api/admin/gutachten/${sql(`select id from reports where case_id='${caseId}'`)}/pdf/').then(async r=>({s:r.status,t:r.headers.get('content-type'),h:new TextDecoder().decode((await r.arrayBuffer()).slice(0,5))}))`);
   check('Entwurfs-PDF abrufbar (mit Wasserzeichen „Entwurf“)', draftPdf.s === 200 && draftPdf.h === '%PDF-');
   await confirmYes();
-  await btn('Zur Prüfung einreichen');
+  await btnWait('Zur Prüfung einreichen');
   check('Zur Prüfung eingereicht', await waitFor(() => sql(`select status from reports where case_id='${caseId}'`) === 'IN_REVIEW', 20000));
   await login('pruefer@demo.ing.test');
   await pg.goto(`${BASE}/admin/faelle/${nr}/?tab=gutachten`, 3500);
