@@ -17,6 +17,7 @@ const hasAuth = (part, src) => AUTH.test(part) || helperNames(src).some((h) => n
 const PUBLIC_ROUTES = {
   'src/app/api/anfrage/route.ts': 'öffentliches Formular: Origin-Prüfung, Honeypot, Mindestzeit, Rate-Limit, Dateityp aus Inhalt, Größenlimits',
   'src/app/api/health/route.ts': 'Betriebsprüfung ohne Daten; Details nur mit HEALTH_TOKEN',
+  'src/app/api/monitor/check/route.ts': 'Verfügbarkeitsüberwachung; ohne MONITOR_SECRET (Bearer) 401 und keine Daten',
 };
 const PUBLIC_ACTIONS = {
   'src/app/admin/(auth)/login/actions.ts': 'Anmeldung selbst (Drosselung, Sperre, Zwei-Faktor-Aufgabe)',

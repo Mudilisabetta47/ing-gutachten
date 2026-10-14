@@ -1,9 +1,10 @@
 /**
  * Fehlerüberwachung ohne Fremddienst-Zwang: strukturierte Fehlerzeile im Log (Vercel Log Drain / Alerts können darauf filtern)
- * und – wenn ALERT_WEBHOOK_URL gesetzt ist (https, z. B. Slack/Teams/Mattermost-Eingang) – eine knappe Alarmmeldung.
+ * und – wenn ALERT_WEBHOOK_URL gesetzt ist (https, z. B. Slack/Teams/Mattermost-Eingang) – eine knappe Alarmmeldung; ALERT_EMAIL_TO (kommagetrennt, höchstens 3) schickt dieselbe Meldung per E-Mail über den Mail-Anbieter.
  * Personenbezogene Daten gehören nicht hinein: E-Mail-Adressen, Telefonnummern, Tokens und Query-Strings werden entfernt.
  */
 import { createHash } from 'node:crypto';
+import { alertMailer, alertRecipients, type AlertMailer } from './mail/alert';
 
 export type ErrorContext = { route?: string; method?: string; kind?: string; digest?: string; env?: string; release?: string };
 
@@ -36,12 +37,14 @@ const DEDUPE_MS = 5 * 60_000;
 const MAX_PER_MIN = 10;
 
 /** Meldet einen Fehler (nie werfend). Gleiche Fehler höchstens alle 5 Minuten, insgesamt höchstens 10 Meldungen pro Minute an den Webhook. */
-export async function reportError(err: unknown, ctx: ErrorContext = {}, env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch): Promise<{ logged: boolean; alerted: boolean }> {
+export async function reportError(err: unknown, ctx: ErrorContext = {}, env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch, mailer: AlertMailer = alertMailer(env)): Promise<{ logged: boolean; alerted: boolean }> {
   try {
     const d = describeError(err, { env: env.ING_ENV ?? env.VERCEL_ENV ?? 'development', release: (env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7) || undefined, ...ctx });
     console.error(JSON.stringify(d));
     const url = env.ALERT_WEBHOOK_URL ?? '';
-    if (!/^https:\/\//.test(url)) return { logged: true, alerted: false };
+    const hook = /^https:\/\//.test(url);
+    const mail = alertRecipients(env).length > 0;
+    if (!hook && !mail) return { logged: true, alerted: false };
     const now = Date.now();
     if (now - (seen.get(d.fingerprint) ?? 0) < DEDUPE_MS) return { logged: true, alerted: false };
     while (sentLog.length && now - sentLog[0] > 60_000) sentLog.shift();
@@ -49,8 +52,13 @@ export async function reportError(err: unknown, ctx: ErrorContext = {}, env: Nod
     seen.set(d.fingerprint, now); sentLog.push(now);
     if (seen.size > 500) for (const [k, t] of seen) if (now - t > DEDUPE_MS) seen.delete(k);
     const text = `🔴 ING (${d.env}) ${d.kind ?? 'Fehler'}: ${d.name}: ${d.message}${d.route ? `\nRoute: ${d.method ?? ''} ${d.route}` : ''}\nKennung ${d.fingerprint}${d.release ? ` · Stand ${d.release}` : ''}`;
-    const res = await fetcher(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, content: text, fingerprint: d.fingerprint }), signal: AbortSignal.timeout(3000) });
-    return { logged: true, alerted: res.ok };
+    let alerted = false;
+    if (hook) {
+      const res = await fetcher(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, content: text, fingerprint: d.fingerprint }), signal: AbortSignal.timeout(3000) }).catch(() => null);
+      alerted = Boolean(res?.ok);
+    }
+    if (mail) alerted = (await mailer(`🔴 ING (${d.env}): ${d.name}`, text)) || alerted;
+    return { logged: true, alerted };
   } catch {
     return { logged: false, alerted: false };
   }

@@ -27,12 +27,16 @@ export function evaluatePreflight(env: Env, target: Target, other?: Env): Findin
     need(!['localhost', '127.0.0.1', '::1', ''].includes(host), 'Datenbank liegt nicht lokal', 'DATABASE_URL zeigt auf eine lokale Datenbank');
     need(/sslmode=(require|verify-full|verify-ca)/i.test(db), 'Datenbankverbindung verlangt TLS (sslmode)', 'DATABASE_URL ohne sslmode=require – unverschlüsselte Verbindung möglich');
     need(!/^postgres(ql)?:\/\/[^:]+:(password|postgres|admin|123)/i.test(db), 'Datenbankpasswort nicht trivial', 'Datenbankpasswort wirkt trivial');
+    // Supabase: Die direkte Verbindung (db.<ref>.supabase.co) ist IPv6-only (IPv4 nur mit kostenpflichtigem Add-on); Serverless-Apps gehören an den Transaction-Pooler (Port 6543, Benutzer postgres.<ref>).
+    if (/^db\.[a-z0-9-]+\.supabase\.co$/i.test(host)) warn('DATABASE_URL zeigt auf die direkte Supabase-Verbindung (IPv6, ohne Pooler). Für die laufende App den Transaction-Pooler (…pooler.supabase.com, Port 6543) verwenden; die direkte URL nur für Migrationen/Sicherung (BACKUP_DATABASE_URL).');
+    else if (/pooler\.supabase\.com$/i.test(host) && !/:6543\//.test(db)) warn('Supabase-Pooler ohne Port 6543: für die Serverless-App den Transaction-Modus (6543) verwenden; der Session-Modus (5432) ist für Migrationen/Sicherung gedacht.');
   }
   need(env.ALLOW_REMOTE_DB !== 'yes', 'ALLOW_REMOTE_DB nicht gesetzt', 'ALLOW_REMOTE_DB=yes ist gesetzt (nur für lokale Wartung gedacht) – entfernen');
   need(env.ALLOW_PRODUCTION_BOOTSTRAP !== 'yes', 'ALLOW_PRODUCTION_BOOTSTRAP nicht (mehr) gesetzt', 'ALLOW_PRODUCTION_BOOTSTRAP=yes ist noch gesetzt – nach der Einrichtung des Inhabers entfernen', 'warn');
 
   // Speicher
   need((env.STORAGE_DRIVER ?? '').toLowerCase() === 's3', 'Dateispeicher: S3-kompatibel', 'STORAGE_DRIVER muss „s3“ sein (lokal ist auf Vercel/Echtbetrieb verboten)');
+  if (env.S3_ENDPOINT) need(/^https:\/\//.test(env.S3_ENDPOINT), 'S3_ENDPOINT ist https', 'S3_ENDPOINT muss mit https:// beginnen');
   const s3 = ['S3_BUCKET_PRIVATE', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'].every((k) => Boolean(env[k]));
   need(s3, 'S3-Zugang vollständig', 'S3_BUCKET_PRIVATE / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY unvollständig');
   need(!env.STORAGE_LOCAL_DIR, 'kein lokales Speicherverzeichnis gesetzt', 'STORAGE_LOCAL_DIR ist gesetzt – in Staging/Produktion entfernen', 'warn');
@@ -66,6 +70,15 @@ export function evaluatePreflight(env: Env, target: Target, other?: Env): Findin
   need(/^https:\/\//.test(env.ALERT_WEBHOOK_URL ?? ''), 'Alarm-Webhook (https) gesetzt', 'ALERT_WEBHOOK_URL fehlt – Fehler lösen keinen Alarm aus (nur Log)', 'warn');
   need((env.HEALTH_TOKEN ?? '').length >= 16, 'HEALTH_TOKEN gesetzt (Detail-Gesundheitsprüfung möglich)', 'HEALTH_TOKEN fehlt (<16 Zeichen) – Überwachung sieht nur „ok/degraded“', 'warn');
 
+  const alertTo = (env.ALERT_EMAIL_TO ?? '').trim();
+  if (alertTo) need(alertTo.split(',').every((a) => /^[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+$/.test(a.trim())) && alertTo.split(',').length <= 3, 'ALERT_EMAIL_TO enthält gültige Adressen (höchstens 3)', 'ALERT_EMAIL_TO enthält ungültige Adressen oder mehr als 3');
+  else warn('ALERT_EMAIL_TO fehlt – Fehler und Störungen lösen keine E-Mail aus');
+  need((env.MONITOR_SECRET ?? '').length >= 16, 'MONITOR_SECRET gesetzt (Verfügbarkeitsüberwachung möglich)', 'MONITOR_SECRET fehlt (<16 Zeichen) – /api/monitor/check bleibt gesperrt, keine Störungs-Mails', 'warn');
+  if (alertTo && target === 'staging' && allow) {
+    const allowed = allow.toLowerCase().split(',').map((x) => x.trim());
+    need(alertTo.toLowerCase().split(',').every((a) => allowed.some((p) => (p.startsWith('@') ? a.trim().endsWith(p) : a.trim() === p))), 'ALERT_EMAIL_TO ist in der Positivliste', 'ALERT_EMAIL_TO steht nicht in MAIL_ALLOWED_RECIPIENTS – Alarm-Mails würden blockiert');
+  }
+
   // Anmeldung
   const maxTry = Number(env.LOGIN_MAX_ATTEMPTS ?? 5);
   need(maxTry >= 1 && maxTry <= 10, `Login-Sperre nach ${maxTry} Fehlversuchen`, `LOGIN_MAX_ATTEMPTS=${env.LOGIN_MAX_ATTEMPTS} ist zu großzügig (höchstens 10)`);
@@ -79,7 +92,7 @@ export function evaluatePreflight(env: Env, target: Target, other?: Env): Findin
   if (other) {
     const same: string[] = [];
     if (dbTarget(env.DATABASE_URL ?? '') && dbTarget(env.DATABASE_URL ?? '') === dbTarget(other.DATABASE_URL ?? '')) same.push('Datenbank');
-    for (const k of ['S3_BUCKET_PRIVATE', 'STORAGE_ENCRYPTION_KEY', 'MFA_ENCRYPTION_KEY', 'IP_HASH_SALT', 'HEALTH_TOKEN', 'BACKUP_ENCRYPTION_KEY', 'S3_ACCESS_KEY_ID']) if (env[k] && env[k] === other[k]) same.push(k);
+    for (const k of ['S3_BUCKET_PRIVATE', 'STORAGE_ENCRYPTION_KEY', 'MFA_ENCRYPTION_KEY', 'IP_HASH_SALT', 'HEALTH_TOKEN', 'MONITOR_SECRET', 'BACKUP_ENCRYPTION_KEY', 'S3_ACCESS_KEY_ID']) if (env[k] && env[k] === other[k]) same.push(k);
     need(same.length === 0, 'Staging und Produktion teilen nichts (Datenbank, Bucket, Schlüssel getrennt)', `Mit der anderen Umgebung identisch: ${same.join(', ')} – getrennt halten`);
   }
   return f;

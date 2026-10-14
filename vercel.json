@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["fra1"],
+  "git": { "deploymentEnabled": { "feature/ing-operating-system": false } },
   "redirects": [
     { "source": "/bagatellschaeden", "destination": "/pkw-gutachten", "permanent": true },
     { "source": "/bagatellschaeden/", "destination": "/pkw-gutachten", "permanent": true }

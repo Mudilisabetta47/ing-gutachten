@@ -11,6 +11,7 @@ console.log(`MFA_ENCRYPTION_KEY=${b64(32)}`);
 console.log(`STORAGE_ENCRYPTION_KEY=${b64(32)}`);
 console.log(`IP_HASH_SALT=${b64(24)}`);
 console.log(`HEALTH_TOKEN=${b64(24)}`);
+console.log(`MONITOR_SECRET=${b64(24)}`);
 console.log(`BACKUP_ENCRYPTION_KEY=${b64(32)}`);
 console.log('\n# Verlust von MFA_ENCRYPTION_KEY: 2FA muss für alle Konten zurückgesetzt werden.');
 console.log('# Verlust von STORAGE_ENCRYPTION_KEY: Fotos/Dokumente sind NICHT wiederherstellbar → Schlüssel zusätzlich offline sichern (Tresor/zwei Personen).');

@@ -436,7 +436,7 @@ test('Fehlerbericht: Alarm nur über https, entdoppelt, begrenzt, und nie werfen
     assert.deepEqual(await ER.reportError(new Error('B'), {}, { ALERT_WEBHOOK_URL: 'http://unsicher.example/' }, ok), { logged: true, alerted: false }, 'http wird nicht verwendet');
     assert.deepEqual(await ER.reportError(new Error('C'), {}, {}, ok), { logged: true, alerted: false }, 'ohne Webhook nur Log');
     const failing = async () => { throw new Error('Netz weg'); };
-    assert.deepEqual(await ER.reportError(new Error('D'), {}, env, failing), { logged: false, alerted: false }, 'ein kaputter Webhook darf die Anwendung nicht stören');
+    assert.deepEqual(await ER.reportError(new Error('D'), {}, env, failing), { logged: true, alerted: false }, 'ein kaputter Webhook darf die Anwendung nicht stören');
     ER._resetErrorReporter();
     let sent = 0; const count = async () => { sent++; return { ok: true }; };
     for (let i = 0; i < 25; i++) await ER.reportError(new Error('Fehler ' + i), { route: '/r' + i }, env, count);
@@ -465,10 +465,62 @@ test('Vorabprüfung: typische Fehlkonfigurationen werden gefunden', () => {
   assert.ok(errs({ ...GOOD, NEXT_PUBLIC_API_SECRET: 'x' }).some((m) => m.includes('NEXT_PUBLIC_API_SECRET')));
   assert.ok(errs({ ...GOOD, S3_BUCKET_PUBLIC: 'ing-prod-private' }).some((m) => m.includes('identisch')));
 });
+const warns = (e, t = 'production') => PF.evaluatePreflight(e, t).filter((x) => x.level === 'warn').map((x) => x.msg);
+test('Vorabprüfung: Supabase-Direktverbindung für die App, fehlende Alarm-Mail, Alarm-Mail außerhalb der Positivliste', () => {
+  assert.ok(warns(GOOD).some((m) => m.includes('direkte Supabase-Verbindung')));
+  const pooled = { ...GOOD, DATABASE_URL: 'postgresql://postgres.abcd:Xk3pQ9vLmN2wRt8sYb4@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require' };
+  assert.ok(!warns(pooled).some((m) => m.includes('Supabase')));
+  assert.ok(warns({ ...pooled, DATABASE_URL: pooled.DATABASE_URL.replace(':6543', ':5432') }).some((m) => m.includes('Port 6543')));
+  assert.ok(warns(GOOD).some((m) => m.includes('ALERT_EMAIL_TO fehlt')));
+  assert.ok(errs({ ...GOOD, ALERT_EMAIL_TO: 'kaputt' }).some((m) => m.includes('ALERT_EMAIL_TO')));
+  assert.ok(errs({ ...GOOD, S3_ENDPOINT: 'http://unsicher.example' }).some((m) => m.includes('S3_ENDPOINT')));
+  const st = { ...GOOD, ING_ENV: 'staging', MAIL_TO: 'test@beispiel.de', MAIL_ALLOWED_RECIPIENTS: 'test@beispiel.de', ALERT_EMAIL_TO: 'andere@beispiel.de' };
+  assert.ok(errs(st, 'staging').some((m) => m.includes('ALERT_EMAIL_TO steht nicht')));
+  assert.ok(!errs({ ...st, ALERT_EMAIL_TO: 'test@beispiel.de' }, 'staging').some((m) => m.includes('ALERT_EMAIL_TO')));
+});
 test('Vorabprüfung: Staging verlangt die Empfänger-Positivliste; Vergleich mit Produktion findet geteilte Ressourcen', () => {
   const st = { ...GOOD, ING_ENV: 'staging', S3_BUCKET_PRIVATE: 'ing-staging-private', STORAGE_ENCRYPTION_KEY: 'Uy1zdGFnaW5nLXN0b3JhZ2Uta2V5LXVuaXF1ZS02NjU1', MFA_ENCRYPTION_KEY: 'Uy1zdGFnaW5nLW1mYS1rZXktdW5pcXVlLTc3NDQzMw', IP_HASH_SALT: 'zzyyxxwwvvuuttss11', BACKUP_ENCRYPTION_KEY: 'Uy1zdGFnaW5nLWJhY2t1cC1rZXktdW5pcXVlLTU1', HEALTH_TOKEN: 'staging-health-token-0123456789', DATABASE_URL: 'postgresql://app:Xk3pQ9vLmN2wRt8sYb4@db.staging-host.supabase.co:5432/postgres?sslmode=require', S3_ACCESS_KEY_ID: 'AKIASTAGING' };
   assert.ok(errs(st, 'staging').some((m) => m.includes('MAIL_ALLOWED_RECIPIENTS')));
   assert.deepEqual(errs({ ...st, MAIL_TO: 'test@beispiel.de', MAIL_ALLOWED_RECIPIENTS: 'test@beispiel.de' }, 'staging', GOOD), []);
   const shared = errs({ ...st, MAIL_TO: 'test@beispiel.de', MAIL_ALLOWED_RECIPIENTS: 'test@beispiel.de', DATABASE_URL: GOOD.DATABASE_URL, S3_BUCKET_PRIVATE: GOOD.S3_BUCKET_PRIVATE, MFA_ENCRYPTION_KEY: GOOD.MFA_ENCRYPTION_KEY }, 'staging', GOOD).join(' ');
   assert.ok(shared.includes('Datenbank') && shared.includes('S3_BUCKET_PRIVATE') && shared.includes('MFA_ENCRYPTION_KEY'));
+});
+
+/* ------------------------------------------------------------ Überwachung per E-Mail */
+const MON = lib('monitor');
+const ALERT = lib('mail/alert');
+test('Überwachung: eine Mail bei Störung, Erinnerung erst nach 6 h, Entwarnung bei Erholung – kein Dauerfeuer', () => {
+  const t0 = new Date('2026-10-14T10:00:00Z');
+  let r = MON.decideMonitor(null, true, [], t0);
+  assert.equal(r.action, 'none');
+  r = MON.decideMonitor(r.state, false, ['database'], new Date(t0.getTime() + 60_000));
+  assert.equal(r.action, 'alert');
+  const down = r.state;
+  r = MON.decideMonitor(down, false, ['database'], new Date(t0.getTime() + 5 * 60_000));
+  assert.equal(r.action, 'none', 'derselbe Ausfall: keine zweite Mail');
+  r = MON.decideMonitor(down, false, ['database', 'storage'], new Date(t0.getTime() + 6 * 60_000));
+  assert.equal(r.action, 'alert', 'anderer Befund: neue Meldung');
+  r = MON.decideMonitor(down, false, ['database'], new Date(t0.getTime() + 7 * 3600_000));
+  assert.equal(r.action, 'reminder');
+  r = MON.decideMonitor(down, true, [], new Date(t0.getTime() + 3600_000));
+  assert.equal(r.action, 'recovered');
+  assert.equal(MON.decideMonitor(r.state, true, [], new Date(t0.getTime() + 7200_000)).action, 'none');
+  const m = MON.monitorMailText('alert', 'staging', ['storage'], '2026-10-14T10:01:00Z');
+  assert.match(m.subject, /staging.*storage/); assert.ok(!/@|postgres:/i.test(m.text), 'keine Adressen/Verbindungen im Text');
+});
+test('Alarm-Mail: nur gültige Empfänger (höchstens 3), nie werfend, Fehlerbericht schickt auch per Mail', async () => {
+  assert.deepEqual(ALERT.alertRecipients({ ALERT_EMAIL_TO: 'a@x.de, kaputt, b@y.de;c@z.de, d@e.de,f@g.de,h@i.de' }), ['a@x.de', 'd@e.de', 'f@g.de']);
+  assert.deepEqual(ALERT.alertRecipients({}), []);
+  assert.equal(await ALERT.alertMailer({})('s', 't'), false, 'ohne Empfänger nichts');
+  assert.equal(await ALERT.alertMailer({ ALERT_EMAIL_TO: 'a@x.de' })('s', 't'), false, 'ohne Mail-Konfiguration nichts, aber kein Fehler');
+  ER._resetErrorReporter();
+  const origErr = console.error; console.error = () => {};
+  try {
+    const sent = [];
+    const mailer = async (subject, text) => { sent.push([subject, text]); return true; };
+    const env = { ALERT_EMAIL_TO: 'betrieb@x.de', ING_ENV: 'staging' };
+    assert.deepEqual(await ER.reportError(new Error('Boom a@b.de'), { route: '/x' }, env, async () => ({ ok: true }), mailer), { logged: true, alerted: true });
+    assert.deepEqual(await ER.reportError(new Error('Boom a@b.de'), { route: '/x' }, env, async () => ({ ok: true }), mailer), { logged: true, alerted: false }, 'entdoppelt');
+    assert.equal(sent.length, 1); assert.ok(!sent[0][1].includes('a@b.de'), 'keine Mailadresse im Alarmtext');
+  } finally { console.error = origErr; ER._resetErrorReporter(); }
 });

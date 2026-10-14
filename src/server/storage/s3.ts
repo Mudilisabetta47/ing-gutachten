@@ -10,7 +10,10 @@ export function s3Driver(cfg: S3Config): StorageDriver {
   const client = new S3Client({
     region: cfg.region,
     endpoint: cfg.endpoint || undefined,
-    forcePathStyle: Boolean(cfg.endpoint), // R2/MinIO
+    forcePathStyle: Boolean(cfg.endpoint), // R2/MinIO/Supabase
+    // Neuere SDK-Versionen hängen standardmäßig Prüfsummen-Header an; S3-kompatible Dienste (u. a. Supabase Storage unterstützt z. B. kein Content-MD5) lehnen das teils ab.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
     credentials: { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey },
   });
   const check = (key: string) => {
