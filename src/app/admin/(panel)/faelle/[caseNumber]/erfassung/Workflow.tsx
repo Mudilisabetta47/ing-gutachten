@@ -1,15 +1,15 @@
 'use client';
 
-import { useActionState, useRef, useState, useTransition } from 'react';
+import { useActionState, useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminIcon } from '@/components/admin/AdminIcon';
 import { Alert, Field } from '@/components/admin/ui';
-import { DamageForm, MediaUploader } from '@/components/admin/work';
+import { DamageMap } from '@/components/admin/DamageMap';
+import { MediaUploader } from '@/components/admin/work';
 import { FormError } from '@/components/admin/forms';
 import { useToast } from '@/components/admin/Toast';
 import type { FormState } from '@/server/admin/form';
-import { addDamageAction } from '../../work-actions';
-import { finishInspectionAction, saveInspectionAction } from '../../work-actions';
+import { appointmentStatusAction, finishInspectionAction, saveInspectionAction } from '../../work-actions';
 
 const STEPS = ['Fahrzeug', 'Fotos', 'Schäden', 'Notiz', 'Abschluss'] as const;
 const WEATHER = ['Trocken', 'Regen', 'Bewölkt', 'Schnee/Eis', 'Dunkel/Halle'];
@@ -29,8 +29,45 @@ type Props = {
   types: readonly string[];
   repairs: readonly string[];
   canPhotos: boolean;
+  canDocs: boolean;
+  docCategories: [string, string][];
   storage: boolean;
+  canDamage: boolean;
+  mapDamages: React.ComponentProps<typeof DamageMap>['damages'];
+  mapPhotos: React.ComponentProps<typeof DamageMap>['photos'];
 };
+
+/** Hinweis, wenn die Verbindung fehlt: Es gibt bewusst keinen Offline-Betrieb – Eingaben werden erst gespeichert, wenn der Server erreichbar ist. */
+function OnlineBanner() {
+  const [online, setOnline] = useState(true);
+  useEffect(() => {
+    setOnline(navigator.onLine);
+    const on = () => setOnline(true), off = () => setOnline(false);
+    window.addEventListener('online', on); window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  return online ? null : <Alert tone="danger" icon="alert">Keine Verbindung. Offline-Betrieb ist nicht verfügbar – Fotos, Schäden und Notizen werden erst gespeichert, wenn die Verbindung wieder steht. Bitte nichts schließen, bis „Gespeichert“ erscheint.</Alert>;
+}
+
+/** Termin kann nicht stattfinden (Kunde nicht angetroffen, abgesagt): Status direkt am Fahrzeug setzen. */
+function AppointmentIssue({ appointmentId, caseNumber }: { appointmentId: string; caseNumber: string }) {
+  const router = useRouter();
+  const [state, run, pending] = useActionState<FormState, FormData>(appointmentStatusAction, {});
+  useEffect(() => { if (state.ok) router.push(`/admin/faelle/${caseNumber}/`); }, [state.ok, router, caseNumber]);
+  return (
+    <details className="wf-issue">
+      <summary>Termin kann nicht stattfinden?</summary>
+      <form action={run} style={{ display: 'grid', gap: 10, marginTop: 10 }}>
+        <input type="hidden" name="id" value={appointmentId} />
+        <input type="hidden" name="caseNumber" value={caseNumber} />
+        <Field label="Status"><select name="status" className="adm-input" defaultValue="NO_SHOW"><option value="NO_SHOW">Kunde nicht angetroffen</option><option value="CANCELLED">Termin absagen</option></select></Field>
+        <Field label="Grund (Pflicht)"><input name="reason" className="adm-input" maxLength={300} placeholder="z. B. niemand vor Ort, Rückruf vereinbart" /></Field>
+        <FormError state={state} />
+        <button type="submit" className="adm-btn adm-btn-secondary" disabled={pending}>Status setzen</button>
+      </form>
+    </details>
+  );
+}
 
 /** Mobiler Gutachter-Workflow: Fahrzeug prüfen → Fotos → Schäden → Notiz → Abschluss. Eingaben werden bei jedem Schritt gesichert. */
 export function InspectionWorkflow(p: Props) {
@@ -72,6 +109,7 @@ export function InspectionWorkflow(p: Props) {
     <div style={{ display: 'grid', gap: 16 }}>
       <ol className="wf-steps" aria-label="Fortschritt">{STEPS.map((s, i) => <li key={s} data-on={i <= step} aria-current={i === step ? 'step' : undefined} title={s} />)}</ol>
       <h2 style={{ margin: 0, fontSize: 20 }}>{step + 1}. {STEPS[step]}</h2>
+      <OnlineBanner />
       {saveState.error && <Alert tone="danger">{saveState.error}</Alert>}
 
       {step === 0 && (
@@ -83,6 +121,7 @@ export function InspectionWorkflow(p: Props) {
           <Field label="Kilometerstand (Tacho)" hint={p.vehicle.mileage ? `Erfasst: ${p.vehicle.mileage.toLocaleString('de-DE')} km` : 'Bitte am Fahrzeug ablesen'}>
             <input inputMode="numeric" value={odometer} onChange={(e) => setOdometer(e.target.value)} className="adm-input" placeholder="z. B. 84210" name="odometer" />
           </Field>
+          <AppointmentIssue appointmentId={p.appointmentId} caseNumber={p.caseNumber} />
           <p className="t-3" style={{ margin: 0 }}>Stimmen Kennzeichen und FIN mit dem Fahrzeug überein? Abweichungen bitte im nächsten Schritt als Foto und in der Notiz festhalten.</p>
         </div>
       )}
@@ -100,17 +139,22 @@ export function InspectionWorkflow(p: Props) {
             <Alert tone="warn">Der Foto-Upload ist nicht verfügbar (kein Speicher eingerichtet oder keine Berechtigung).</Alert>
           )}
           <p className="t-3" style={{ margin: 0 }}>Gesamt: {p.photoTotal} Foto(s). Jedes Foto ist sofort gespeichert.</p>
+          {p.canDocs && p.storage && (
+            <section aria-label="Dokumente" style={{ display: 'grid', gap: 8 }}>
+              <h3 style={{ margin: '6px 0 0', fontSize: 15 }}>Dokumente (Fahrzeugschein, Vollmacht …)</h3>
+              <MediaUploader target="document" caseId={p.caseId} categories={p.docCategories} defaultCategory="REGISTRATION" capture compact />
+            </section>
+          )}
         </div>
       )}
 
       {step === 2 && (
         <div style={{ display: 'grid', gap: 14 }}>
-          {p.damages.length > 0 && (
-            <ul className="adm-list">{p.damages.map((d) => <li key={d.id}><span className="main"><span>{d.label}</span><span className="secondary">{d.sub}</span></span></li>)}</ul>
+          {p.canDamage ? (
+            <DamageMap caseId={p.caseId} caseNumber={p.caseNumber} canWrite damages={p.mapDamages} photos={p.mapPhotos} damageTypes={p.types} repairKinds={p.repairs} />
+          ) : (
+            <Alert tone="warn">Für die Schadenerfassung fehlt die Berechtigung.</Alert>
           )}
-          <div className="adm-panel">
-            <DamageForm key={p.damages.length} action={addDamageAction} caseId={p.caseId} caseNumber={p.caseNumber} areas={p.areas} types={p.types} repairs={p.repairs} submitLabel="Schaden hinzufügen" />
-          </div>
         </div>
       )}
 

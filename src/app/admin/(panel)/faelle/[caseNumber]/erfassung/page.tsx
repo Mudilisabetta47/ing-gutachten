@@ -5,7 +5,7 @@ import { orNotFound } from '@/server/admin/safe';
 import { getCase } from '@/server/pipeline/cases';
 import { caseAppointments } from '@/server/pipeline/appointments';
 import { getInspection } from '@/server/pipeline/inspection';
-import { listCasePhotos, PHOTO_CATEGORIES, PHOTO_LABELS } from '@/server/pipeline/media';
+import { listCasePhotos, PHOTO_CATEGORIES, PHOTO_LABELS, DOCUMENT_CATEGORIES, DOCUMENT_LABELS } from '@/server/pipeline/media';
 import { AREA_LABELS, DAMAGE_AREAS, DAMAGE_TYPES, REPAIR_KINDS, listDamages } from '@/server/pipeline/damages';
 import { caseWorkSummary } from '@/server/pipeline/case-work';
 import { EmptyState, PageHeader, Alert, fmtWhen, mapsHref, phoneHref, qp } from '@/components/admin/ui';
@@ -97,7 +97,12 @@ export default async function InspectionPage({ params, searchParams }: { params:
         types={DAMAGE_TYPES}
         repairs={REPAIR_KINDS}
         canPhotos={work.can.photosWrite}
+        canDocs={work.can.docsWrite}
+        docCategories={DOCUMENT_CATEGORIES.map((k) => [k, DOCUMENT_LABELS[k]])}
         storage={work.storage}
+        canDamage={c.internalsVisible}
+        mapDamages={damages.map((d) => ({ id: d.id, partId: d.partId, view: d.view, kind: d.kind, severity: d.severity, component: d.component, area: d.area, damageType: d.damageType, repairKind: d.repairKind, description: d.description, priorNote: d.priorNote, photoIds: photos.filter((p) => p.damageId === d.id).map((p) => p.id) }))}
+        mapPhotos={photos.map((p) => ({ id: p.id, mediaId: p.mediaId, label: p.title || PHOTO_LABELS[p.category] || p.category, damageId: p.damageId }))}
       />
     </>
   );

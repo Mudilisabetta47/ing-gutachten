@@ -65,6 +65,13 @@ export async function newPage(port) {
     },
     async type(text) { for (const ch of text) { await send('Input.dispatchKeyEvent', { type: 'char', text: ch }); } },
     async rect(sel) { return evalJs(`(()=>{const e=document.querySelector(${JSON.stringify(sel)}); if(!e) return null; const r=e.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height,cx:r.x+r.width/2,cy:r.y+r.height/2}})()`); },
+    /** Datei in ein <input type=file> legen (wie die Auswahl im Dateidialog). */
+    async upload(selector, files) {
+      const { root } = await send('DOM.getDocument', { depth: 0 });
+      const { nodeId } = await send('DOM.querySelector', { nodeId: root.nodeId, selector });
+      if (!nodeId) throw new Error('Eingabefeld nicht gefunden: ' + selector);
+      await send('DOM.setFileInputFiles', { nodeId, files: Array.isArray(files) ? files : [files] });
+    },
     close: () => { try { ws.close(); } catch { /* egal */ } },
   };
   return api;

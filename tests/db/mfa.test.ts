@@ -35,7 +35,7 @@ test('Geheimnis liegt verschlüsselt in der Datenbank und ist manipulationssiche
   assert.equal(row.mfaEnabledAt, null, 'noch nicht aktiv, bevor ein Code bestätigt wurde');
   const parts = row.mfaSecret!.split(':');
   parts[3] = parts[3].slice(0, -2) + (parts[3].endsWith('AA') ? 'BB' : 'AA');
-  assert.throws(() => decryptSecret(parts.join(':')), undefined, 'veränderter Text wird erkannt');
+  assert.throws(() => decryptSecret(parts.join(':')), Error, 'veränderter Text wird erkannt');
   assert.notEqual(encryptSecret('x'), encryptSecret('x'), 'jedes Mal anderer Initialisierungsvektor');
 });
 

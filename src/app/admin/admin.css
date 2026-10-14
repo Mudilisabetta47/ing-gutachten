@@ -527,7 +527,7 @@ dialog.adm-modal[open] { animation: adm-fade-in .16s ease-out; }
 
 /* ------------------------------ Toasts ------------------------------ */
 .adm-toasts { position: fixed; z-index: 100; right: 16px; bottom: 16px; display: grid; gap: 8px; width: min(380px, calc(100vw - 32px)); pointer-events: none; }
-.adm-toast { pointer-events: auto; display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--r-lg); background: rgb(var(--a-s3)); border: 1px solid rgb(var(--a-border) / var(--a-b-strong)); box-shadow: var(--a-shadow-pop); font-size: var(--fs-sm); animation: adm-toast-in .22s cubic-bezier(.16, 1, .3, 1); }
+.adm-toast { pointer-events: none; display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--r-lg); background: rgb(var(--a-s3)); border: 1px solid rgb(var(--a-border) / var(--a-b-strong)); box-shadow: var(--a-shadow-pop); font-size: var(--fs-sm); animation: adm-toast-in .22s cubic-bezier(.16, 1, .3, 1); }
 .adm-toast > svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
 .adm-toast[data-tone='ok'] > svg { color: rgb(var(--a-success)); }
 .adm-toast[data-tone='error'] > svg { color: rgb(var(--a-danger)); }
@@ -1026,3 +1026,8 @@ html.is-embedded .adm-shell,
 html.is-embedded .adm-shell[data-collapsed='true'] { grid-template-columns: minmax(0, 1fr) !important; }
 html.is-embedded .adm-main { max-width: none; padding: 16px 18px 40px; }
 html.is-embedded body { background: transparent; }
+
+.wf-issue { border: 1px solid rgb(var(--a-border) / var(--a-b-subtle)); border-radius: var(--r-lg); padding: 10px 12px; }
+.wf-issue summary { cursor: pointer; font-weight: 600; font-size: var(--fs-sm); }
+/* Hinweise verdecken nichts: nur ihr Schließen-Knopf nimmt Berührungen an (wichtig am Smartphone über der Schadenkarte) */
+.adm-toast button { pointer-events: auto; }
