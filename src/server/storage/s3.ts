@@ -22,6 +22,9 @@ export function s3Driver(cfg: S3Config): StorageDriver {
     async put(key, bytes, mimeType) {
       await client.send(new PutObjectCommand({ Bucket: cfg.bucket, Key: check(key), Body: bytes, ContentType: mimeType, ServerSideEncryption: undefined }));
     },
+    async overwrite(key, bytes, mimeType) {
+      await client.send(new PutObjectCommand({ Bucket: cfg.bucket, Key: check(key), Body: bytes, ContentType: mimeType })); // S3-PUT ersetzt atomar
+    },
     async get(key) {
       try {
         const res = await client.send(new GetObjectCommand({ Bucket: cfg.bucket, Key: check(key) }));

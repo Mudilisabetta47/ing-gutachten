@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     }
   }
 
+  if (!req.headers.get('content-length')) return fail(411, 'length_required', { message: 'Die Länge der Anfrage fehlt.' });
   const declared = Number(req.headers.get('content-length') ?? '0');
   if (declared > LIMITS.maxTotalBytes + 200_000) {
     return fail(413, 'too_large', { message: 'Die Dateien sind zusammen zu groß. Bitte weniger oder kleinere Fotos senden.' });

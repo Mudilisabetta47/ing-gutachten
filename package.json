@@ -19,7 +19,10 @@
     "create-owner": "tsx --env-file=.env scripts/create-owner.ts",
     "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts",
     "test:db": "node --env-file=.env.test ./node_modules/prisma/build/index.js migrate deploy && node --env-file=.env.test --conditions=react-server --import tsx --test --test-concurrency=1 tests/db/*.test.ts",
-    "db:check": "tsx --env-file=.env scripts/check-db.ts"
+    "db:check": "tsx --env-file=.env scripts/check-db.ts",
+    "storage:migrate": "tsx --env-file=.env --conditions=react-server scripts/storage-migrate.ts",
+    "mfa:rotate": "tsx --env-file=.env --conditions=react-server scripts/rotate-mfa-key.ts",
+    "secrets:generate": "node scripts/generate-secrets.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1147.0",
@@ -34,6 +37,7 @@
     "pdf-lib": "^1.17.1",
     "pg": "^8.23.1",
     "prisma": "^7.10.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
@@ -48,6 +52,7 @@
     "dotenv": "^18.0.6",
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.25",
+    "jsqr": "^1.4.0",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.23.15",

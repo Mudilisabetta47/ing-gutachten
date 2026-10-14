@@ -24,11 +24,17 @@ export const RECOVERY_CODES = 8;
 
 export const mfaAvailable = () => !PROD || (process.env.MFA_ENCRYPTION_KEY ?? '').length >= 32;
 
+const devKey = () => createHash('sha256').update('ing-dev-only-mfa-key').digest(); // nur lokale Entwicklung/Tests
 function key(): Buffer {
   const k = process.env.MFA_ENCRYPTION_KEY;
   if (k && k.length >= 32) return createHash('sha256').update(k).digest();
   if (PROD) throw new DomainError('Die Zwei-Faktor-Anmeldung ist auf diesem Server noch nicht eingerichtet (MFA_ENCRYPTION_KEY fehlt).');
-  return createHash('sha256').update('ing-dev-only-mfa-key').digest(); // nur lokale Entwicklung/Tests
+  return devKey();
+}
+/** Alter Schlüssel nur zum Lesen (Schlüsselwechsel): MFA_ENCRYPTION_KEY_PREVIOUS */
+function previousKey(): Buffer | null {
+  const k = process.env.MFA_ENCRYPTION_KEY_PREVIOUS;
+  return k && k.length >= 32 ? createHash('sha256').update(k).digest() : null;
 }
 export function encryptSecret(plain: string): string {
   const iv = randomBytes(12);
@@ -36,12 +42,33 @@ export function encryptSecret(plain: string): string {
   const ct = Buffer.concat([c.update(plain, 'utf8'), c.final()]);
   return ['v1', iv.toString('base64url'), c.getAuthTag().toString('base64url'), ct.toString('base64url')].join(':');
 }
-export function decryptSecret(blob: string): string {
+function decryptWith(k: Buffer, blob: string): string {
   const [v, iv, tag, ct] = blob.split(':');
   if (v !== 'v1' || !iv || !tag || !ct) throw new Error('Unbekanntes Format');
-  const d = createDecipheriv('aes-256-gcm', key(), Buffer.from(iv, 'base64url'));
+  const d = createDecipheriv('aes-256-gcm', k, Buffer.from(iv, 'base64url'));
   d.setAuthTag(Buffer.from(tag, 'base64url'));
   return Buffer.concat([d.update(Buffer.from(ct, 'base64url')), d.final()]).toString('utf8');
+}
+export function decryptSecret(blob: string): string {
+  try { return decryptWith(key(), blob); } catch (e) {
+    const prev = previousKey();
+    if (prev) return decryptWith(prev, blob);
+    throw e;
+  }
+}
+/** Schlüsselwechsel: alle gespeicherten Geheimnisse mit dem aktuellen Schlüssel neu verschlüsseln (alter Schlüssel als PREVIOUS gesetzt). */
+export async function rotateMfaSecrets(opts: { apply: boolean }) {
+  const rows = await db.user.findMany({ where: { mfaSecret: { not: null } }, select: { id: true, mfaSecret: true } });
+  let rotated = 0, current = 0; const errors: string[] = [];
+  for (const r of rows) {
+    try {
+      try { decryptWith(key(), r.mfaSecret!); current++; continue; } catch { /* alter Schlüssel? */ }
+      const plain = decryptSecret(r.mfaSecret!);
+      if (opts.apply) await db.user.update({ where: { id: r.id }, data: { mfaSecret: encryptSecret(plain) } });
+      rotated++;
+    } catch { errors.push(r.id); }
+  }
+  return { total: rows.length, rotated, current, errors };
 }
 
 const hashToken = (t: string) => createHash('sha256').update(t).digest('hex');

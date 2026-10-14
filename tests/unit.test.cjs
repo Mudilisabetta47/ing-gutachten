@@ -334,3 +334,55 @@ test('Audit: jede Schnittstelle, Server-Action und Admin-Seite prüft Anmeldung/
   assert.deepEqual(problems, []);
   assert.ok(info.routes >= 12 && info.actions >= 100 && info.pages >= 50, 'es wurde wirklich etwas geprüft');
 });
+
+/* ------------------------------------------------------------ QR-Code der Zwei-Faktor-Einrichtung */
+test('QR-Code: der erzeugte Code lässt sich wieder auslesen und liefert genau die otpauth-Adresse', () => {
+  const qrcode = require('qrcode-generator');
+  const jsQR = require('jsqr');
+  const uri = T.otpauthUri('inhaber@ing-gutachten.example', T.newSecret());
+  const qr = qrcode(0, 'M'); qr.addData(uri, 'Byte'); qr.make();
+  const n = qr.getModuleCount(), quiet = 4, scale = 6, dim = (n + quiet * 2) * scale;
+  const px = new Uint8ClampedArray(dim * dim * 4).fill(255);
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) for (let y = 0; y < scale; y++) for (let x = 0; x < scale; x++) { const i = (((r + quiet) * scale + y) * dim + (c + quiet) * scale + x) * 4; px[i] = px[i + 1] = px[i + 2] = 0; }
+  const decoded = jsQR(px, dim, dim);
+  assert.ok(decoded, 'Code wird erkannt');
+  assert.equal(decoded.data, uri);
+});
+
+/* ------------------------------------------------------------ Verschlüsselung des Dateispeichers */
+const SC = lib('storage-crypto');
+const ring = (cur, prev) => SC.keyRingFromEnv({ STORAGE_ENCRYPTION_KEY: cur, ...(prev ? { STORAGE_ENCRYPTION_KEY_PREVIOUS: prev } : {}) });
+const K1 = 'a'.repeat(40), K2 = 'b'.repeat(40);
+test('Speicher-Verschlüsselung: Rundweg, Chiffretext enthält den Klartext nicht, jedes Mal anderer IV', () => {
+  const r = ring(K1);
+  const plain = new TextEncoder().encode('Vertrauliches Gutachten – Kennzeichen H-AB 1234 – ' + 'x'.repeat(200));
+  const a = SC.encryptBytes(r, 'p/2026/10/abc123def', plain), b = SC.encryptBytes(r, 'p/2026/10/abc123def', plain);
+  assert.ok(SC.isEncrypted(a) && !SC.isEncrypted(plain));
+  assert.notDeepEqual(Buffer.from(a), Buffer.from(b));
+  assert.ok(!Buffer.from(a).includes(Buffer.from('Gutachten')) && !Buffer.from(a).includes(Buffer.from('H-AB 1234')));
+  assert.deepEqual(Buffer.from(SC.decryptBytes(r, 'p/2026/10/abc123def', a).bytes), Buffer.from(plain));
+  assert.equal(a.length, plain.length + 5 + 1 + 12 + 16, 'Aufschlag: Kopf + IV + Tag');
+});
+test('Speicher-Verschlüsselung: Manipulation, falscher Schlüssel und untergeschobenes Objekt werden erkannt', () => {
+  const r = ring(K1), plain = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+  const enc = SC.encryptBytes(r, 'p/2026/10/key-one-aaa', plain);
+  const flipped = Uint8Array.from(enc); flipped[flipped.length - 20] ^= 1;
+  assert.throws(() => SC.decryptBytes(r, 'p/2026/10/key-one-aaa', flipped), 'verändertes Byte');
+  assert.throws(() => SC.decryptBytes(r, 'p/2026/10/key-one-aaa', enc.subarray(0, enc.length - 1)), 'abgeschnitten');
+  assert.throws(() => SC.decryptBytes(ring(K2), 'p/2026/10/key-one-aaa', enc), 'falscher Schlüssel');
+  assert.throws(() => SC.decryptBytes(r, 'p/2026/10/key-two-bbb', enc), 'anderer Objektschlüssel (Kopie unter fremdem Namen)');
+});
+test('Speicher-Verschlüsselung: Schlüsselwechsel – alter Schlüssel liest weiter, neue Objekte tragen den neuen', () => {
+  const old = SC.encryptBytes(ring(K1), 'p/2026/10/rot-aaaaaa', new Uint8Array([9, 9, 9]));
+  const both = ring(K2, K1);
+  const d = SC.decryptBytes(both, 'p/2026/10/rot-aaaaaa', old);
+  assert.ok(d.usedPrevious);
+  assert.deepEqual([...d.bytes], [9, 9, 9]);
+  const fresh = SC.encryptBytes(both, 'p/2026/10/rot-aaaaaa', d.bytes);
+  assert.equal(SC.decryptBytes(both, 'p/2026/10/rot-aaaaaa', fresh).usedPrevious, false);
+  assert.throws(() => SC.decryptBytes(ring(K2), 'p/2026/10/rot-aaaaaa', old), 'ohne alten Schlüssel nicht lesbar');
+});
+test('Speicher-Verschlüsselung: zu kurzer Schlüssel wird abgewiesen, kein Schlüssel = keine Verschlüsselung', () => {
+  assert.throws(() => SC.keyRingFromEnv({ STORAGE_ENCRYPTION_KEY: 'kurz' }), /zu kurz/);
+  assert.equal(SC.keyRingFromEnv({}), null);
+});

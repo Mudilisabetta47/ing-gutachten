@@ -2,6 +2,10 @@ import 'server-only';
 import { randomBytes } from 'node:crypto';
 import { localDriver } from './local';
 import { s3Driver } from './s3';
+import { encryptedDriver } from './encrypted';
+import { keyRingFromEnv } from '@/lib/storage-crypto';
+import { isLiveEnv } from '@/lib/env';
+import { createHash } from 'node:crypto';
 import type { StorageDriver } from './types';
 
 export { StorageError } from './types';
@@ -13,9 +17,18 @@ let cached: { sig: string; driver: StorageDriver | null } | null = null;
  * Konfigurierter privater Speicher oder `null`, wenn keiner eingerichtet ist (dann bleibt alles wie in Phase 2:
  * Fotos nur im Mail-Anhang). Der lokale Treiber wird auf Vercel verweigert (dort ist das Dateisystem flüchtig).
  */
+/** Der unverschlüsselte Treiber – nur für Wartungsskripte (Verschlüsselung einschalten, Schlüssel wechseln, Sicherung). */
+export function getRawStorage(env: NodeJS.ProcessEnv = process.env): StorageDriver | null {
+  const kind = (env.STORAGE_DRIVER ?? '').toLowerCase();
+  if (kind === 'local') return localDriver();
+  if (kind === 's3' && env.S3_BUCKET_PRIVATE && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY) return s3Driver({ endpoint: env.S3_ENDPOINT, region: env.S3_REGION || 'auto', bucket: env.S3_BUCKET_PRIVATE, accessKeyId: env.S3_ACCESS_KEY_ID, secretAccessKey: env.S3_SECRET_ACCESS_KEY });
+  return null;
+}
+
 export function getStorage(env: NodeJS.ProcessEnv = process.env): StorageDriver | null {
   const kind = (env.STORAGE_DRIVER ?? '').toLowerCase();
-  const sig = [kind, env.S3_BUCKET_PRIVATE, env.S3_ENDPOINT, env.STORAGE_LOCAL_DIR, env.VERCEL].join('|');
+  const keySig = createHash('sha256').update(`${env.STORAGE_ENCRYPTION_KEY ?? ''}|${env.STORAGE_ENCRYPTION_KEY_PREVIOUS ?? ''}`).digest('hex');
+  const sig = [kind, env.S3_BUCKET_PRIVATE, env.S3_ENDPOINT, env.STORAGE_LOCAL_DIR, env.VERCEL, env.ING_ENV, keySig].join('|');
   if (cached && cached.sig === sig) return cached.driver;
   let driver: StorageDriver | null = null;
   if (kind === 'local') {
@@ -23,6 +36,20 @@ export function getStorage(env: NodeJS.ProcessEnv = process.env): StorageDriver 
     else driver = localDriver();
   } else if (kind === 's3' && env.S3_BUCKET_PRIVATE && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY) {
     driver = s3Driver({ endpoint: env.S3_ENDPOINT, region: env.S3_REGION || 'auto', bucket: env.S3_BUCKET_PRIVATE, accessKeyId: env.S3_ACCESS_KEY_ID, secretAccessKey: env.S3_SECRET_ACCESS_KEY });
+  }
+  // Verschlüsselung (Anwendungsebene). In Staging/Produktion Pflicht: ohne Schlüssel gilt der Speicher als NICHT eingerichtet (fail closed).
+  if (driver) {
+    try {
+      const ring = keyRingFromEnv(env);
+      if (ring) driver = encryptedDriver(driver, ring, { allowPlaintext: !isLiveEnv(env) });
+      else if (isLiveEnv(env)) {
+        console.error('[storage] STORAGE_ENCRYPTION_KEY fehlt – in Staging/Produktion wird ohne Verschlüsselung nichts gespeichert.');
+        driver = null;
+      }
+    } catch (e) {
+      console.error('[storage]', e instanceof Error ? e.message : 'Schlüsselfehler');
+      driver = null;
+    }
   }
   cached = { sig, driver };
   return driver;

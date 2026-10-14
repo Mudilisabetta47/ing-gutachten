@@ -20,6 +20,8 @@ const bytesOf = async (v: FormDataEntryValue | null) => (v && typeof v !== 'stri
 /** Upload eines Fotos oder Dokuments zu einem Fall (oder Dokument zu einem Kunden). Rechte und Dateiprüfung im Service. */
 export async function POST(req: Request) {
   if (!assertSameOrigin(req)) return fail(403, 'forbidden');
+  // Ohne Content-Length (Chunked) ließe sich die Größenprüfung umgehen → ablehnen; Browser senden die Länge bei FormData immer.
+  if (!req.headers.get('content-length')) return fail(411, 'length_required', 'Die Länge der Anfrage fehlt.');
   if (Number(req.headers.get('content-length') ?? '0') > MAX_BODY) return fail(413, 'too_large', 'Die Datei ist zu groß. Fotos werden automatisch verkleinert – bei Dokumenten bitte höchstens 4 MB.');
   try {
     const user = await authorize();

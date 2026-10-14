@@ -8,6 +8,8 @@ export interface StorageDriver {
   readonly id: 'local' | 's3';
   put(key: string, bytes: Uint8Array, mimeType: string): Promise<void>;
   get(key: string): Promise<Uint8Array | null>;
+  /** Bestehendes Objekt atomar ersetzen (nur für Wartungsskripte: Verschlüsselung einschalten, Schlüssel wechseln). */
+  overwrite(key: string, bytes: Uint8Array, mimeType: string): Promise<void>;
   delete(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
   /** Kurzlebige signierte URL (nur S3). Local liefert `null` → die Route streamt selbst. */

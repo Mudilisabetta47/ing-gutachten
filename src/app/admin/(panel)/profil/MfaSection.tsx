@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Alert, Notice } from '@/components/admin/ui';
+import { QrCode } from '@/components/admin/QrCode';
 import { confirmMfaAction, disableMfaAction, regenerateRecoveryAction, startMfaAction, type MfaResult } from './actions';
 
 type Status = { enabled: boolean; enabledAt: string | null; pending: boolean; recoveryLeft: number };
@@ -62,9 +63,10 @@ export function MfaSection({ status, available, enforced }: { status: Status; av
         <form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); run(() => confirmMfaAction(code), (r) => { setSetup(null); setCode(''); setCodes(r.codes ?? null); }); }}>
           {setup ? (
             <>
-              <p style={{ margin: 0 }}>1. Öffnen Sie eine Authenticator-App (z. B. Google Authenticator, Microsoft Authenticator, 1Password, Aegis) und wählen Sie „Schlüssel manuell eingeben“. Konto: <b>{`ING Gutachten`}</b>, Zeitbasiert.</p>
+              <p style={{ margin: 0 }}>1. Öffnen Sie eine Authenticator-App (z. B. Google Authenticator, Microsoft Authenticator, 1Password, Aegis) und <b>scannen Sie den QR-Code</b>. Alternativ „Schlüssel manuell eingeben“ (Konto <b>ING Gutachten</b>, zeitbasiert):</p>
+              <div style={{ display: 'grid', justifyContent: 'start' }}><QrCode value={setup.uri} label="QR-Code für die Authenticator-App" size={196} /></div>
               <p className="mono" style={{ margin: 0, fontSize: 18, letterSpacing: '.06em', wordBreak: 'break-all' }} aria-label="Geheimer Schlüssel">{setup.secret}</p>
-              <p className="vi-hint" style={{ margin: 0 }}>Auf dem Smartphone: <a className="adm-link" href={setup.uri}>Direkt in der App öffnen</a>. Der Schlüssel wird nur jetzt angezeigt.</p>
+              <p className="vi-hint" style={{ margin: 0 }}>Der QR-Code und der Schlüssel werden nur jetzt angezeigt und nie an Dritte gesendet. Auf dem Smartphone: <a className="adm-link" href={setup.uri}>Direkt in der App öffnen</a>.</p>
             </>
           ) : <p style={{ margin: 0 }}>Die Einrichtung wurde begonnen. Starten Sie sie neu, um einen frischen Schlüssel anzuzeigen.</p>}
           <label className="adm-field"><span className="adm-label">2. Aktuellen 6-stelligen Code eingeben</span><input className="adm-input" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="123 456" /></label>

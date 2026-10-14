@@ -154,3 +154,31 @@ test('Leitung kann den zweiten Faktor zurücksetzen (Sitzungen enden); Administr
   assert.equal(await db.auditLog.count({ where: { action: 'auth.mfa_reset' } }), 2);
   assert.ok(base32Decode(owner.secret).length === 20 && stepOf(NOW) > 0);
 });
+
+test('Schlüsselwechsel der Zwei-Faktor-Geheimnisse: mit altem Schlüssel lesbar, nach dem Umschreiben genügt der neue', async () => {
+  const keep = { cur: process.env.MFA_ENCRYPTION_KEY, prev: process.env.MFA_ENCRYPTION_KEY_PREVIOUS };
+  try {
+    process.env.MFA_ENCRYPTION_KEY = 'alt-'.padEnd(40, 'a');
+    const w = await mfaUser();
+    process.env.MFA_ENCRYPTION_KEY = 'neu-'.padEnd(40, 'b'); process.env.MFA_ENCRYPTION_KEY_PREVIOUS = 'alt-'.padEnd(40, 'a');
+    const t = NOW + 90_000;
+    const r1 = await authenticate(w.user.email, w.password, ctx);
+    assert.ok(r1.ok && r1.mfa);
+    if (!r1.ok || !r1.mfa) return;
+    assert.ok((await completeChallenge(r1.challenge, totp(w.secret, t), ctx, t)).ok, 'Anmeldung klappt mit beiden Schlüsseln');
+    const { rotateMfaSecrets } = await import('@/server/auth/mfa');
+    const dry = await rotateMfaSecrets({ apply: false });
+    assert.deepEqual([dry.rotated, dry.current, dry.errors.length], [1, 0, 0]);
+    const done = await rotateMfaSecrets({ apply: true });
+    assert.equal(done.rotated, 1);
+    delete process.env.MFA_ENCRYPTION_KEY_PREVIOUS;
+    const r2 = await authenticate(w.user.email, w.password, ctx);
+    assert.ok(r2.ok && r2.mfa);
+    if (!r2.ok || !r2.mfa) return;
+    const t2 = NOW + 150_000;
+    assert.ok((await completeChallenge(r2.challenge, totp(w.secret, t2), ctx, t2)).ok, 'nach dem Wechsel genügt der neue Schlüssel');
+    assert.equal((await rotateMfaSecrets({ apply: false })).current, 1);
+  } finally {
+    for (const [k, v] of [['MFA_ENCRYPTION_KEY', keep.cur], ['MFA_ENCRYPTION_KEY_PREVIOUS', keep.prev]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
+});

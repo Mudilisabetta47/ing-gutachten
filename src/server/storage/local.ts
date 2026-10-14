@@ -1,5 +1,5 @@
 import 'server-only';
-import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { STORAGE_KEY_RE, StorageError, type StorageDriver } from './types';
 
@@ -18,6 +18,13 @@ export function localDriver(root = process.env.STORAGE_LOCAL_DIR || path.join(pr
       const file = resolve(key);
       await mkdir(path.dirname(file), { recursive: true });
       await writeFile(file, bytes, { flag: 'wx' }); // nie überschreiben
+    },
+    async overwrite(key, bytes) {
+      const file = resolve(key);
+      await mkdir(path.dirname(file), { recursive: true });
+      const tmp = `${file}.tmp-${process.pid}`;
+      await writeFile(tmp, bytes);
+      await rename(tmp, file); // atomar: nie ein halb geschriebenes Objekt
     },
     async get(key) {
       try {
