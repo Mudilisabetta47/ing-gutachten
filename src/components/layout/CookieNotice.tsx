@@ -18,7 +18,7 @@ export function CookieNotice() {
       stored = null;
     }
     if (!stored) {
-      const t = window.setTimeout(() => setOpen(true), 1200);
+      const t = window.setTimeout(() => setOpen(true), 150);
       return () => window.clearTimeout(t);
     }
   }, []);
