@@ -80,7 +80,8 @@ try {
   await btn('Kalkulation anlegen');
   check('Kalkulation Version 1 angelegt (Fallstatus „Kalkulation“)', await waitFor(() => sql(`select count(*) from calculations where case_id='${caseId}'`) === '1') && sql(`select status from cases where id='${caseId}'`) === 'CALCULATION');
   await sleep(2000);
-  await btn('Aus Schäden vorschlagen');
+  // Schaltfläche abwarten (Seite muss geladen und „hydriert“ sein) und notfalls erneut klicken – wie ein Mensch, der nochmal tippt
+  for (let i = 0; i < 5 && Number(sql(`select count(*) from calculation_items where calculation_id=(select id from calculations where case_id='${caseId}')`)) === 0; i++) { await waitFor(() => pg.evalJs(`[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='Aus Schäden vorschlagen' && !b.disabled)`), 8000); await btn('Aus Schäden vorschlagen'); await waitFor(() => Number(sql(`select count(*) from calculation_items where calculation_id=(select id from calculations where case_id='${caseId}')`)) > 0, 4000); }
   check('„Aus Schäden vorschlagen“ erzeugt Positionen zum markierten Bauteil', await waitFor(() => Number(sql(`select count(*) from calculation_items where calculation_id=(select id from calculations where case_id='${caseId}') and description ilike '%Kotflügel vorn rechts%'`)) >= 1, 20000), sql(`select string_agg(kind||':'||description, ' | ') from calculation_items where calculation_id=(select id from calculations where case_id='${caseId}')`));
   check('Positionen verweisen auf die Schadenposition (damage_id)', Number(sql(`select count(*) from calculation_items where calculation_id=(select id from calculations where case_id='${caseId}') and damage_id is not null`)) >= 1);
   // Preise einsetzen (keine erfundenen Werte: manuell, wie ein Gutachter)
@@ -93,6 +94,7 @@ try {
   await pg.shot(`${OUT}/41-kalkulation.png`);
   check('Kalkulation zeigt Summen mit Netto, MwSt. und Brutto', /Netto/.test(await text()) && /Brutto/.test(await text()));
   await confirmYes();
+  await waitFor(() => pg.evalJs(`[...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='Version freigeben' && !b.disabled)`), 15000);
   await btn('Version freigeben');
   check('Version freigegeben (unveränderlich)', await waitFor(() => sql(`select status from calculations where case_id='${caseId}'`) === 'FINAL', 20000));
 

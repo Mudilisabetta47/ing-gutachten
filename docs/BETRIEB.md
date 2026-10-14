@@ -57,3 +57,10 @@ Preview-Deployments bekommen **keine** Produktions-Datenbank (eigenes Supabase-P
 - Supabase-Backups je nach Tarif prüfen (tägliche Backups / Point-in-Time-Recovery ab Pro).
 - Wiederherstellung einmal **testweise** in ein leeres Projekt einspielen, bevor echte Kundendaten laufen.
 - Privater Dateispeicher (Fotos/Dokumente) separat sichern (Versionierung im Bucket).
+
+## Zwei-Faktor-Anmeldung einschalten
+
+1. In Vercel (Production) `MFA_ENCRYPTION_KEY` setzen (mind. 32 zufällige Zeichen; Erzeugung siehe `.env.example`) und neu deployen. Ohne den Schlüssel zeigt das Profil „nicht eingerichtet“ und die Einrichtung ist gesperrt.
+2. Inhaber meldet sich an → Profil → Zwei-Faktor-Anmeldung → Einrichten (Schlüssel in eine Authenticator-App eintragen, Code bestätigen, Wiederherstellungscodes sicher ablegen).
+3. Danach unter Einstellungen → Sicherheit „verpflichtend für Inhaber und Administratoren“ aktivieren. Wer noch keinen zweiten Faktor hat, erreicht dann nur sein Profil.
+4. Verlorenes Gerät: Benutzer → Konto → „Zurücksetzen“ (nur Leitung); die Sitzungen enden, die Person richtet neu ein.
