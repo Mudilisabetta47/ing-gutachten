@@ -76,7 +76,7 @@ export function run(cmd: string, args: string[], env: NodeJS.ProcessEnv = proces
     const p = spawn(cmd, args, { env, stdio: ['ignore', capture ? 'pipe' : 'inherit', 'pipe'] });
     let err = '', out = '';
     if (capture) p.stdout!.on('data', (d) => (out += d));
-    p.stderr.on('data', (d) => (err += d));
+    p.stderr!.on('data', (d) => (err += d));
     p.on('error', (e) => resolve({ code: 127, err: String(e.message), out }));
     p.on('close', (code) => resolve({ code: code ?? 1, err, out }));
   });
