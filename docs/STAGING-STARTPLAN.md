@@ -1,5 +1,7 @@
 # Staging-Startplan ING Studio (Supabase + Vercel)
 
+> **Aktualisiert 2026-10-15:** Die Entscheidungen E1–E6 sind getroffen (Supabase Frankfurt + Storage, Vercel, geschütztes Staging, Mail-Überwachung, iPhone). Die ausführliche Anleitung steht in **`docs/STAGING-AUFBAU.md`**, Konten/Einstellungen in `docs/KONTEN-UND-EINSTELLUNGEN.md`, Kosten in `docs/KOSTEN.md`. Dieser Plan bleibt als Übersicht.
+
 Stand: 2026-10-14. **Nichts davon ist angelegt.** Jeder Schritt mit 💶 oder 🚀 braucht deine ausdrückliche Freigabe, bevor ich (oder du) ihn ausführt; Kontoanlagen und Zahlungsangaben führst du selbst aus. Ergänzt `docs/DEPLOYMENT.md` (Konzept) und `docs/PILOT-GO-NOGO.md` (Blocker).
 
 ## 0. Entscheidungen, die ich von dir brauche (kurz)

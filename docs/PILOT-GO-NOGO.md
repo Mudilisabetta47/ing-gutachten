@@ -38,12 +38,12 @@ Stand: 2026-10-14, Branch `feature/ing-operating-system`. Kein Merge nach `main`
 
 | # | Blocker | Verantwortlich | Nachweis |
 |---|---|---|---|
-| 1 | Staging und Produktion nach `docs/DEPLOYMENT.md` aufbauen (getrennte Supabase-Projekte, private Buckets, Schlüssel), `npm run preflight` ohne Fehler | Inhaber/Technik | Preflight-Ausgabe |
+| 1 | Staging und Produktion nach `docs/DEPLOYMENT.md` / `docs/STAGING-AUFBAU.md` aufbauen (getrennte Supabase-Projekte, private Buckets, Schlüssel), `npm run preflight` ohne Fehler | Inhaber/Technik | Preflight-Ausgabe |
 | 2 | **Probe in Staging:** Speicher-Probe `/api/health` ok, Migration mit `db:check` „alles in Ordnung“, RLS aktiv | Technik | Health-/Check-Ausgabe |
 | 3 | **Wiederherstellung in Staging** in leere Umgebung durchspielen, Dauer eintragen; Zeitplan der täglichen Sicherung + Offsite-Kopie festlegen; Schlüssel-Hinterlegung testen | Technik + Inhaber | `docs/BACKUP-WIEDERHERSTELLUNG.md` Abschnitt 7 |
 | 4 | **Gerätetest** iPhone + Android nach Plan (Kamera, Fahrzeugschein, Schadenerfassung, PDF) | Gutachter/Technik | ausgefülltes Protokoll |
 | 5 | **Mailtest** an 1–2 freigegebene Adressen (Testmail, Anfrageformular, Gutachtenmail); Absender-Domain (SPF/DKIM) beim Anbieter verifizieren | Inhaber (Adressen), Technik | Postfach-Nachweis |
-| 6 | Alarmierung wirklich einrichten (Webhook-Ziel, externer Uptime-Dienst auf `/api/health`) und einmal auslösen | Technik | ankommende Testmeldung |
+| 6 | Alarmierung wirklich einrichten (`ALERT_EMAIL_TO`, externer Prüfdienst auf `/api/monitor/check`) und einmal auslösen | Technik | ankommende Störungs-/Entwarnungs-Mail |
 | 7 | Datenschutz: Auftragsverarbeitungsverträge (Supabase, Vercel, Speicher-/Mail-Anbieter), Verarbeitungsverzeichnis, Aufbewahrungs-/Löschfristen festlegen, Datenschutzerklärung aktualisieren (`docs/DATENSCHUTZ-TODO.md`) – **rechtliche Prüfung** | Inhaber (ggf. Datenschutzbeauftragter/Anwalt) | unterschriebene Verträge |
 | 8 | Inhaber-Konto mit 2FA anlegen, „2FA verpflichtend für Inhaber/Administratoren“ einschalten, Demo-Konten existieren in Produktion nicht | Inhaber | `db:check` grün |
 | 9 | Verbindliche Ziele für Datenverlust/Wiederanlauf von der Geschäftsführung bestätigen (Vorschlag: ≤ 24 h Datenverlust, Wiederanlauf innerhalb eines Arbeitstags) | Inhaber | Freigabe |

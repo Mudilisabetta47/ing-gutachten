@@ -20,22 +20,24 @@ Grundsatz: Staging und Produktion **teilen nichts** – weder Datenbank, Bucket,
 
 ## 2. Supabase
 
-Zwei Projekte anlegen (`ing-staging`, `ing-prod`), jeweils:
+Zwei Projekte anlegen (`ing-staging`, `ing-prod`; Staging im Free-Tarif genügt), jeweils:
 
 1. Region **EU (Frankfurt)**. Starkes, nur im Passwortmanager gespeichertes Datenbankpasswort.
 2. *Connection string*: **Direct/Session** (Port 5432) nur für Migrationen und Sicherungen, **Transaction pooler** (Port 6543) für die App (`DATABASE_URL`, `?sslmode=require`). Optional `DATABASE_CA_CERT`.
 3. Data-API/Realtime der App **nicht** nutzen. Migration `supabase_hardening` schaltet Row Level Security auf allen Tabellen ein und entzieht `anon`/`authenticated` alle Rechte (`db:check` prüft das).
 4. Tarif: für Produktion einen Tarif mit **täglichen Sicherungen** (Free-Projekte haben diese nicht) und idealerweise **Point-in-Time-Recovery** wählen – Preise/Leistungen vor der Buchung auf der Anbieterseite prüfen. Unsere eigene Sicherung (`npm run backup`, Abschnitt 6) ersetzt das nicht, sondern ergänzt es.
 5. Privater Dateispeicher: entweder Supabase Storage (S3-kompatibler Endpunkt, Bucket **privat**) oder ein anderer S3-kompatibler Anbieter in der EU (z. B. Cloudflare R2 mit EU-Standort, AWS S3 Frankfurt). Pro Umgebung ein eigener Bucket, **kein** öffentlicher Zugriff, Versionierung/Löschschutz soweit der Anbieter es bietet. Die Anwendung verschlüsselt jede Datei vor dem Hochladen selbst (AES-256-GCM); der Anbieter sieht nur Chiffretext.
+   *Eigenschaften Supabase Storage (laut Anbieter):* keine Versionierung, **nicht in Supabase-Backups enthalten**, S3 mit Signatur V4, kein Content-MD5 – der Treiber schaltet die zusätzlichen SDK-Prüfsummen deshalb ab; Dateisicherung erfolgt über `npm run backup`.
    *Einschränkung:* Der S3-Treiber ist gegen einen lokalen S3-Testserver geprüft, nicht gegen einen echten Anbieter. Die erste Probe in Staging (Abschnitt 5, Schritt 6) ist deshalb Pflicht.
 
 ## 3. Vercel
 
-- Ein Projekt, zwei Umgebungen: **Production** (Branch `main`, erst nach Freigabe) und **Preview** (Feature-Branches → entspricht Staging). Environment-Variablen strikt je Umgebung setzen (Vorlagen: `.env.staging.example`, `.env.production.example`).
+- **Staging und öffentliche Website in getrennten Vercel-Projekten.** Staging: eigenes Projekt `ing-studio-staging` (Deployment Protection „All Deployments“, `ING_ENV=staging` in allen Umgebungen, nur manuelle Deployments – `vercel.json` sperrt Git-Auto-Deployments des Feature-Branches). Vorlagen: `.env.staging.example`, `.env.production.example`. Ausführlich: `docs/STAGING-AUFBAU.md`.
+- **Plan:** Vercel **Pro** (Hobby ist laut Vercel auf nicht-kommerzielle Nutzung beschränkt).
 - `vercel.json` legt die Funktions-Region auf `fra1` (Frankfurt, nahe an Supabase Frankfurt; Daten bleiben in der EU).
 - Vercel nimmt höchstens 4,5 MB je Anfrage an. Die App verkleinert Fotos im Browser vor dem Hochladen; Dokumente sind auf 4 MB begrenzt. Das ist in der Oberfläche erklärt.
 - **Preview-Deployments dürfen nie die Produktionsdatenbank sehen.** Produktions-Variablen nur für „Production“ eintragen.
-- Schutz für Staging: Vercel-„Deployment Protection“ (Anmeldung für Preview-Adressen) einschalten, damit Staging nicht öffentlich ist.
+- Schutz für Staging: **Vercel Authentication** (in allen Plänen enthalten); Tester sind Teammitglieder (Viewer). Password Protection ($20/Projekt auf Pro) ist nicht nötig.
 - Keine Geheimnisse in `NEXT_PUBLIC_*`-Variablen (die landen im Browser; `preflight` meldet das).
 
 ## 4. Variablen und Schlüssel
@@ -68,7 +70,7 @@ Schlüsselwechsel (Rotation): neuen Wert setzen, alten als `…_PREVIOUS` behalt
 
 - Jeder unbehandelte Serverfehler (`instrumentation.ts` → `onRequestError`) wird als **strukturierte Logzeile** ausgegeben (ohne personenbezogene Daten: Pfad ohne Parameter, Fehlerklasse, Fingerabdruck) und – wenn `ALERT_WEBHOOK_URL` gesetzt ist – als Alarm an den Webhook gesendet (nur https, gleiche Fehler höchstens alle 5 Minuten, höchstens 10 Alarme je Minute).
 - `GET /api/health`: ohne Token nur `ok`/`degraded`; mit `Authorization: Bearer <HEALTH_TOKEN>` Detail (Datenbank, offene Migrationen, Speicher-Probe, Mail-Konfiguration, 2FA-Schlüssel).
-- Einzurichten (sobald es eine Umgebung gibt): ein externer Uptime-Dienst, der `/api/health` alle 1–5 Minuten abruft und bei Fehler benachrichtigt, sowie ein Empfänger für den Alarm-Webhook (Slack/Teams/ntfy/E-Mail-Weiterleitung). Vercel-Logs und die Supabase-Berichte für Datenbank-Auslastung/Speicherplatz dazu aktivieren.
+- **E-Mail-Überwachung (Entscheidung der Geschäftsführung):** `ALERT_EMAIL_TO` (bis 3 Adressen) erhält Mails bei Serverfehlern; `GET /api/monitor/check` (Bearer `MONITOR_SECRET`) prüft Datenbank, Migrationen, Speicher, Mail, 2FA-Schlüssel und schickt eine Mail bei Störung, nach 6 h eine Erinnerung und bei Erholung eine Entwarnung. Aufgerufen von einem externen Prüfdienst (alle 5 Minuten; bei geschütztem Staging mit Bypass-Header). **Vercel-Cron wird bewusst nicht genutzt:** er ruft nur die Produktions-Bereitstellung auf und kann Vercel-Ausfälle nicht melden. Zusätzlich Vercel-Logs/Ausgabenlimit und Supabase-Berichte aktivieren.
 - Alarmtest nach der Einrichtung: in Staging `ALERT_WEBHOOK_URL` setzen und eine absichtlich fehlerhafte Anfrage auslösen; im Ziel muss genau eine Meldung ankommen.
 
 ## 7. Was bewusst nicht automatisiert ist
