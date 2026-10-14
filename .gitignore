@@ -16,3 +16,4 @@ HANDOVER*.md
 .data/
 .env.test
 .migtest/
+backups/
