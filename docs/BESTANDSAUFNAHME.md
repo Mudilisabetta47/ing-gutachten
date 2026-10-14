@@ -6,7 +6,7 @@ Geprüft wurde die tatsächliche Codebasis im Repository `inggutachtenrot`, Bran
 ## 0. Architektur – ein Projekt, nicht zwei
 
 - Website **und** Gutachter-System liegen in **einem** Next.js-Projekt (App Router): öffentliche Seiten unter `src/app/(site)`, interner Bereich unter `/admin` („ING Operating System“) und `/studio` („ING Studio“, Desktop). Daten: PostgreSQL über Prisma. Es gibt kein separates `ing-admin-final` mehr; nichts wurde durch ältere ZIP-Stände ersetzt.
-- `HANDOVER(2).md` im Repo beschreibt ein **anderes, statisches Projekt** (kein Next.js, keine Datenbank) und ist für dieses System **veraltet und irreführend**. Maßgeblich sind `docs/PHASE4-UEBERSICHT.md` und dieses Dokument.
+- Die frühere `HANDOVER(2).md` beschrieb ein **anderes, statisches Projekt** und war für dieses System veraltet. Sie wurde aus der aktiven Dokumentation entfernt und mit Hinweis als `docs/archiv/uebergabe-statische-websites-2026-10.md` archiviert (Git-Historie bleibt). Maßgeblich sind `docs/PHASE4-UEBERSICHT.md`, `docs/DEPLOYMENT.md`, `docs/PILOT-GO-NOGO.md` und dieses Dokument.
 - Migrationen: nur additiv (`prisma migrate deploy`), mit Datenbank-Prüfregeln und Härtung. Keine Produktionsdaten wurden angefasst; alle Läufe gegen lokale Entwicklungs-/Testdatenbanken.
 
 ## 1. Vollständig funktionsfähig (getestet)
@@ -34,7 +34,7 @@ Geprüft wurde die tatsächliche Codebasis im Repository `inggutachtenrot`, Bran
 
 - **HSN/TSN-Anbieter (extern):** Anbindung gebaut, aber **nicht gegen die echte Seite getestet** (Zertifikatsfehler beim Versuch; URL-Vorlage/Lizenz offen). Standardstatus „Prüfung erforderlich“.
 - **E-Mail-Versand:** nur die Benachrichtigung über neue Anfragen. Gutachten/Rechnungen/Mahnungen werden bewusst **nicht** versendet, nur als versendet vermerkt. Mail-Anbieter (Brevo/Resend) im echten Betrieb nicht geprüft.
-- **S3-Dateispeicher:** Code vorhanden, nur mit lokalem Speicher getestet.
+- **S3-Dateispeicher:** Code vorhanden, getestet mit lokalem Speicher und einem lokalen S3-Testserver (inkl. Verschlüsselung); **nicht gegen einen echten Anbieter**.
 - **Fahrzeugmodell:** ein **generisches** Bauteilmodell (Limousine/Kombi-Silhouette) für alle Fahrzeuge – kein fahrzeugspezifisches 3D-Modell und **keine echte 3D-Rotation**. Das ist so gewollt (keine erfundene Modellgenauigkeit), aber nicht „optional 3D“.
 - **Website-SEO/Performance:** Struktur, Sitemap, Canonicals, strukturierte Daten sind vorhanden und werden im Abschnitt „Verifikation“ unten geprüft; Lighthouse-Werte auf Vercel wurden nicht gemessen.
 
@@ -56,5 +56,4 @@ Grenze: Die Fenster sind iframes derselben Anwendung (gleicher Ursprung, `frame-
 ## 5. Bekannte Mängel
 
 - Nur Entwicklung: Next.js-Dev-Plakette (jetzt abgeschaltet); Port 3100 kann von einem anderen lokalen Projekt belegt sein (ING-Server läuft dann auf 3101).
-- `HANDOVER(2).md` veraltet (siehe oben) – sollte entfernt oder ersetzt werden (Entscheidung beim Inhaber).
 - Die Studio-Fenster teilen den Seitenstil des Operating Systems; ein eigenes „Fenster-Design“ pro App gibt es nicht.

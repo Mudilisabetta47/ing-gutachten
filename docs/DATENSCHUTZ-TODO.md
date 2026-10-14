@@ -30,7 +30,7 @@ Die Kennung `PRIVACY_VERSION` (`src/lib/request-schema.ts`) ist bei jeder Änder
 
 Technische Schutzmaßnahmen: Dateien nie öffentlich (nur über die angemeldete Route nach Rechteprüfung am Fall; S3: kurzlebige signierte URL),
 zufällige Objektschlüssel ohne Dateiname/Fallnummer, Dateityp aus dem Inhalt geprüft (Bild/PDF), Original-Dateinamen werden nicht gespeichert.
-**Offen:** Verschlüsselung im Ruhezustand/Backups beim gewählten Speicheranbieter prüfen; Virenscan (Status-Feld ist vorbereitet).
+**Erledigt (Pilotvorbereitung):** Dateien werden vor dem Speichern von der Anwendung selbst mit AES-256-GCM verschlüsselt (Staging/Produktion Pflicht), Sicherungen enthalten nur Chiffretext; Datenbank-Sicherungen sind verschlüsselt (`docs/BACKUP-WIEDERHERSTELLUNG.md`). **Offen:** Verschlüsselung/Backups der Datenbank beim gewählten Anbieter prüfen; Virenscan (Status-Feld ist vorbereitet); Aufbewahrung von Sicherungen in die Löschfristen einbeziehen (Löschung wirkt in Sicherungen erst nach deren Ablauf).
 
 ## Verarbeiter / Drittanbieter (einzutragen, sobald produktiv)
 

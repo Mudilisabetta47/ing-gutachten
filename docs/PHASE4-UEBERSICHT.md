@@ -46,3 +46,7 @@ Browser-Durchläufe (CDP-Skripte) liegen im Sitzungs-Scratchpad und sind nicht T
 ## Produktivbetrieb (Supabase/Vercel)
 
 Zugangsdaten gehören ausschließlich in Vercel bzw. die lokale Shell – nie in den Chat. Reihenfolge: `npm run db:deploy` → `npm run db:check` → `ALLOW_PRODUCTION_BOOTSTRAP=yes npm run create-owner -- …`.
+
+## Pilotvorbereitung (2026-10)
+
+Maßgebliche Dokumente: `docs/PILOT-GO-NOGO.md` (Bewertung, Blocker), `docs/DEPLOYMENT.md` (Dev/Staging/Produktion, Variablen, Schlüssel, Überwachung), `docs/BACKUP-WIEDERHERSTELLUNG.md` (Sicherung, geübte Wiederherstellung), `docs/HSN-TSN-ANBIETER.md` (Fahrzeugdaten: Rechtslage, Anbieter), `docs/PRAXISTEST-GERAETE.md` (Gerätetest-Plan). Neue Befehle: `preflight`, `db:migtest`, `backup`, `backup:verify`, `restore`, `backup:drill`, `audit:auth`, `storage:migrate`, `mfa:rotate`, `secrets:generate`, `mail:test`.
