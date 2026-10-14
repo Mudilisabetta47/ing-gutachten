@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Anmelden' };
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ weiter?: string }> }) {
   const configured = isDbConfigured();
   const { weiter } = await searchParams;
-  if (configured && (await getAuthUser())) redirect(safeNext(weiter));
+  if (configured && (await getAuthUser())) redirect(weiter ? safeNext(weiter) : '/studio/');
 
   return (
     <div className="adm-login">

@@ -8,6 +8,8 @@ const nextConfig = {
   reactStrictMode: true,
   trailingSlash: true,
   poweredByHeader: false,
+  // Entwicklungs-Plakette (rundes „N“) ausblenden: sie würde in jedem Studio-Fenster erscheinen
+  devIndicators: false,
   // Projektwurzel explizit setzen – verhindert Verwechslung mit Lockfiles in übergeordneten Ordnern.
   outputFileTracingRoot: root,
   images: {
@@ -38,7 +40,19 @@ const nextConfig = {
         headers: [
           { key: 'Cache-Control', value: 'no-store, max-age=0' },
           { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+          // Einbetten nur im eigenen Studio (gleicher Ursprung), nie von fremden Seiten
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
+      },
+      {
+        source: '/studio/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, max-age=0' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
           { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
           { key: 'Referrer-Policy', value: 'no-referrer' },
         ],
       },

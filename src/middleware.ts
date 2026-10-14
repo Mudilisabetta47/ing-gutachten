@@ -14,12 +14,14 @@ export function middleware(req: NextRequest) {
 
   // Die Login-Seite prüft selbst, ob die Sitzung gültig ist (ein veraltetes Cookie darf keine Umleitungsschleife auslösen).
   if (pathname === '/admin/login') return NextResponse.next();
+  const isStudio = pathname === '/studio' || pathname.startsWith('/studio/');
   if (!hasCookie) {
     const url = new URL('/admin/login', req.url);
-    if (pathname !== '/admin') url.searchParams.set('weiter', pathname);
+    if (isStudio) url.searchParams.set('weiter', '/studio');
+    else if (pathname !== '/admin') url.searchParams.set('weiter', pathname);
     return NextResponse.redirect(url);
   }
   return NextResponse.next();
 }
 
-export const config = { matcher: ['/admin/:path*'] };
+export const config = { matcher: ['/admin/:path*', '/studio/:path*', '/studio'] };

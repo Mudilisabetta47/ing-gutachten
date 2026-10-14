@@ -162,3 +162,126 @@ test('IS_PREVIEW nur auf Vercel-Preview', () => {
   assert.equal(siteWith({ VERCEL_ENV: 'preview' }).IS_PREVIEW, true);
   assert.equal(siteWith({ VERCEL_ENV: 'production' }).IS_PREVIEW, false);
 });
+
+/* ------------------------------------------------------------ ING Studio: Fensterverwaltung */
+const S = lib('studio');
+const AREA = S.workArea({ w: 1600, h: 964 }); // 900 hoch nutzbar
+const open = (st, appId, extra = {}) => S.reducer(st, { type: 'open', appId, url: `/admin/${appId}/`, title: appId, area: AREA, ...extra });
+
+test('Studio: Fläche reserviert die Taskleiste', () => {
+  assert.deepEqual(AREA, { x: 0, y: 0, w: 1600, h: 900 });
+});
+test('Studio: clampBounds hält die Titelleiste erreichbar und die Größe in Grenzen', () => {
+  const b = S.clampBounds({ x: 5000, y: 5000, w: 50, h: 50 }, AREA);
+  assert.ok(b.x <= 1600 - 120 && b.y <= 900 - 44 && b.w >= 360 && b.h >= 240);
+  const c = S.clampBounds({ x: -5000, y: -40, w: 99999, h: 99999 }, AREA);
+  assert.ok(c.w <= 1600 && c.h <= 900 && c.y >= 0 && c.x + c.w >= 120);
+});
+test('Studio: neue Fenster liegen gestaffelt und nie außerhalb', () => {
+  let st = S.emptyState();
+  for (const a of ['a', 'b', 'c', 'd']) st = open(st, a);
+  const xs = st.windows.map((w) => w.x);
+  assert.equal(new Set(xs).size, 4, 'jedes Fenster an anderer Stelle');
+  for (const w of st.windows) assert.ok(w.x >= -w.w + 120 && w.x <= 1600 - 120 && w.y >= 0 && w.y <= 900 - 44);
+});
+test('Studio: dieselbe App öffnet nur ein Fenster (wird nach vorn geholt), mit forceNew ein weiteres', () => {
+  let st = open(open(S.emptyState(), 'faelle'), 'kunden');
+  const firstId = st.windows[0].id;
+  st = S.reducer(st, { type: 'minimize', id: firstId });
+  st = open(st, 'faelle');
+  assert.equal(st.windows.length, 2);
+  assert.equal(st.focus, firstId);
+  assert.equal(st.windows[0].min, false, 'minimiertes Fenster wird wiederhergestellt');
+  st = open(st, 'faelle', { forceNew: true });
+  assert.equal(st.windows.filter((w) => w.appId === 'faelle').length, 2);
+});
+test('Studio: Fokus bestimmt die Ebene; Minimieren gibt den Fokus an das nächste Fenster', () => {
+  let st = open(open(open(S.emptyState(), 'a'), 'b'), 'c');
+  const [a, b, c] = st.windows.map((w) => w.id);
+  assert.equal(st.focus, c);
+  st = S.reducer(st, { type: 'focus', id: a });
+  assert.equal(st.focus, a);
+  assert.ok(st.windows.find((w) => w.id === a).z > st.windows.find((w) => w.id === c).z);
+  st = S.reducer(st, { type: 'minimize', id: a });
+  assert.equal(st.focus, c, 'oberstes sichtbares Fenster');
+  st = S.reducer(st, { type: 'focus', id: a });
+  assert.equal(st.windows.find((w) => w.id === a).min, false);
+  st = S.reducer(st, { type: 'close', id: a });
+  assert.equal(st.windows.length, 2);
+  assert.notEqual(st.focus, a);
+});
+test('Studio: Maximieren merkt die alte Größe und stellt sie wieder her', () => {
+  let st = open(S.emptyState(), 'a');
+  const id = st.windows[0].id;
+  const before = { x: st.windows[0].x, y: st.windows[0].y, w: st.windows[0].w, h: st.windows[0].h };
+  st = S.reducer(st, { type: 'toggleMax', id, area: AREA });
+  assert.deepEqual([st.windows[0].max, st.windows[0].w, st.windows[0].h], [true, 1600, 900]);
+  st = S.reducer(st, { type: 'toggleMax', id, area: AREA });
+  assert.deepEqual({ x: st.windows[0].x, y: st.windows[0].y, w: st.windows[0].w, h: st.windows[0].h }, before);
+  assert.equal(st.windows[0].max, false);
+});
+test('Studio: Andocken links/rechts teilt die Fläche; Ziehen löst das Andocken', () => {
+  let st = open(open(S.emptyState(), 'a'), 'b');
+  const [a, b] = st.windows.map((w) => w.id);
+  st = S.reducer(S.reducer(st, { type: 'snap', id: a, to: 'left', area: AREA }), { type: 'snap', id: b, to: 'right', area: AREA });
+  const [wa, wb] = [st.windows[0], st.windows[1]];
+  assert.deepEqual([wa.x, wa.w, wb.x, wb.w], [0, 800, 800, 800]);
+  assert.equal(wa.x + wa.w, wb.x, 'keine Lücke, keine Überlappung');
+  assert.ok(wa.restore && wb.restore);
+  const nb = S.restoreUnderPointer(wa, { x: 400, y: 20 }, AREA);
+  st = S.reducer(st, { type: 'drag', id: a, bounds: nb });
+  assert.deepEqual([st.windows[0].snap, st.windows[0].max], [null, false]);
+  assert.ok(st.windows[0].w < 800 || st.windows[0].w === wa.restore.w);
+});
+test('Studio: Andock-Zonen am Bildschirmrand', () => {
+  assert.equal(S.snapZone({ x: 3, y: 400 }, AREA), 'left');
+  assert.equal(S.snapZone({ x: 1597, y: 400 }, AREA), 'right');
+  assert.equal(S.snapZone({ x: 800, y: 2 }, AREA), 'max');
+  assert.equal(S.snapZone({ x: 800, y: 400 }, AREA), null);
+});
+test('Studio: Größenänderung und Browser-Resize halten Fenster im Bild', () => {
+  let st = open(S.emptyState(), 'a');
+  const id = st.windows[0].id;
+  st = S.reducer(st, { type: 'bounds', id, bounds: { x: 100, y: 100, w: 100, h: 100 }, area: AREA });
+  assert.ok(st.windows[0].w >= 360 && st.windows[0].h >= 240, 'Mindestgröße');
+  st = S.reducer(st, { type: 'snap', id, to: 'right', area: AREA });
+  const small = S.workArea({ w: 1000, h: 700 });
+  st = S.reducer(st, { type: 'relayout', area: small });
+  assert.deepEqual([st.windows[0].x, st.windows[0].w, st.windows[0].h], [500, 500, 636]);
+});
+test('Studio: Fenster wechseln (Zyklus) und „Desktop anzeigen“', () => {
+  let st = open(open(open(S.emptyState(), 'a'), 'b'), 'c');
+  const top = st.focus;
+  st = S.reducer(st, { type: 'cycle', dir: 1 });
+  assert.notEqual(st.focus, top);
+  st = S.reducer(st, { type: 'showDesktop' });
+  assert.ok(st.windows.every((w) => w.min));
+  assert.equal(st.focus, null);
+  st = S.reducer(st, { type: 'showDesktop' });
+  assert.equal(st.windows.filter((w) => !w.min).length, 1, 'zuletzt aktives Fenster kehrt zurück');
+});
+test('Studio: Titel/Adresse folgen der eingebetteten Seite, Fensteranzahl ist begrenzt', () => {
+  let st = open(S.emptyState(), 'a');
+  st = S.reducer(st, { type: 'meta', id: st.windows[0].id, title: 'ING-2026-00001', url: '/admin/faelle/ING-2026-00001/' });
+  assert.equal(st.windows[0].title, 'ING-2026-00001');
+  let many = S.emptyState();
+  for (let i = 0; i < 20; i++) many = open(many, `app${i}`);
+  assert.equal(many.windows.length, S.MAX_WINDOWS);
+});
+test('Studio: nur interne Adressen dürfen in Fenstern geöffnet werden', () => {
+  assert.equal(S.safeAppUrl('/admin/faelle/'), '/admin/faelle/');
+  assert.equal(S.safeAppUrl('/admin/faelle/ING-1/?tab=gutachten'), '/admin/faelle/ING-1/?tab=gutachten');
+  for (const bad of ['https://evil.example/', '//evil.example/admin', 'javascript:alert(1)', '/adminx/', '/admin/\\evil', '/api/admin/x', '']) assert.equal(S.safeAppUrl(bad), null, bad);
+});
+test('Studio: gespeicherte Einstellungen – kaputte Daten fallen auf Standard zurück, Layout wird gefiltert', () => {
+  const d = S.parsePrefs('kaputt');
+  assert.deepEqual([d.settings.theme, d.settings.wallpaper, d.windows.length], ['dark', 'ing-blue', 0]);
+  const p = S.parsePrefs({ settings: { theme: 'neon' }, windows: [{ appId: 'faelle', url: '/admin/faelle/', title: 'F', x: 10, y: 10, w: 800, h: 500 }] });
+  assert.equal(p.settings.theme, 'dark', 'ungültiger Wert → Standard');
+  const wins = S.fromSaved([
+    { appId: 'faelle', url: '/admin/faelle/', title: 'Fälle', x: 10, y: 10, w: 800, h: 500, min: false, max: false, snap: null, z: 11 },
+    { appId: 'finanzen', url: '/admin/rechnungen/', title: 'Finanzen', x: 10, y: 10, w: 800, h: 500, min: false, max: false, snap: null, z: 12 },
+    { appId: 'faelle', url: 'https://evil.example/', title: 'x', x: 10, y: 10, w: 800, h: 500, min: false, max: false, snap: null, z: 13 },
+  ], new Set(['faelle']), AREA);
+  assert.deepEqual(wins.map((w) => w.appId), ['faelle'], 'ohne Recht (App nicht erlaubt) und mit fremder Adresse wird nichts wiederhergestellt');
+});

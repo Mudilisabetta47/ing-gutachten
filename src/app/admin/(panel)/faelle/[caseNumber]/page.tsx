@@ -36,7 +36,10 @@ import { pinnedNotes } from '@/server/pipeline/communication';
 import { CommunicationTab } from './tabs/CommunicationTab';
 import { ValuationPanel } from '@/components/admin/ValuationPanel';
 
-export const metadata: Metadata = { title: 'Fall' };
+export async function generateMetadata({ params }: { params: Promise<{ caseNumber: string }> }): Promise<Metadata> {
+  const { caseNumber } = await params;
+  return { title: /^[A-Za-z0-9-]{3,40}$/.test(caseNumber) ? caseNumber : 'Fall' };
+}
 
 const TABS = [
   ['uebersicht', 'Übersicht'], ['fahrzeug', 'Fahrzeug'], ['schaden', 'Schaden'], ['fotos', 'Fotos'], ['kalkulation', 'Kalkulation'], ['bewertung', 'Bewertung'],

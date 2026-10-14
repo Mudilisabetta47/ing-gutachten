@@ -39,16 +39,17 @@ enum Role {
 }
 
 model User {
-  tasksAssigned Task[]         @relation("TaskAssignee")
+  preferences   UserPreference[]
+  tasksAssigned Task[]           @relation("TaskAssignee")
   notifications Notification[]
-  id            String         @id @default(cuid())
-  email         String         @unique
+  id            String           @id @default(cuid())
+  email         String           @unique
   /// Argon2id-Hash. Niemals Klartext, niemals ein schneller Hash.
-  passwordHash  String         @map("password_hash")
-  firstName     String         @map("first_name")
-  lastName      String         @map("last_name")
-  role          Role           @default(OFFICE)
-  isActive      Boolean        @default(true) @map("is_active")
+  passwordHash  String           @map("password_hash")
+  firstName     String           @map("first_name")
+  lastName      String           @map("last_name")
+  role          Role             @default(OFFICE)
+  isActive      Boolean          @default(true) @map("is_active")
 
   /// Brute-Force-Schutz pro Konto (zusätzlich zur Drosselung je IP in LoginAttempt).
   failedLogins       Int       @default(0) @map("failed_logins")
@@ -1822,4 +1823,21 @@ model Notification {
 
   @@index([userId, readAt, createdAt])
   @@map("notifications")
+}
+
+// =====================================================================
+//  ING Studio - benutzerbezogene Oberflaechen-Einstellungen
+// =====================================================================
+
+/// Persönliche Einstellungen je Benutzer und Schlüssel (z. B. "studio": Fensterlayout, Hintergrund, angeheftete Apps).
+model UserPreference {
+  userId    String   @map("user_id")
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, key])
+  @@map("user_preferences")
 }

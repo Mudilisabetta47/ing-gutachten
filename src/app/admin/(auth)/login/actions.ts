@@ -33,5 +33,5 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     };
   }
   await setSessionCookie(result.token, result.expiresAt);
-  redirect(result.mustChangePassword ? '/admin/profil?pflicht=1' : safeNext(parsed.data.weiter));
+  redirect(result.mustChangePassword ? '/admin/profil?pflicht=1' : parsed.data.weiter ? safeNext(parsed.data.weiter) : '/studio/');
 }

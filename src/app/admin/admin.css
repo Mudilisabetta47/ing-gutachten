@@ -1017,3 +1017,12 @@ dialog.adm-lightbox[open] { display: grid; grid-template-columns: minmax(0, 1fr)
 .int-card p { margin: 0; font-size: var(--fs-sm); color: rgb(var(--a-text-2)); }
 .perm-matrix th, .perm-matrix td { text-align: center; }
 .perm-matrix th:first-child, .perm-matrix td:first-child { text-align: left; }
+
+/* ------------------------------------------------------------ Eingebettet im ING Studio (Fenster) */
+html.is-embedded .adm-sidebar,
+html.is-embedded .adm-topbar,
+html.is-embedded .adm-bottomnav { display: none !important; }
+html.is-embedded .adm-shell,
+html.is-embedded .adm-shell[data-collapsed='true'] { grid-template-columns: minmax(0, 1fr) !important; }
+html.is-embedded .adm-main { max-width: none; padding: 16px 18px 40px; }
+html.is-embedded body { background: transparent; }
