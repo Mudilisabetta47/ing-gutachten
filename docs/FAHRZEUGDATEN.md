@@ -36,6 +36,8 @@ Provider-Adapter (providers/*)  → normalisieren → in eigener DB zwischenspei
 - **Status**: `VERIFIED`, `PARTIAL` (einzelne Drittquelle), `UNVERIFIED` (manuell/Datei), `OUTDATED` (> 365 Tage nicht geprüft), `CONFLICT`.
 - **Zulassung/Typgenehmigung**: „konform“ wird nur gemeldet, wenn Genehmigungsart und ein belegter, übereinstimmender Fahrzeugschein-Abgleich vorliegen – sonst „Nicht beurteilbar“.
 
+> **Rechtsprüfung und Anbietervergleich (2026-10-14): `docs/HSN-TSN-ANBIETER.md`.** Ergebnis: Der Adapter für `hsn-tsn.de` bleibt gesperrt (keine belegte Erlaubnis, Zertifikat gehört zu einer anderen Domain); für den Pilot werden Fahrzeugdaten aus dem Fahrzeugschein erfasst.
+
 ## Freigabe externer Anbieter (wichtig)
 
 Der HSN/TSN-Anbieter ist ausgeliefert mit **Lizenzstatus „Review erforderlich“, Automatik aus, Massenimport aus**.
