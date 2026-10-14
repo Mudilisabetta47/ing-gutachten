@@ -443,3 +443,32 @@ test('Fehlerbericht: Alarm nur über https, entdoppelt, begrenzt, und nie werfen
     assert.equal(sent, 10, 'höchstens 10 Alarme pro Minute');
   } finally { console.error = origErr; }
 });
+
+/* ------------------------------------------------------------ Vorabprüfung Staging/Produktion */
+const PF = lib('preflight');
+const GOOD = { ING_ENV: 'production', DATABASE_URL: 'postgresql://app:Xk3pQ9vLmN2wRt8sYb4@db.example-host.supabase.co:5432/postgres?sslmode=require', STORAGE_DRIVER: 's3', S3_BUCKET_PRIVATE: 'ing-prod-private', S3_ACCESS_KEY_ID: 'AKIA…', S3_SECRET_ACCESS_KEY: 'x', STORAGE_ENCRYPTION_KEY: 'Qm9yZ2VuLXVuZC1TdGVybmVuLWF1Zi1kZW4tV2VnLTc3', MFA_ENCRYPTION_KEY: 'Zm9yLW1mYS1vbmx5LWRpZmZlcmVudC1rZXktOTk4ODc3', IP_HASH_SALT: 'a1b2c3d4e5f6g7h8i9j0', BACKUP_ENCRYPTION_KEY: 'YmFja3VwLWtleS1mb3ItZW5jcnlwdGVkLWR1bXBzLTAx', SITE_URL: 'https://ing-gutachten.de', MAIL_PROVIDER: 'brevo', BREVO_API_KEY: 'k', MAIL_FROM: 'web@ing-gutachten.de', MAIL_TO: 'info@ing-gutachten.de', ALERT_WEBHOOK_URL: 'https://hooks.example/x', HEALTH_TOKEN: 'h'.repeat(24) + 'Zq' };
+const errs = (e, t = 'production', o) => PF.evaluatePreflight(e, t, o).filter((x) => x.level === 'error').map((x) => x.msg);
+test('Vorabprüfung: eine vollständige Produktionsumgebung hat keine Fehler', () => { assert.deepEqual(errs(GOOD), []); });
+test('Vorabprüfung: typische Fehlkonfigurationen werden gefunden', () => {
+  assert.ok(errs({ ...GOOD, ING_ENV: undefined }).some((m) => m.includes('ING_ENV')));
+  assert.ok(errs({ ...GOOD, DATABASE_URL: 'postgresql://u:p@localhost:5432/x' }).some((m) => m.includes('lokale')));
+  assert.ok(errs({ ...GOOD, DATABASE_URL: GOOD.DATABASE_URL.replace('?sslmode=require', '') }).some((m) => m.includes('sslmode')));
+  assert.ok(errs({ ...GOOD, STORAGE_DRIVER: 'local' }).some((m) => m.includes('STORAGE_DRIVER')));
+  assert.ok(errs({ ...GOOD, STORAGE_ENCRYPTION_KEY: undefined }).some((m) => m.includes('STORAGE_ENCRYPTION_KEY')));
+  assert.ok(errs({ ...GOOD, STORAGE_ENCRYPTION_KEY: 'changeme-changeme-changeme-changeme' }).some((m) => m.includes('schwach')));
+  assert.ok(errs({ ...GOOD, MFA_ENCRYPTION_KEY: 'x'.repeat(40) }).some((m) => m.includes('MFA_ENCRYPTION_KEY')));
+  assert.ok(errs({ ...GOOD, MFA_ENCRYPTION_KEY: GOOD.STORAGE_ENCRYPTION_KEY }).some((m) => m.includes('identisch')));
+  assert.ok(errs({ ...GOOD, SITE_URL: 'https://ing-gutachten.vercel.app' }).some((m) => m.includes('vercel.app')));
+  assert.ok(errs({ ...GOOD, MAIL_PROVIDER: 'dry-run' }).some((m) => m.includes('nicht erlaubt')));
+  assert.ok(errs({ ...GOOD, ALLOW_PREVIEW_DRY_RUN: 'true' }).some((m) => m.includes('ALLOW_PREVIEW_DRY_RUN')));
+  assert.ok(errs({ ...GOOD, LOGIN_MAX_ATTEMPTS: '500' }).some((m) => m.includes('LOGIN_MAX_ATTEMPTS')));
+  assert.ok(errs({ ...GOOD, NEXT_PUBLIC_API_SECRET: 'x' }).some((m) => m.includes('NEXT_PUBLIC_API_SECRET')));
+  assert.ok(errs({ ...GOOD, S3_BUCKET_PUBLIC: 'ing-prod-private' }).some((m) => m.includes('identisch')));
+});
+test('Vorabprüfung: Staging verlangt die Empfänger-Positivliste; Vergleich mit Produktion findet geteilte Ressourcen', () => {
+  const st = { ...GOOD, ING_ENV: 'staging', S3_BUCKET_PRIVATE: 'ing-staging-private', STORAGE_ENCRYPTION_KEY: 'Uy1zdGFnaW5nLXN0b3JhZ2Uta2V5LXVuaXF1ZS02NjU1', MFA_ENCRYPTION_KEY: 'Uy1zdGFnaW5nLW1mYS1rZXktdW5pcXVlLTc3NDQzMw', IP_HASH_SALT: 'zzyyxxwwvvuuttss11', BACKUP_ENCRYPTION_KEY: 'Uy1zdGFnaW5nLWJhY2t1cC1rZXktdW5pcXVlLTU1', HEALTH_TOKEN: 'staging-health-token-0123456789', DATABASE_URL: 'postgresql://app:Xk3pQ9vLmN2wRt8sYb4@db.staging-host.supabase.co:5432/postgres?sslmode=require', S3_ACCESS_KEY_ID: 'AKIASTAGING' };
+  assert.ok(errs(st, 'staging').some((m) => m.includes('MAIL_ALLOWED_RECIPIENTS')));
+  assert.deepEqual(errs({ ...st, MAIL_TO: 'test@beispiel.de', MAIL_ALLOWED_RECIPIENTS: 'test@beispiel.de' }, 'staging', GOOD), []);
+  const shared = errs({ ...st, MAIL_TO: 'test@beispiel.de', MAIL_ALLOWED_RECIPIENTS: 'test@beispiel.de', DATABASE_URL: GOOD.DATABASE_URL, S3_BUCKET_PRIVATE: GOOD.S3_BUCKET_PRIVATE, MFA_ENCRYPTION_KEY: GOOD.MFA_ENCRYPTION_KEY }, 'staging', GOOD).join(' ');
+  assert.ok(shared.includes('Datenbank') && shared.includes('S3_BUCKET_PRIVATE') && shared.includes('MFA_ENCRYPTION_KEY'));
+});

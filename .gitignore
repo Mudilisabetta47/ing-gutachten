@@ -15,3 +15,4 @@ HANDOVER*.md
 # lokaler privater Dateispeicher (Entwicklung)
 .data/
 .env.test
+.migtest/
