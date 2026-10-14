@@ -327,3 +327,10 @@ test('TOTP: otpauth-Adresse und Wiederherstellungscodes', () => {
   for (const c of codes) assert.match(c, /^[a-z2-9]{5}-[a-z2-9]{5}$/);
   assert.equal(T.normalizeRecovery(' ABCDE-fghjk '), 'abcde-fghjk');
 });
+
+/* ------------------------------------------------------------ Berechtigungs-Audit (statisch) */
+test('Audit: jede Schnittstelle, Server-Action und Admin-Seite prüft Anmeldung/Rechte (Ausnahmen sind ausdrücklich begründet)', () => {
+  const { problems, info } = require(path.join(__dirname, '..', 'scripts', 'audit-auth.cjs'));
+  assert.deepEqual(problems, []);
+  assert.ok(info.routes >= 12 && info.actions >= 100 && info.pages >= 50, 'es wurde wirklich etwas geprüft');
+});

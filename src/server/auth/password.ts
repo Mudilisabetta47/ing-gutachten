@@ -29,7 +29,7 @@ export function dummyHash(): Promise<string> {
 }
 
 const COMMON = new Set(
-  ['passwort1234', 'password1234', '123456789012', 'qwertzuiop12', 'willkommen123', 'administrator', 'changeme1234', 'inggutachten', 'ing-gutachten', 'hannover12345'].map((s) => s.toLowerCase()),
+  ['passwort1234', 'password1234', '123456789012', 'qwertzuiop12', 'willkommen123', 'administrator', 'changeme1234', 'inggutachten', 'ing-gutachten', 'hannover12345', 'demo-passwort-lokal-2026!'].map((s) => s.toLowerCase()),
 );
 
 export const MIN_PASSWORD_LENGTH = 12;

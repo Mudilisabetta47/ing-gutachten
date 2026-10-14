@@ -3,12 +3,15 @@
  *  - nie in Production
  *  - nur gegen eine lokale Datenbank (localhost/127.0.0.1) – außer mit ausdrücklichem ALLOW_REMOTE_DB=yes
  */
+import { isLiveEnv } from '../src/lib/env';
+
 export function assertSafeTarget(action: string, opts: { allowRemote?: boolean } = {}): void {
   const url = process.env.DATABASE_URL ?? '';
   if (!url) throw new Error('DATABASE_URL ist nicht gesetzt.');
   if (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production') {
     throw new Error(`${action}: in Production nicht erlaubt.`);
   }
+  if (isLiveEnv()) throw new Error(`${action}: in Staging/Produktion nicht erlaubt (ING_ENV).`);
   const host = new URL(url.replace(/^postgres(ql)?:/, 'http:')).hostname;
   const local = host === 'localhost' || host === '127.0.0.1' || host === '::1';
   if (!local && !(opts.allowRemote && process.env.ALLOW_REMOTE_DB === 'yes')) {

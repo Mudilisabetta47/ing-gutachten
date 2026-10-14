@@ -8,6 +8,7 @@
  * Funktioniert auch gegen die Produktionsdatenbank (einmalige Einrichtung), verlangt dafür aber
  * ALLOW_PRODUCTION_BOOTSTRAP=yes.
  */
+import { KNOWN_DEMO_PASSWORD, isDemoEmail, isLiveEnv } from '../src/lib/env';
 import { createInterface } from 'node:readline';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -40,13 +41,15 @@ async function main() {
   const last = arg('last') ?? '';
   if (!email || !first || !last) throw new Error('Aufruf: --email <adresse> --first <Vorname> --last <Nachname>');
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL ist nicht gesetzt.');
-  const prod = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  if (isDemoEmail(email)) throw new Error('Demo-Adressen (…@demo.ing.test) sind für echte Konten nicht erlaubt.');
+  const prod = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production' || isLiveEnv();
   if (prod && process.env.ALLOW_PRODUCTION_BOOTSTRAP !== 'yes') {
     throw new Error('Production-Einrichtung erfordert ALLOW_PRODUCTION_BOOTSTRAP=yes (nur einmalig, bewusst).');
   }
 
   const password = process.env.OWNER_PASSWORD ?? (await readHidden('Passwort (min. 12 Zeichen, wird nicht angezeigt): '));
   if (password.length < 12) throw new Error('Das Passwort braucht mindestens 12 Zeichen.');
+  if (password === KNOWN_DEMO_PASSWORD) throw new Error('Das bekannte Demo-Passwort ist nicht erlaubt.');
 
   const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
   try {

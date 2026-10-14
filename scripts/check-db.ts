@@ -7,7 +7,9 @@
  * Gibt nichts Geheimes aus (nur Host-Name und Befunde). Exit-Code 1, wenn etwas nicht in Ordnung ist.
  */
 import { Client } from 'pg';
+import { verify } from '@node-rs/argon2';
 import { pgConfig } from '../src/server/db-config';
+import { DEMO_EMAIL_DOMAIN, KNOWN_DEMO_PASSWORD, ingEnv, isLiveEnv } from '../src/lib/env';
 
 async function main() {
   const cfg = pgConfig();
@@ -48,6 +50,16 @@ async function main() {
 
     const owner = (await c.query("select count(*)::int as n from users where role='OWNER' and deleted_at is null")).rows[0].n;
     (owner > 0 ? ok : console.log)(owner > 0 ? `${owner} Inhaber-Konto(en) vorhanden` : '• Noch kein Inhaber-Konto: npm run create-owner (siehe docs/BETRIEB.md)');
+
+    // Demo-Konten und das bekannte Demo-Passwort dürfen in Staging/Produktion nicht existieren (Anmeldung wird zwar blockiert, aber die Konten gehören nicht dorthin)
+    const live = isLiveEnv();
+    const demo = (await c.query("select count(*)::int as n from users where lower(email) like $1 and deleted_at is null", [`%@${DEMO_EMAIL_DOMAIN}`])).rows[0].n;
+    if (demo === 0) ok('Keine Demo-Konten (…@' + DEMO_EMAIL_DOMAIN + ') vorhanden');
+    else (live ? bad : console.log)(live ? `${demo} Demo-Konto/-Konten in ${ingEnv()} vorhanden – entfernen (npm run seed:demo -- clear läuft dort bewusst nicht; Konten manuell löschen)` : `• ${demo} Demo-Konten (lokale Entwicklung: in Ordnung)`);
+    let weak = 0;
+    for (const r of (await c.query("select password_hash from users where deleted_at is null and is_active")).rows) if (await verify(r.password_hash, KNOWN_DEMO_PASSWORD).catch(() => false)) weak++;
+    if (weak === 0) ok('Kein aktives Konto nutzt das bekannte Demo-Passwort');
+    else (live ? bad : console.log)(live ? `${weak} aktive(s) Konto/Konten mit dem bekannten Demo-Passwort – Passwort sofort ändern` : `• ${weak} Konten mit Demo-Passwort (lokale Entwicklung: in Ordnung)`);
   } finally {
     await c.end();
   }

@@ -6,6 +6,7 @@ import { dummyHash, verifyPassword } from './password';
 import { createSession } from './session';
 import { LOGIN_LOCK_MINUTES, LOGIN_MAX_ATTEMPTS } from './login-limits';
 import { createChallenge } from './mfa';
+import { KNOWN_DEMO_PASSWORD, isDemoEmail, isLiveEnv } from '@/lib/env';
 
 /**
  * Anmeldung mit Drosselung.
@@ -42,6 +43,14 @@ export async function authenticate(
   if (byEmail >= LOGIN_MAX_ATTEMPTS || byIp >= IP_MAX) {
     await writeAudit({ action: 'auth.login_throttled', entityType: 'User', summary: 'Anmeldung gedrosselt', ip: ctx.ip, userAgent: ctx.userAgent });
     return { ok: false, reason: 'throttled' };
+  }
+
+  // Echtbetrieb/Vorabnahme: Demo-Konten und das aus dem Repository bekannte Demo-Passwort funktionieren nie – egal, was in der Datenbank steht.
+  if (isLiveEnv() && (isDemoEmail(email) || password === KNOWN_DEMO_PASSWORD)) {
+    await verifyPassword(await dummyHash(), password); // gleiche Laufzeit wie ein normaler Fehlversuch
+    await db.loginAttempt.create({ data: { ip: ctx.ip, emailHash: eh, success: false } });
+    await writeAudit({ action: 'auth.demo_blocked', entityType: 'User', summary: 'Anmeldung mit Demo-Konto bzw. bekanntem Demo-Passwort abgewiesen', ip: ctx.ip, userAgent: ctx.userAgent });
+    return { ok: false, reason: 'invalid' };
   }
 
   const user = await db.user.findUnique({ where: { email } });
