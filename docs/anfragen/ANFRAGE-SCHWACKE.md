@@ -1,16 +1,16 @@
 # Entwurf: Anfrage an Schwacke
 
-**Status: Entwurf, nicht versendet.**
+**Status: finaler Entwurf zur Freigabe – NICHT versendet. Es wird nichts gesendet, bevor die Freigabe im Chat ausdrücklich erteilt ist.**
 **An:** customer@autovistagroup.com (laut Impressum schwacke.de – **vor Versand dort prüfen**); ergänzend Telefon +49 69 808839 50
 **Betreff:** Anfrage Schnittstelle/Lizenz – Fahrzeugidentifikation, Schadenkalkulation und Fahrzeugbewertung für eigene Gutachtersoftware (Kfz-Sachverständigenbüro)
 
-> ▶ Vor Versand: alle `[…]` ersetzen; Absender = Geschäftsadresse.
+> ▶ Vor Versand: alle `[FEHLT …]`/`[…]` ersetzen (Liste: FEHLENDE-ANGABEN.md). Bereits eingesetzt sind nur Angaben, die auf der Website als **verifiziert** geführt werden (Firmenname, Anschrift, Telefon, Domain). Absender = Geschäftsadresse.
 
 ---
 
 Sehr geehrte Damen und Herren,
 
-wir sind ein Kfz-Sachverständigenbüro in [Hannover / Region] und betreiben mit dem „ING Studio“ eine eigene, webbasierte Gutachtersoftware (Fallverwaltung, Schadenerfassung, Kalkulation, Gutachten-PDF). Wir möchten Fahrzeugidentifikation, Schadenkalkulation und Fahrzeugbewertung der Schwacke-Datenwelt gern direkt in dieses System einbinden und bitten um ein Angebot sowie um Auskunft, ob und zu welchen Bedingungen das für ein Sachverständigenbüro mit eigener Software möglich ist. Uns ist bekannt, dass es Schnittstellen zwischen Gutachter-Softwareprodukten und dem SchwackeNet Schadenmanager gibt; wir fragen, ob Entsprechendes für eine **eigene** Anwendung angeboten wird.
+wir sind ein Kfz-Sachverständigenbüro in Hannover und betreiben mit dem „ING Studio“ eine eigene, webbasierte Gutachtersoftware (Fallverwaltung, Schadenerfassung, Kalkulation, Gutachten-PDF). Wir möchten Fahrzeugidentifikation, Schadenkalkulation und Fahrzeugbewertung der Schwacke-Datenwelt gern direkt in dieses System einbinden und bitten um ein Angebot sowie um Auskunft, ob und zu welchen Bedingungen das für ein Sachverständigenbüro mit eigener Software möglich ist. Uns ist bekannt, dass es Schnittstellen zwischen Gutachter-Softwareprodukten und dem SchwackeNet Schadenmanager gibt; wir fragen, ob Entsprechendes für eine **eigene** Anwendung angeboten wird.
 
 **Über uns**
 ING Gutachten, [Rechtsform, vollständiger Firmenname], [Anschrift], USt-IdNr. [ … ], Sachverständiger: [Name, Qualifikation/Bestellung – nur wenn zutreffend], Web: ing-gutachten.de.
@@ -34,5 +34,5 @@ Aktuell [Anzahl] Sachverständige, erwartet [X] Gutachten pro Monat im ersten Ja
 Wir freuen uns über ein unverbindliches Angebot, Unterlagen zur Schnittstelle und einen Ansprechpartner für Sachverständige/Partner-Integrationen. Gern telefonieren wir kurz.
 
 Mit freundlichen Grüßen
-[Name, Funktion]
-ING Gutachten · [Anschrift] · [Telefon] · [E-Mail]
+[Name, Funktion – FEHLT]
+ING Gutachten – KFZ-Sachverständigenbüro Hannover · Hildesheimer Straße 229 · 30519 Hannover · 0511 – 543 00 976 · [Absender-E-Mail – FEHLT]

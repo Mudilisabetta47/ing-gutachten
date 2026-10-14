@@ -1,19 +1,19 @@
 # Entwurf: Anfrage an api4cars (Oliversuite GmbH)
 
-**Status: Entwurf, nicht versendet.**
+**Status: finaler Entwurf zur Freigabe – NICHT versendet. Es wird nichts gesendet, bevor die Freigabe im Chat ausdrücklich erteilt ist.**
 **An:** info@api4cars.com (Impressum api4cars.com, E-Mail dort verschleiert; dekodiert)
 **Betreff:** Fragen zu Datenquelle, Lizenz und Speicherung vor Buchung – Fahrzeugdaten-API für Gutachtersoftware (ING Gutachten)
 
-> ▶ Vor Versand: alle `[…]` ersetzen; Absender = Geschäftsadresse. Hinweis: Ein Free-/Testkonto dürfen wir erst anlegen, wenn Sie das freigeben (Kontoanlage durch Menschen, nicht durch Claude).
+> ▶ Vor Versand: alle `[FEHLT …]`/`[…]` ersetzen (Liste: FEHLENDE-ANGABEN.md). Bereits eingesetzt sind nur Angaben, die auf der Website als **verifiziert** geführt werden (Firmenname, Anschrift, Telefon, Domain). Absender = Geschäftsadresse. Hinweis: Ein Free-/Testkonto dürfen wir erst anlegen, wenn Sie das freigeben (Kontoanlage durch Menschen, nicht durch Claude).
 
 ---
 
 Guten Tag,
 
-wir sind ein Kfz-Sachverständigenbüro in [Hannover / Region] und entwickeln eine eigene Gutachtersoftware (ING Studio). Fahrzeugdaten sollen anhand von HSN/TSN – und wenn möglich FIN – automatisch abgerufen werden. Ihre API ist für uns interessant; vor einer Buchung brauchen wir einige Auskünfte, weil Ihre veröffentlichten Bedingungen für unseren Einsatzzweck Fragen offenlassen.
+wir sind ein Kfz-Sachverständigenbüro in Hannover und entwickeln eine eigene Gutachtersoftware (ING Studio). Fahrzeugdaten sollen anhand von HSN/TSN – und wenn möglich FIN – automatisch abgerufen werden. Ihre API ist für uns interessant; vor einer Buchung brauchen wir einige Auskünfte, weil Ihre veröffentlichten Bedingungen für unseren Einsatzzweck Fragen offenlassen.
 
 **Über uns**
-ING Gutachten, [Rechtsform, vollständiger Firmenname], [Anschrift], USt-IdNr. [ … ], Web: ing-gutachten.de. Erwartete Abfragen: ca. [X] pro Monat im ersten Jahr (ein Fahrzeug je Gutachten, wenige Abfragen je Fall), Ziel [Y] in [Z] Jahren.
+ING Gutachten – KFZ-Sachverständigenbüro Hannover, Hildesheimer Straße 229, 30519 Hannover, Tel. 0511 – 543 00 976; Web: ing-gutachten.de. Rechtsform und Inhaber: [FEHLT – siehe FEHLENDE-ANGABEN.md], USt-IdNr.: [FEHLT]. Erwartete Abfragen: ca. [X] pro Monat im ersten Jahr (ein Fahrzeug je Gutachten, wenige Abfragen je Fall), Ziel [Y] in [Z] Jahren.
 
 **Unsere Fragen**
 
@@ -31,5 +31,5 @@ ING Gutachten, [Rechtsform, vollständiger Firmenname], [Anschrift], USt-IdNr. [
 Wir bitten um eine kurze schriftliche Antwort zu 4, 6 und 7; davon hängt unsere Entscheidung ab.
 
 Mit freundlichen Grüßen
-[Name, Funktion]
-ING Gutachten · [Anschrift] · [Telefon] · [E-Mail]
+[Name, Funktion – FEHLT]
+ING Gutachten – KFZ-Sachverständigenbüro Hannover · Hildesheimer Straße 229 · 30519 Hannover · 0511 – 543 00 976 · [Absender-E-Mail – FEHLT]

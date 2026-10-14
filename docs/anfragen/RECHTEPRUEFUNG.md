@@ -1,0 +1,19 @@
+# Rechteprüfung: Fahrzeugdaten in ING Studio, im Gutachten-PDF und in der Fahrzeugakte
+
+Stand 2026-10-14. Gegenstand: Dürfen wir Daten des Anbieters (1) in ING Studio anzeigen und verarbeiten, (2) in Gutachten-PDFs übernehmen, die an Mandanten (Geschädigte, Anwälte, Versicherungen, Gerichte) gehen, und (3) dauerhaft in der Fahrzeug-/Fallakte speichern (Aufbewahrung des Gutachtens, Nachvollziehbarkeit)? **Keine Rechtsberatung.** „Dokumentiert“ = steht in öffentlich abrufbaren Anbieterunterlagen; „offen“ = nicht veröffentlicht → schriftliche Antwort einholen. Bevor ein Vertrag geschlossen wird, müssen (2) und (3) schriftlich bestätigt sein.
+
+| | (1) Anzeige/Verarbeitung in ING Studio | (2) Übernahme in Gutachten-PDF an Dritte | (3) Dauerhafte Speicherung in der Akte | Caching/Wiederverwendung |
+|---|---|---|---|---|
+| **DAT** (SilverDAT 3 Pro) | dokumentiert: Anbindung eigener Software nur als Interface-Partner (Antrag + Vertrag) | **offen.** Produktbeschreibung: Daten nur „zur Bestimmung des Bauzustands für Reparaturkostenkalkulation und/oder Fahrzeugbewertung“ nutzbar – ob das den gedruckten Gutachteninhalt und die Weitergabe an Mandanten einschließt, ist zu bestätigen (Gutachter-Software wie eGutachten/Carexpert nutzt DAT-Schnittstellen, das spricht dafür, ist aber **keine** Zusicherung für uns) | **offen** | **offen** |
+| **Schwacke** | **offen** (Schnittstellen zu Gutachtersoftware existieren laut Drittquelle; Bedingungen für Eigenanwendungen nicht veröffentlicht) | **offen** | **offen** | **offen** |
+| **api4cars** | dokumentiert: erlaubt „in eigenen Anwendungen“ inkl. Anzeige gegenüber eigenen Kunden (API-Nutzungsbedingungen § 3) | **offen/kritisch:** Weitergabe, Weiterverkauf, Unterlizenzierung und Bereitstellung für Dritte sind untersagt (§ 4); „Gutachten für Dritte“ nicht ausdrücklich geregelt | **kritisch:** Aufbau einer eigenen Datenbank „ganz oder in wesentlichen Teilen“ verboten (§ 4); Zwischenspeicherung nur zum Betrieb, **höchstens 30 Tage je Datensatz**, nur für durch eine konkrete Anfrage ausgelöste Daten (§ 5) | massiv eingeschränkt (30 Tage) |
+
+## Folgen für die Umsetzung (ehrlich)
+
+- Ohne schriftliche Bestätigung zu (2) und (3) darf ein Anbieter-Datensatz **nicht** automatisch in Gutachten/Akten übernommen werden. Bis dahin gilt das bestehende Verfahren: Fahrzeugdaten stammen aus dem Fahrzeugschein und sind „vom Gutachter bestätigt“.
+- Falls api4cars (oder ein ähnlicher Anbieter) nur Caching ≤ 30 Tage erlaubt: Abruf nur als **Eingabehilfe** (Vorschlag, den der Gutachter bestätigt); übernommen wird dann der **bestätigte Wert als eigener Eintrag des Gutachters** (Quelle „vom Gutachter bestätigt“) – nicht der Rohdatensatz des Anbieters. Auch das ist vom Anbieter bestätigen zu lassen, weil auch das als „Ableitung“ gelten kann.
+- Technisch vorbereitet: Provider-Interface, Lizenzstatus `REVIEW_REQUIRED` bis zur Freigabe, Quelle und Priorität je Datenpunkt. **Noch nicht gebaut** (erst nach Vertragsbedingungen sinnvoll): automatisches Ablaufdatum je Datensatz (Löschen nach X Tagen) und Kennzeichnung von Anbieter-Daten im PDF.
+
+## Muster für die schriftliche Bestätigung (kann den Anfragen beigelegt werden)
+
+„Bitte bestätigen Sie schriftlich: (a) Die über Ihre Schnittstelle abgerufenen Daten dürfen in der Gutachtersoftware von ING Gutachten angezeigt und verarbeitet werden. (b) Einzelne dieser Daten dürfen in Gutachten übernommen werden, die ING Gutachten an seine Mandanten (Geschädigte, Rechtsanwälte, Versicherungen, Gerichte) übergibt. (c) Die in einem Gutachten verwendeten Daten dürfen für die Dauer der gesetzlichen und berufsüblichen Aufbewahrungsfrist des Gutachtens (mindestens [Frist von der Geschäftsleitung zu bestätigen] Jahre) in der Fall-/Fahrzeugakte gespeichert bleiben, auch nach Beendigung des Vertrags. (d) Welche Daten dürfen darüber hinaus zwischengespeichert und für andere Fälle wiederverwendet werden und für wie lange?“

@@ -1,19 +1,19 @@
 # Entwurf: Anfrage an DAT
 
-**Status: Entwurf, nicht versendet.**
+**Status: finaler Entwurf zur Freigabe – NICHT versendet. Es wird nichts gesendet, bevor die Freigabe im Chat ausdrücklich erteilt ist.**
 **An:** zentrale@dat.de (Hinweis im Betreff: „zur Weiterleitung an Vertrieb / Schnittstellenpartnerschaft“) – parallel Online-Formular „Interface-Partner“ auf datgroup.com
 **Betreff:** Anfrage Schnittstellenpartnerschaft – Fahrzeugidentifikation (HSN/TSN, FIN), Kalkulation und Bewertung für eigene Gutachtersoftware (ING Gutachten, Hannover)
 
-> ▶ Vor Versand: alle `[…]` ersetzen; Absender = Geschäftsadresse.
+> ▶ Vor Versand: alle `[FEHLT …]`/`[…]` ersetzen (Liste: FEHLENDE-ANGABEN.md). Bereits eingesetzt sind nur Angaben, die auf der Website als **verifiziert** geführt werden (Firmenname, Anschrift, Telefon, Domain). Absender = Geschäftsadresse.
 
 ---
 
 Sehr geehrte Damen und Herren,
 
-wir sind ein Kfz-Sachverständigenbüro in [Hannover / Region] und entwickeln mit dem „ING Studio“ eine eigene Gutachtersoftware (Fallverwaltung, Schadenerfassung, Kalkulation, Gutachten-PDF). Wir möchten Fahrzeugdaten, Kalkulation und Bewertung künftig direkt über DAT-Dienste in dieses System einbinden und bitten Sie deshalb um ein Angebot sowie Auskunft zu Ihrem Interface-Partnerprogramm.
+wir sind ein Kfz-Sachverständigenbüro in Hannover und entwickeln mit dem „ING Studio“ eine eigene Gutachtersoftware (Fallverwaltung, Schadenerfassung, Kalkulation, Gutachten-PDF). Wir möchten Fahrzeugdaten, Kalkulation und Bewertung künftig direkt über DAT-Dienste in dieses System einbinden und bitten Sie deshalb um ein Angebot sowie Auskunft zu Ihrem Interface-Partnerprogramm.
 
 **Über uns**
-ING Gutachten, [Rechtsform, vollständiger Firmenname], [Anschrift], USt-IdNr. [ … ], Sachverständiger: [Name, Qualifikation/Bestellung durch … – nur wenn zutreffend], Web: ing-gutachten.de.
+ING Gutachten – KFZ-Sachverständigenbüro Hannover, Hildesheimer Straße 229, 30519 Hannover, Tel. 0511 – 543 00 976; Web: ing-gutachten.de. Rechtsform und Inhaber: [FEHLT – siehe FEHLENDE-ANGABEN.md], USt-IdNr.: [FEHLT], Sachverständiger/Bestellung: [FEHLT – nur wenn zutreffend].
 Aktuell [Anzahl] Sachverständige, erwartet [X] Gutachten pro Monat im ersten Jahr, Ziel [Y] pro Monat in [Z] Jahren.
 Kundennummer bei DAT: [falls vorhanden, sonst „noch keine“].
 
@@ -24,7 +24,7 @@ Kundennummer bei DAT: [falls vorhanden, sonst „noch keine“].
 3. **FIN:** Wird die Identifikation über die 17-stellige Fahrzeug-Identifizierungsnummer angeboten (VIN-Abfrage)? Für welche Hersteller/Baujahre, und welche Voraussetzungen (Freischaltungsvereinbarung) gelten?
 4. **Datentiefe:** Welche Felder erhalten wir – Marke, Modell, Motorisierung, Leistung (kW/PS), Hubraum, Kraftstoff, Baujahr/Erstzulassung, Serien- und Sonderausstattung, technische Daten (Maße, Gewichte, Reifen, CO₂)? Gibt es eine Feldliste/Beispielantwort?
 5. **Kalkulation und Bewertung:** Stehen über die Schnittstelle Ersatzteilpreise, Arbeitswerte, Lackierkosten, Reparaturkalkulation (z. B. calculateEXP) sowie Wiederbeschaffungswert, Restwert und Fahrzeugbewertung zur Verfügung? Welche Module sind für Sachverständige üblich und was kostet jedes einzeln?
-6. **Lizenzierung/Anzeige:** Dürfen die Daten in unserer eigenen Gutachtersoftware angezeigt, weiterverarbeitet und **in Gutachten-PDFs an unsere Mandanten** (Geschädigte, Anwälte, Versicherungen, Gerichte) übernommen werden? Gelten Kennzeichnungs- oder Quellenangabe-Pflichten?
+6. **Lizenzierung/Anzeige:** Uns ist bekannt, dass die Daten laut Produktbeschreibung (SilverDAT 3 Pro) nur zur Bestimmung des Bauzustands für Reparaturkostenkalkulation und/oder Fahrzeugbewertung genutzt werden dürfen. Fällt die Anzeige in unserer Software, die Übernahme in das Gutachten und die Archivierung in der Fall-/Fahrzeugakte darunter? Dürfen die Daten in unserer eigenen Gutachtersoftware angezeigt, weiterverarbeitet und **in Gutachten-PDFs an unsere Mandanten** (Geschädigte, Anwälte, Versicherungen, Gerichte) übernommen werden? Gelten Kennzeichnungs- oder Quellenangabe-Pflichten?
 7. **Speicherung:** Welche Daten dürfen wir **dauerhaft in der Fahrzeug-/Fallakte** speichern (Aufbewahrungspflicht für Gutachten)? Gibt es Beschränkungen für Zwischenspeicherung (Caching), Wiederverwendung für andere Fälle und für Berechnungsstände?
 8. **Kosten:** Bitte nennen Sie Einrichtungsgebühr, monatliche Grundgebühr, Preis je Abfrage/Kalkulation/Bewertung, Mindestumsatz, Vertragslaufzeit und Kündigungsfrist. Wir bitten um den **wirtschaftlichsten Tarif für ein wachsendes Sachverständigenunternehmen** (Staffeln, Einstiegspakete, Pilotphase).
 9. **Test:** Gibt es eine Sandbox, einen Testzugang oder eine zeitlich begrenzte Testphase für die Entwicklung? Zu welchen Bedingungen?
@@ -35,8 +35,8 @@ Kundennummer bei DAT: [falls vorhanden, sonst „noch keine“].
 Wir bitten um ein unverbindliches Angebot, die Schnittstellendokumentation und einen Ansprechpartner für Sachverständigen-Software/Schnittstellen. Gern vereinbaren wir ein kurzes Telefonat.
 
 Mit freundlichen Grüßen
-[Name, Funktion]
-ING Gutachten · [Anschrift] · [Telefon] · [E-Mail]
+[Name, Funktion – FEHLT]
+ING Gutachten – KFZ-Sachverständigenbüro Hannover · Hildesheimer Straße 229 · 30519 Hannover · 0511 – 543 00 976 · [Absender-E-Mail – FEHLT]
 
 ---
 
