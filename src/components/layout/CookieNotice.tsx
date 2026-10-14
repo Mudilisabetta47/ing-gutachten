@@ -60,7 +60,13 @@ export function CookieNotice() {
           exit={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
         >
-          <p className="text-[.8rem] text-fg-dim sm:text-[.85rem]">
+          <p className="text-[.8rem] text-fg-dim sm:hidden">
+            <strong>Nur das Nötigste.</strong> Keine Tracking-Cookies, nur technisch notwendige Speicherung.{' '}
+            <Link href="/datenschutz" className="text-signal-bright underline underline-offset-2">
+              Datenschutz
+            </Link>
+          </p>
+          <p className="hidden text-[.85rem] text-fg-dim sm:block">
             <strong>Nur das Nötigste.</strong> Diese Website nutzt ausschließlich technisch notwendige
             Speicherung. Es werden keine Tracking- oder Marketing-Cookies gesetzt. Details in der{' '}
             <Link href="/datenschutz" className="text-signal-bright underline underline-offset-2">
@@ -72,7 +78,7 @@ export function CookieNotice() {
             <button type="button" onClick={accept} className="btn btn-sm">
               Verstanden
             </button>
-            <Link href="/datenschutz" className="btn btn-sm btn-ghost">
+            <Link href="/datenschutz" className="btn btn-sm btn-ghost max-sm:hidden">
               Mehr erfahren
             </Link>
           </div>

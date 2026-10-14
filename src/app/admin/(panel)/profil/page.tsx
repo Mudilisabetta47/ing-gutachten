@@ -4,13 +4,18 @@ import { requireUser } from '@/server/auth/guards';
 import { ROLE_LABELS } from '@/server/auth/permissions';
 import { Alert, Badge, PageHeader, Section, fmtWhen } from '@/components/admin/ui';
 import { PasswordForm } from './PasswordForm';
+import { MfaSection } from './MfaSection';
+import { mfaAvailable, mfaStatus } from '@/server/auth/mfa';
+import { getSetting } from '@/server/settings';
 import { revokeOtherSessionsAction } from './actions';
 
 export const metadata: Metadata = { title: 'Mein Profil' };
 
-export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ pflicht?: string }> }) {
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ pflicht?: string; mfa?: string }> }) {
   const user = await requireUser({ allowPasswordChange: true });
   const { pflicht } = await searchParams;
+  const [mfa, security] = await Promise.all([mfaStatus(user.id), getSetting('security')]);
+  const enforced = (user.role === 'OWNER' || user.role === 'ADMIN') && security.requireMfaForAdmins;
   const sessions = await db.session.findMany({ where: { userId: user.id, revokedAt: null, expiresAt: { gt: new Date() } }, orderBy: { lastSeenAt: 'desc' }, take: 20 });
 
   return (
@@ -22,7 +27,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         </div>
       ) : null}
       <div className="adm-grid-2" style={{ alignItems: 'start' }}>
-        <PasswordForm />
+        <div style={{ display: 'grid', gap: 20 }}>
+          <PasswordForm />
+          <MfaSection status={{ enabled: mfa.enabled, enabledAt: mfa.enabledAt?.toISOString() ?? null, pending: mfa.pending, recoveryLeft: mfa.recoveryLeft }} available={mfaAvailable()} enforced={enforced} />
+        </div>
         <Section
           title="Aktive Sitzungen"
           aside={sessions.length > 1 ? (

@@ -16,8 +16,8 @@ test('Erfolgreiche Anmeldung: Session mit gehashtem Token, Audit, Zähler zurüc
   const { user, password } = await makeUser();
   await db.user.update({ where: { id: user.id }, data: { failedLogins: 3 } });
   const r = await authenticate(user.email.toUpperCase(), password, ctx); // E-Mail ist case-insensitiv
-  assert.ok(r.ok);
-  if (!r.ok) return;
+  assert.ok(r.ok && !r.mfa);
+  if (!r.ok || r.mfa) return;
   const s = await db.session.findFirstOrThrow({ where: { userId: user.id } });
   assert.notEqual(s.tokenHash, r.token, 'der Klartext-Token darf nicht in der DB stehen');
   assert.equal(s.tokenHash, hashToken(r.token));

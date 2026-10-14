@@ -30,6 +30,10 @@ export const SETTINGS = {
     bank: z.string().trim().max(200),
     footer: z.string().trim().max(300),
   }),
+  security: z.object({
+    /** Inhaber und Administratoren müssen die Zwei-Faktor-Anmeldung einrichten (sonst nur Profilseite erreichbar). */
+    requireMfaForAdmins: z.boolean(),
+  }),
   uploads: z.object({
     maxPhotoMb: z.number().min(1).max(50),
     maxDocumentMb: z.number().min(1).max(100),
@@ -43,6 +47,7 @@ export type SettingValue<K extends SettingKey> = z.infer<(typeof SETTINGS)[K]>;
 export const SETTING_DEFAULTS: { [K in SettingKey]: SettingValue<K> } = {
   numbering: { casePrefix: 'ING', caseDigits: 5, invoicePrefix: 'RE', invoiceDigits: 5, reportPrefix: 'GA', reportDigits: 5 },
   company: { name: 'ING Gutachten', street: '', postalCode: '', city: '', phone: '', email: '', website: '', taxId: '', bank: '', footer: '' },
+  security: { requireMfaForAdmins: false },
   uploads: { maxPhotoMb: 15, maxDocumentMb: 25, maxFilesPerUpload: 20 },
 };
 

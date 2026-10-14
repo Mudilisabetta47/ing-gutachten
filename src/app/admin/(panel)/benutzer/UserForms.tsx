@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import { Field, Notice } from '@/components/admin/ui';
 import type { FormState } from '@/server/admin/form';
-import { createUserAction, resetPasswordAction, updateUserAction } from './actions';
+import { resetMfaAction, createUserAction, resetPasswordAction, updateUserAction } from './actions';
 
 const ROLE_OPTIONS = [
   ['OFFICE', 'Büro'],
@@ -117,6 +117,23 @@ export function ResetPasswordForm({ userId }: { userId: string }) {
           {pending ? 'Wird gesetzt …' : 'Passwort setzen'}
         </button>
       </div>
+    </form>
+  );
+}
+
+export function ResetMfaForm({ userId, enabled }: { userId: string; enabled: boolean }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(resetMfaAction, {});
+  return (
+    <form action={action} className="adm-card grid max-w-[640px] gap-4" onSubmit={(e) => { if (!window.confirm('Zwei-Faktor-Anmeldung dieses Kontos zurücksetzen? Alle Sitzungen enden.')) e.preventDefault(); }}>
+      <h2 className="font-display text-[1.05rem] font-semibold">Zwei-Faktor-Anmeldung</h2>
+      <input type="hidden" name="id" value={userId} />
+      <p style={{ margin: 0 }}>{enabled ? 'Aktiv. Bei verlorenem Gerät kann die Leitung den zweiten Faktor zurücksetzen.' : 'Nicht eingerichtet.'}</p>
+      <Result state={state} />
+      {enabled && (
+        <div>
+          <button type="submit" className="adm-btn adm-btn-ghost" disabled={pending}>{pending ? 'Wird zurückgesetzt …' : 'Zurücksetzen'}</button>
+        </div>
+      )}
     </form>
   );
 }

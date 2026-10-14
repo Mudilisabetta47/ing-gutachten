@@ -50,3 +50,15 @@ export async function saveCompanyAction(_p: FormState, fd: FormData): Promise<Fo
   revalidatePath('/admin/einstellungen');
   return { ok: true, message: 'Unternehmensdaten gespeichert.' };
 }
+
+export async function saveSecurityAction(_p: FormState, fd: FormData): Promise<FormState> {
+  const values = echo(fd);
+  try {
+    const actor = await authorize('settings.write');
+    await setSetting('security', { requireMfaForAdmins: fd.get('requireMfaForAdmins') === 'on' }, actor.id);
+  } catch (e) {
+    return toFormState(e, values);
+  }
+  revalidatePath('/admin/einstellungen');
+  return { ok: true, message: 'Sicherheitseinstellungen gespeichert.' };
+}

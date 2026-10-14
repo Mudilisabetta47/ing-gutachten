@@ -5,7 +5,7 @@ import { db } from '@/server/db';
 import { requirePagePermission, can } from '@/server/auth/guards';
 import { ROLE_LABELS } from '@/server/auth/permissions';
 import { PageHeader, fmtDateTime } from '@/components/admin/ui';
-import { ResetPasswordForm, UserEditForm } from '../UserForms';
+import { ResetMfaForm, ResetPasswordForm, UserEditForm } from '../UserForms';
 
 export const metadata: Metadata = { title: 'Benutzer bearbeiten' };
 
@@ -33,6 +33,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
           canGrantOwner={can(actor, 'users.write.owner')}
         />
         {u.id !== actor.id ? <ResetPasswordForm userId={u.id} /> : null}
+        {u.id !== actor.id ? <ResetMfaForm userId={u.id} enabled={Boolean(u.mfaEnabledAt)} /> : null}
       </div>
     </>
   );

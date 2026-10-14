@@ -80,6 +80,7 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
     role: u.role,
     isExpert: u.employee?.isExpert ?? u.role === 'EXPERT',
     mustChangePassword: u.mustChangePassword,
+    mfaEnabled: Boolean(u.mfaEnabledAt),
     permissions: effectivePermissions(u.role, u.permissions),
     sessionId: s.id,
   };

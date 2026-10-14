@@ -632,6 +632,11 @@ export function CrashSequence() {
           </div>
         </div>
 
+        {/* Überspringen: wer den Film nicht scrollen möchte (Tastatur, Smartphone, Eile), springt direkt zu den Leistungen */}
+        <a href="#leistungen" className="film-skip" data-cursor="link">
+          Film überspringen <span aria-hidden="true">↓</span>
+        </a>
+
         {/* Hinweis */}
         <div className="film-hint pointer-events-none absolute bottom-14 left-1/2 hidden -translate-x-1/2 font-mono text-[.58rem] uppercase tracking-[.24em] text-fg-mute/70 sm:block" aria-hidden="true">
           Scrollen steuert den Film

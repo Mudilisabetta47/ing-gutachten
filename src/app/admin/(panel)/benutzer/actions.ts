@@ -51,3 +51,15 @@ export async function resetPasswordAction(_prev: FormState, fd: FormData): Promi
   }
   return { ok: true, message: 'Passwort gesetzt. Beim nächsten Login muss es geändert werden; alle Sitzungen wurden beendet.' };
 }
+
+export async function resetMfaAction(_prev: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await authorize('users.write');
+    const { adminResetMfa } = await import('@/server/auth/mfa');
+    await adminResetMfa(actor, String(fd.get('id') ?? ''));
+  } catch (e) {
+    return toFormState(e);
+  }
+  revalidatePath('/admin/benutzer');
+  return { ok: true, message: 'Zwei-Faktor-Anmeldung zurückgesetzt. Alle Sitzungen des Kontos wurden beendet; die Person richtet sie beim nächsten Login im Profil neu ein.' };
+}

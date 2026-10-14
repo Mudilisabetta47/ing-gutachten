@@ -285,3 +285,45 @@ test('Studio: gespeicherte Einstellungen – kaputte Daten fallen auf Standard z
   ], new Set(['faelle']), AREA);
   assert.deepEqual(wins.map((w) => w.appId), ['faelle'], 'ohne Recht (App nicht erlaubt) und mit fremder Adresse wird nichts wiederhergestellt');
 });
+
+/* ------------------------------------------------------------ TOTP (RFC 6238) */
+const T = lib('totp');
+const RFC_SECRET = T.base32Encode(Buffer.from('12345678901234567890')); // Testschlüssel der RFC (SHA-1)
+test('TOTP: Testwerte der RFC 6238 (SHA-1, 6 Stellen)', () => {
+  assert.equal(RFC_SECRET, 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ');
+  for (const [t, code] of [[59, '287082'], [1111111109, '081804'], [1111111111, '050471'], [1234567890, '005924'], [2000000000, '279037'], [20000000000, '353130']]) {
+    assert.equal(T.totp(RFC_SECRET, t * 1000), code, `t=${t}`);
+  }
+});
+test('TOTP: Base32 Hin- und Rückweg, Leerzeichen und Kleinschreibung werden toleriert', () => {
+  const raw = Buffer.from([1, 2, 3, 250, 251, 252, 0, 99]);
+  assert.deepEqual(T.base32Decode(T.base32Encode(raw)), raw);
+  assert.deepEqual(T.base32Decode('gezd gnbv-GY3T QOJQ'), Buffer.from('1234567890'));
+  assert.throws(() => T.base32Decode('!!!'));
+  assert.match(T.newSecret(), /^[A-Z2-7]{32}$/);
+});
+test('TOTP: Prüfung toleriert ±1 Schritt, lehnt alles andere und Wiederverwendung ab', () => {
+  const now = 1_700_000_000_000;
+  const cur = T.stepOf(now);
+  const at = (d) => T.totp(RFC_SECRET, now + d * 30_000);
+  assert.equal(T.verifyTotp(RFC_SECRET, at(0), now), cur);
+  assert.equal(T.verifyTotp(RFC_SECRET, at(-1), now), cur - 1, 'Uhr geht nach');
+  assert.equal(T.verifyTotp(RFC_SECRET, at(1), now), cur + 1, 'Uhr geht vor');
+  assert.equal(T.verifyTotp(RFC_SECRET, at(-2), now), null);
+  assert.equal(T.verifyTotp(RFC_SECRET, at(3), now), null);
+  assert.equal(T.verifyTotp(RFC_SECRET, at(0), now, cur), null, 'derselbe Schritt zweimal: abgelehnt');
+  assert.equal(T.verifyTotp(RFC_SECRET, at(0), now, cur - 1), cur, 'neuerer Schritt als der letzte: ok');
+  assert.equal(T.verifyTotp(RFC_SECRET, at(-1), now, cur), null, 'älterer Schritt: abgelehnt');
+  for (const bad of ['', '12345', '1234567', 'abcdef', '12 34 5x']) assert.equal(T.verifyTotp(RFC_SECRET, bad, now), null, bad);
+  assert.equal(T.verifyTotp(RFC_SECRET, `${at(0).slice(0, 3)} ${at(0).slice(3)}`, now), cur, 'Leerzeichen im Code erlaubt');
+});
+test('TOTP: otpauth-Adresse und Wiederherstellungscodes', () => {
+  const u = T.otpauthUri('inhaber@example.test', RFC_SECRET);
+  assert.match(u, /^otpauth:\/\/totp\/ING%20Gutachten%3Ainhaber%40example\.test\?secret=GEZD/);
+  assert.ok(u.includes('digits=6') && u.includes('period=30'));
+  assert.equal(T.groupSecret('ABCDEFGHIJKL'), 'ABCD EFGH IJKL');
+  const codes = new Set(Array.from({ length: 200 }, () => T.newRecoveryCode()));
+  assert.equal(codes.size, 200, 'keine Wiederholungen');
+  for (const c of codes) assert.match(c, /^[a-z2-9]{5}-[a-z2-9]{5}$/);
+  assert.equal(T.normalizeRecovery(' ABCDE-fghjk '), 'abcde-fghjk');
+});

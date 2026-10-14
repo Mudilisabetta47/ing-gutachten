@@ -3,6 +3,14 @@ import { notFound, redirect } from 'next/navigation';
 import { getAuthUser, type AuthUser } from './session';
 import { AuthRequiredError, ForbiddenError } from './errors';
 import type { Permission } from './permissions';
+import { getSetting } from '@/server/settings';
+import type { AuthUser as AU } from './session-types';
+
+/** Inhaber/Administratoren ohne zweiten Faktor, obwohl die Leitung ihn vorschreibt? */
+async function mfaMissing(user: AU): Promise<boolean> {
+  if (user.mfaEnabled || (user.role !== 'OWNER' && user.role !== 'ADMIN')) return false;
+  return (await getSetting('security')).requireMfaForAdmins;
+}
 
 export { ForbiddenError, AuthRequiredError, can, canAny } from './errors';
 
@@ -11,6 +19,7 @@ export async function requireUser(opts: { allowPasswordChange?: boolean } = {}):
   const user = await getAuthUser();
   if (!user) redirect('/admin/login');
   if (user.mustChangePassword && !opts.allowPasswordChange) redirect('/admin/profil?pflicht=1');
+  if (!opts.allowPasswordChange && (await mfaMissing(user))) redirect('/admin/profil?mfa=pflicht');
   return user;
 }
 
@@ -26,6 +35,7 @@ export async function authorize(...anyOf: Permission[]): Promise<AuthUser> {
   const user = await getAuthUser();
   if (!user) throw new AuthRequiredError();
   if (user.mustChangePassword) throw new ForbiddenError('Bitte zuerst das Passwort ändern.');
+  if (await mfaMissing(user)) throw new ForbiddenError('Bitte zuerst die Zwei-Faktor-Anmeldung einrichten (Profil).');
   if (anyOf.length && !anyOf.some((p) => user.permissions.has(p))) throw new ForbiddenError();
   return user;
 }

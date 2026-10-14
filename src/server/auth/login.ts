@@ -4,6 +4,8 @@ import { db } from '@/server/db';
 import { writeAudit } from '@/server/audit';
 import { dummyHash, verifyPassword } from './password';
 import { createSession } from './session';
+import { LOGIN_LOCK_MINUTES, LOGIN_MAX_ATTEMPTS } from './login-limits';
+import { createChallenge } from './mfa';
 
 /**
  * Anmeldung mit Drosselung.
@@ -13,12 +15,12 @@ import { createSession } from './session';
  * und bei unbekannter E-Mail wird trotzdem ein Argon2-Hash berechnet (gleiche Laufzeit).
  */
 
-export const LOGIN_MAX_ATTEMPTS = Number(process.env.LOGIN_MAX_ATTEMPTS ?? 5);
-export const LOGIN_LOCK_MINUTES = Number(process.env.LOGIN_LOCK_MINUTES ?? 15);
+export { LOGIN_LOCK_MINUTES, LOGIN_MAX_ATTEMPTS } from './login-limits';
 const IP_MAX = 20;
 
 export type LoginResult =
-  | { ok: true; token: string; expiresAt: Date; userId: string; mustChangePassword: boolean }
+  | { ok: true; mfa: false; token: string; expiresAt: Date; userId: string; mustChangePassword: boolean }
+  | { ok: true; mfa: true; challenge: string }
   | { ok: false; reason: 'invalid' | 'throttled' };
 
 export const normalizeEmail = (email: string) => email.trim().toLowerCase();
@@ -69,6 +71,11 @@ export async function authenticate(
     return { ok: false, reason: 'invalid' };
   }
 
+  // Zweiter Faktor aktiv: noch keine Sitzung – erst nach richtigem Code (Fehlversuche zählen weiter gegen die Sperre).
+  if (user.mfaEnabledAt && user.mfaSecret) {
+    return { ok: true, mfa: true, challenge: await createChallenge(user.id) };
+  }
+
   await db.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await db.loginAttempt.create({ data: { ip: ctx.ip, emailHash: eh, success: true } });
   const { token, expiresAt } = await createSession(user.id, ctx);
@@ -76,5 +83,5 @@ export async function authenticate(
   // Alte Versuche aufräumen (klein halten).
   await db.loginAttempt.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 24 * 3600_000) } } });
 
-  return { ok: true, token, expiresAt, userId: user.id, mustChangePassword: user.mustChangePassword };
+  return { ok: true, mfa: false, token, expiresAt, userId: user.id, mustChangePassword: user.mustChangePassword };
 }

@@ -39,17 +39,19 @@ enum Role {
 }
 
 model User {
+  mfaChallenges MfaChallenge[]
+  mfaRecovery   MfaRecoveryCode[]
   preferences   UserPreference[]
-  tasksAssigned Task[]           @relation("TaskAssignee")
+  tasksAssigned Task[]            @relation("TaskAssignee")
   notifications Notification[]
-  id            String           @id @default(cuid())
-  email         String           @unique
+  id            String            @id @default(cuid())
+  email         String            @unique
   /// Argon2id-Hash. Niemals Klartext, niemals ein schneller Hash.
-  passwordHash  String           @map("password_hash")
-  firstName     String           @map("first_name")
-  lastName      String           @map("last_name")
-  role          Role             @default(OFFICE)
-  isActive      Boolean          @default(true) @map("is_active")
+  passwordHash  String            @map("password_hash")
+  firstName     String            @map("first_name")
+  lastName      String            @map("last_name")
+  role          Role              @default(OFFICE)
+  isActive      Boolean           @default(true) @map("is_active")
 
   /// Brute-Force-Schutz pro Konto (zusätzlich zur Drosselung je IP in LoginAttempt).
   failedLogins       Int       @default(0) @map("failed_logins")
@@ -61,6 +63,8 @@ model User {
   /// Für TOTP vorbereitet, noch nicht aktiv.
   mfaSecret    String?   @map("mfa_secret")
   mfaEnabledAt DateTime? @map("mfa_enabled_at")
+  /// letzter akzeptierter 30-Sekunden-Schritt – ein Code gilt nur einmal (Schutz gegen Wiederverwendung)
+  mfaLastStep  Int?      @map("mfa_last_step")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -1840,4 +1844,34 @@ model UserPreference {
 
   @@id([userId, key])
   @@map("user_preferences")
+}
+
+/// Zweiter Anmeldeschritt: nach richtigem Passwort entsteht eine kurzlebige, einmalige Aufgabe (nur der Hash des Tokens liegt hier).
+model MfaChallenge {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("mfa_challenges")
+}
+
+/// Einmal-Wiederherstellungscodes (nur Hashes). Ein Code verfällt nach der Benutzung.
+model MfaRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  codeHash  String    @map("code_hash")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, codeHash])
+  @@map("mfa_recovery_codes")
 }

@@ -43,3 +43,35 @@ export async function revokeOtherSessionsAction(): Promise<void> {
   await writeAudit({ actorId: user.id, action: 'auth.sessions_revoked', entityType: 'User', entityId: user.id, summary: 'Andere Sitzungen beendet', ...(await requestMeta()) });
   redirect('/admin/profil');
 }
+
+/* ------------------------------------------------------------ Zwei-Faktor-Anmeldung */
+import { beginEnrollment, confirmEnrollment, disableMfa, regenerateRecoveryCodes } from '@/server/auth/mfa';
+import { getSetting } from '@/server/settings';
+import { groupSecret } from '@/lib/totp';
+
+export type MfaResult = { ok: boolean; error?: string; secret?: string; uri?: string; codes?: string[] };
+const fail = (e: unknown): MfaResult => ({ ok: false, error: e instanceof Error && 'code' in e ? e.message : e instanceof Error ? e.message : 'Das hat nicht geklappt.' });
+
+async function me() {
+  const user = await getAuthUser();
+  if (!user) redirect('/admin/login');
+  return user;
+}
+
+export async function startMfaAction(): Promise<MfaResult> {
+  try { const r = await beginEnrollment(await me()); return { ok: true, secret: groupSecret(r.secret), uri: r.uri }; } catch (e) { return fail(e); }
+}
+export async function confirmMfaAction(code: string): Promise<MfaResult> {
+  try { const r = await confirmEnrollment(await me(), String(code)); return { ok: true, codes: r.recoveryCodes }; } catch (e) { return fail(e); }
+}
+export async function disableMfaAction(password: string, code: string): Promise<MfaResult> {
+  try {
+    const user = await me();
+    const enforced = (user.role === 'OWNER' || user.role === 'ADMIN') && (await getSetting('security')).requireMfaForAdmins;
+    await disableMfa(user, String(password), String(code), enforced);
+    return { ok: true };
+  } catch (e) { return fail(e); }
+}
+export async function regenerateRecoveryAction(code: string): Promise<MfaResult> {
+  try { return { ok: true, codes: await regenerateRecoveryCodes(await me(), String(code)) }; } catch (e) { return fail(e); }
+}

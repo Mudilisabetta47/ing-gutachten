@@ -45,7 +45,7 @@ export async function asAuthUser(userId: string) {
   const u = await db.user.findUniqueOrThrow({ where: { id: userId }, include: { permissions: true, employee: true } });
   return {
     id: u.id, email: u.email, firstName: u.firstName, lastName: u.lastName, role: u.role,
-    isExpert: u.employee?.isExpert ?? false, mustChangePassword: u.mustChangePassword,
+    isExpert: u.employee?.isExpert ?? false, mustChangePassword: u.mustChangePassword, mfaEnabled: Boolean(u.mfaEnabledAt),
     permissions: effectivePermissions(u.role, u.permissions), sessionId: 'test-session',
   };
 }

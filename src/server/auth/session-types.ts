@@ -9,6 +9,8 @@ export type AuthUser = {
   role: Role;
   isExpert: boolean;
   mustChangePassword: boolean;
+  /** Zwei-Faktor-Anmeldung aktiv */
+  mfaEnabled: boolean;
   permissions: ReadonlySet<Permission>;
   sessionId: string;
 };

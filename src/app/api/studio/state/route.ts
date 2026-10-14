@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { authorize } from '@/server/auth/guards';
-import { AuthRequiredError } from '@/server/auth/errors';
+import { AuthRequiredError, ForbiddenError } from '@/server/auth/errors';
 import { dashboardCounts } from '@/server/pipeline/today';
 import { myNotifications } from '@/server/pipeline/tasks';
 import { buildNotices } from '@/server/admin/notices';
@@ -16,6 +16,7 @@ export async function GET() {
     return NextResponse.json({ ok: true, notices: buildNotices(counts), notifications: notifications.map((n) => ({ id: n.id, text: n.text, href: n.href, read: n.read, at: n.createdAt })) }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e) {
     if (e instanceof AuthRequiredError) return NextResponse.json({ error: 'auth' }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
+    if (e instanceof ForbiddenError) return NextResponse.json({ error: 'forbidden' }, { status: 403, headers: { 'Cache-Control': 'no-store' } });
     return NextResponse.json({ error: 'server' }, { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
 }

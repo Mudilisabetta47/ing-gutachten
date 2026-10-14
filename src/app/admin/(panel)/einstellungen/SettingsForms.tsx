@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import { Field, Notice } from '@/components/admin/ui';
 import type { FormState } from '@/server/admin/form';
-import { saveCompanyAction, saveNumberingAction, saveUploadsAction } from './actions';
+import { saveSecurityAction, saveCompanyAction, saveNumberingAction, saveUploadsAction } from './actions';
 
 function Result({ state }: { state: FormState }) {
   return (
@@ -101,6 +101,21 @@ export function CompanyForm({ value, readOnly }: { value: Company; readOnly: boo
         {row('bank', 'Bankverbindung (IBAN, BIC, Bank)')}
       </div>
       {row('footer', 'Fußzeile (optional)', { area: true })}
+      <Result state={state} />
+      {!readOnly && <div><button type="submit" className="adm-btn" disabled={pending}>{pending ? 'Speichert …' : 'Speichern'}</button></div>}
+    </form>
+  );
+}
+
+export function SecurityForm({ value, readOnly }: { value: { requireMfaForAdmins: boolean }; readOnly: boolean }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(saveSecurityAction, {});
+  return (
+    <form action={action} className="adm-card grid gap-4" noValidate>
+      <h2 className="font-display text-[1.1rem] font-semibold">Sicherheit</h2>
+      <label className="adm-check" style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        <input type="checkbox" name="requireMfaForAdmins" defaultChecked={value.requireMfaForAdmins} disabled={readOnly} />
+        <span>Zwei-Faktor-Anmeldung für Inhaber und Administratoren verpflichtend<br /><small className="text-fg-mute">Wer sie noch nicht eingerichtet hat, erreicht nur die Profilseite, bis sie aktiv ist. Zuerst selbst einrichten, dann aktivieren.</small></span>
+      </label>
       <Result state={state} />
       {!readOnly && <div><button type="submit" className="adm-btn" disabled={pending}>{pending ? 'Speichert …' : 'Speichern'}</button></div>}
     </form>
