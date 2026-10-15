@@ -7,7 +7,7 @@ Bestehende Next.js-/Prisma-/Studio-Architektur erhalten. Der Kunde hat die Prior
 - Vorhandene Leistungssektion ersetzt durch differenziertes Bento-Raster mit neun Einträgen. Keine doppelte Leistungsliste.
 - Neue Fahrzeugübersicht mit neun konsistent gezeichneten SVG-Silhouetten.
 - Vier Szenen als manuell navigierbarer Showcase mit vorhandenen Postern. Noch keine Videodateien. Quellen ausschließlich aus `src/lib/showcase.ts`.
-- Bestehende Hero-, Vertrauens-, Ablauf-, Kontakt-, FAQ- und Footer-Bereiche erhalten. Die bisherige zusätzliche Crash-Animation wird auf der Startseite nicht mehr eingebunden, um den Ablauf klar zu halten; Komponente bleibt verfügbar.
+- Bestehende Hero-, Vertrauens-, Ablauf-, Kontakt-, FAQ- und Footer-Bereiche erhalten. Die Unfall-Animation (Fahrzeug fährt auf das andere auf, danach Gutachten) bleibt auf der Startseite erhalten – auf Wunsch des Auftraggebers wieder eingebunden (2026-10-15).
 - `ING_PRESENTATION_PREVIEW=true`: sichtbarer Vorschauhinweis, deaktiviertes Anfrageformular, POST-Anfragen abgewiesen bevor Dateien gelesen werden, Datenbankzugriff und Sessions in dieser Präsentation deaktiviert. Flag nur auf dem manuellen Preview-Deployment setzen.
 - Kalenderlinks in Taskleisten-API und ICS nutzen jetzt die Fallnummer statt der internen ID; die Fallseite sucht nach Fallnummer.
 

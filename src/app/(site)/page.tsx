@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Hero } from '@/components/sections/Hero';
 import { FactStrip } from '@/components/sections/FactStrip';
+import { CrashSequence } from '@/components/sections/CrashSequence';
 import { VehicleClasses } from '@/components/sections/VehicleClasses';
 import { VideoShowcase } from '@/components/sections/VideoShowcase';
 import { Leistungen } from '@/components/sections/Leistungen';
@@ -23,9 +24,9 @@ export const metadata: Metadata = buildMetadata({
 });
 
 /**
- * Startseite in zehn Akten:
- * Hero · Fakten · Leistungen · Fahrzeugklassen · Einblicke · Konfigurator ·
- * Warum ING · Ablauf · Hannover · FAQ · Schaden melden.
+ * Startseite in elf Akten:
+ * Hero · Fakten · Unfall-Film (Fahrt → Crash → Gutachten) · Leistungen · Fahrzeugklassen · Einblicke ·
+ * Konfigurator · Warum ING · Ablauf · Hannover · FAQ · Schaden melden.
  */
 export default function HomePage() {
   return (
@@ -33,6 +34,7 @@ export default function HomePage() {
       <JsonLd data={[websiteSchema(), faqSchema(HOME_FAQS)]} />
       <Hero />
       <FactStrip />
+      <CrashSequence />
       <Leistungen />
       <VehicleClasses />
       <VideoShowcase />
