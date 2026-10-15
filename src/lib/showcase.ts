@@ -4,8 +4,14 @@ export type ShowcaseScene = {
   sources: { src: string; type: 'video/mp4' | 'video/webm' }[];
 };
 export const SHOWCASE_SCENES: ShowcaseScene[] = [
-  { id: 'begutachtung', title: 'Genau hinsehen.', detail: 'Fahrzeug und Zustand systematisch erfassen.', poster: '/assets/img/showcase-begutachtung.jpg', sources: [{ src: '/assets/video/begutachtung.mp4', type: 'video/mp4' }] },
+  { id: 'begutachtung', title: 'Genau hinsehen.', detail: 'Fahrzeug und Zustand systematisch erfassen.', poster: '/assets/img/pruefstand-halle.webp', sources: [] },
   { id: 'schadenaufnahme', title: 'Details festhalten.', detail: 'Schadenbilder und Messpunkte nachvollziehbar dokumentieren.', poster: '/assets/img/begutachtung-protokoll.webp', sources: [] },
   { id: 'auswertung', title: 'Zusammenhänge verstehen.', detail: 'Aufnahmen und Befunde zu einem Gutachten zusammenführen.', poster: '/assets/img/car-hero.svg', sources: [] },
   { id: 'beratung', title: 'Klarheit schaffen.', detail: 'Befunde verständlich erklären und nächste Schritte besprechen.', poster: '/assets/img/team-begutachtung.webp', sources: [] },
+];
+
+/** Clips für den Hintergrund der Startseite (Slider, sobald mehr als einer eingetragen ist). Nur echte, geprüfte Dateien aus public/assets/video. */
+export type HeroScene = { id: string; src: string; poster: string };
+export const HERO_SCENES: HeroScene[] = [
+  { id: 'begutachtung', src: '/assets/video/begutachtung.mp4', poster: '/assets/img/showcase-begutachtung.jpg' },
 ];

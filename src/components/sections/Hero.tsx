@@ -4,6 +4,8 @@ import { Lines } from '@/components/ui/Split';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { Arrow } from '@/components/ui/Icon';
 import { HeroStage } from './HeroStage';
+import { HeroMedia } from './HeroMedia';
+import { HERO_SCENES } from '@/lib/showcase';
 
 /**
  * Startseiten-Hero.
@@ -12,8 +14,10 @@ import { HeroStage } from './HeroStage';
  * visuelle Headline folgt im selben H1. Kein versteckter Text.
  */
 export function Hero() {
+  const hasVideo = HERO_SCENES.length > 0;
   return (
     <HeroStage
+      media={hasVideo ? <HeroMedia scenes={HERO_SCENES} /> : undefined}
       background={
         <>
           <div className="hero-bg absolute inset-0" />
@@ -21,13 +25,13 @@ export function Hero() {
           <div className="absolute inset-0 opacity-[.55] [background-image:linear-gradient(rgba(107,168,255,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(107,168,255,.07)_1px,transparent_1px)] [background-size:96px_96px] [mask-image:radial-gradient(80%_70%_at_70%_55%,#000,transparent_75%)]" />
         </>
       }
-      visual={
+      visual={hasVideo ? null : (
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/img/car-hero.svg" alt="" width={1240} height={620} fetchPriority="high" decoding="async" className="w-full" />
           <HeroGauges />
         </div>
-      }
+      )}
     >
       <div className="grid gap-10 lg:grid-cols-[1.5fr_.5fr] lg:items-end">
         <div>

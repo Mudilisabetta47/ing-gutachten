@@ -15,6 +15,9 @@ try {
     await pg.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
     await pg.goto(BASE + '/', 1800);
     check(await pg.evalJs('document.querySelectorAll("h1").length === 1'), `${width}: one H1`);
+    const heroSrc = await pg.evalJs('(()=>{const v=document.querySelector("#top video"); return v ? v.getAttribute("src") : null})()');
+    check(await pg.evalJs('!!document.querySelector("#top img")'), `${width}: hero poster present`);
+    if (heroSrc) { const r = await fetch(BASE + heroSrc, { method: 'HEAD' }); check(r.ok && /video\/mp4/.test(r.headers.get('content-type') ?? ''), `${width}: hero video exists ${heroSrc}`); }
     check(await pg.evalJs('document.querySelectorAll("#leistungen li").length === 9'), `${width}: nine evidenced offerings`);
     check(await pg.evalJs('document.querySelectorAll("#fahrzeugklassen li").length === 9'), `${width}: nine vehicle classes`);
     check(await pg.evalJs('document.documentElement.scrollWidth <= innerWidth + 1'), `${width}: no horizontal overflow`);

@@ -8,7 +8,7 @@ import { useRef, type ReactNode } from 'react';
  * Tiefeneindruck entsteht aus der Differenz. Nur transform/opacity/filter,
  * kein Re-Render pro Scrollframe (framer schreibt MotionValues direkt).
  */
-export function HeroStage({ background, visual, children }: { background: ReactNode; visual: ReactNode; children: ReactNode }) {
+export function HeroStage({ background, visual, media, children }: { background: ReactNode; visual: ReactNode; media?: ReactNode; children: ReactNode }) {
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
@@ -31,6 +31,8 @@ export function HeroStage({ background, visual, children }: { background: ReactN
       <motion.div aria-hidden="true" className="absolute inset-x-0 -top-[8%] bottom-0 -z-20" style={{ y: reduced ? 0 : bgY }}>
         {background}
       </motion.div>
+
+      {media}
 
       <motion.div
         aria-hidden="true"

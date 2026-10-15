@@ -653,3 +653,8 @@
   .showcase-fade, .kb, .showcase-title { animation: none; }
   .sc-tab::after { transition: none; }
 }
+
+/* Startseiten-Video: Poster zuerst, Video blendet ein, sobald es abspielbar ist */
+.hero-video { opacity: 0; transition: opacity 1.2s var(--ease); }
+.hero-video.is-ready { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .hero-video { transition: none; } }

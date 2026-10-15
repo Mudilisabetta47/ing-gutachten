@@ -75,3 +75,7 @@ Auf Wunsch des Auftraggebers: Überschriften der neuen Bereiche laufen wortweise
 ## Erstes Video eingebaut (2026-10-15)
 
 Szene 1 („Begutachtung“, Titel „Genau hinsehen.“) spielt jetzt `public/assets/video/begutachtung.mp4` (10,6 s, 1280×720, H.264, ohne Ton, ca. 3,9 MB, Fast-Start) mit Poster `public/assets/img/showcase-begutachtung.jpg`. Das gelieferte Original (2560×1440 HEVC, 56 MB) liegt **außerhalb des Projekts** unter `~/Movies/ING-Originalvideos/1015.mp4`. Wiedergabe: stumm, Schleife, startet nur im sichtbaren Bereich, pausiert beim Wegscrollen/Tab-Wechsel, bei „Bewegung reduzieren“ nur per Knopf; Kennzeichnung „Illustrative Filmszene“ bleibt. Im Clip erscheinen eingeblendete Messwerte, die nicht lesbar bzw. nicht echt sind (KI-Erzeugnis) – sie zeigen keine tatsächlichen Messungen.
+
+## Video im Hero (2026-10-15, auf Wunsch des Auftraggebers)
+
+Das Video läuft als Hintergrund ganz oben auf der Startseite (`src/components/sections/HeroMedia.tsx`) statt im Einblicke-Bereich; dort bleibt das Bild. Die Blaupausen-Fahrzeugzeichnung des Heros entfällt, solange ein Hero-Video eingetragen ist. Clips stehen in `HERO_SCENES` (`src/lib/showcase.ts`); sobald mehrere eingetragen sind, wird daraus automatisch ein Slider (nacheinander, Punkte zur Auswahl). Poster zuerst, Video blendet ein; stumm, startet nur im sichtbaren Bereich, pausiert beim Wegscrollen/Tab-Wechsel; kein Autoplay bei „Bewegung reduzieren“ oder Datensparmodus; sichtbarer Pause-Knopf; bei Fehler bleibt das Poster. Lesbarkeit der Überschrift über einen Farbverlauf von links gesichert.
