@@ -22,6 +22,8 @@ export default async function AdminRootLayout({ children }: { children: ReactNod
     <div className="adm-root" data-theme={theme} style={{ minHeight: '100svh' }}>
       {/* Als Fenster im ING Studio eingebettet? Dann vor dem ersten Zeichnen den Rahmen (Seitenleiste, Topbar) ausblenden. */}
       <script dangerouslySetInnerHTML={{ __html: "try{if(window.self!==window.top)document.documentElement.classList.add('is-embedded')}catch(e){document.documentElement.classList.add('is-embedded')}" }} />
+      {/* Breiter Bildschirm (> 899 px, gleiche Grenze wie im Studio), kein Fenster im Studio, Startseite des Admin-Bereichs → immer der Desktop. „?mobil=1“ bleibt in der Touch-Ansicht. */}
+      <script dangerouslySetInnerHTML={{ __html: "try{if(window.self===window.top&&location.pathname.replace(/\\/+$/,'')==='/admin'&&!/[?&]mobil=1/.test(location.search)&&window.innerWidth>899)location.replace('/studio/')}catch(e){}" }} />
       <Suspense fallback={null}><EmbedBridge /></Suspense>
       {children}
     </div>

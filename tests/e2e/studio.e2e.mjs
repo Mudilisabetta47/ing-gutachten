@@ -239,11 +239,21 @@ try {
   const anon = await pg.evalJs(`Promise.all(['/api/studio/state/','/api/studio/prefs/'].map(u=>fetch(u).then(r=>r.status)))`);
   check('Ohne Anmeldung: Studio-Schnittstellen liefern 401', anon.every((s) => s === 401), anon.join(','));
 
-  /* ---------- Smartphone: eigene Touch-Oberfläche statt Mini-Desktop ---------- */
+  /* ---------- Desktop: die Startseite des Admin-Bereichs führt immer in den Desktop ---------- */
   await login('inhaber@demo.ing.test');
+  await pg.goto(BASE + '/admin/', 2500);
+  check('Desktop: /admin/ leitet in den Desktop (/studio/) weiter', (await pg.evalJs('location.pathname')) === '/studio/');
+  await pg.goto(BASE + '/admin/?mobil=1', 2000);
+  check('Desktop: /admin/?mobil=1 bleibt in der Touch-Ansicht', (await pg.evalJs('location.pathname')) === '/admin/');
+  await pg.goto(BASE + '/admin/faelle/', 2000);
+  check('Desktop: Unterseiten des Admin-Bereichs (z. B. Fälle) bleiben direkt erreichbar', (await pg.evalJs('location.pathname')) === '/admin/faelle/');
+
+  /* ---------- Smartphone: eigene Touch-Oberfläche statt Mini-Desktop ---------- */
   await pg.viewport(390, 844, true, 2);
   await pg.goto(BASE + '/studio/', 2500);
   check('Smartphone: /studio/ leitet auf die Touch-Oberfläche (/admin/) um', (await pg.evalJs('location.pathname')) === '/admin/');
+  await pg.goto(BASE + '/admin/', 2000);
+  check('Smartphone: /admin/ bleibt in der Touch-Oberfläche (keine Schleife)', (await pg.evalJs('location.pathname')) === '/admin/');
 } finally {
   proc.kill();
 }
