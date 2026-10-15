@@ -26,6 +26,7 @@ const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 export async function POST(req: Request) {
+  if (process.env.ING_PRESENTATION_PREVIEW === 'true') return fail(503, 'presentation_preview', { message: 'In dieser Website-Vorschau werden keine Anfragen oder Dateien entgegengenommen.' });
   // Gleiche Ursprungsseite? (zusätzlich zur Same-Origin-Policy des Browsers)
   const origin = req.headers.get('origin');
   const host = req.headers.get('host');

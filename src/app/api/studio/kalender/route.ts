@@ -24,7 +24,7 @@ export async function GET(req: Request) {
       appointments: rows.map((a) => ({
         id: a.id, startsAt: a.startsAt.toISOString(), endsAt: a.endsAt.toISOString(), kind: KIND_LABELS[a.kind] ?? 'Termin', status: a.status,
         caseNumber: a.case.caseNumber, who: a.case.customer.company || a.case.customer.lastName, expert: `${a.expert.firstName} ${a.expert.lastName}`,
-        href: `/admin/faelle/${a.caseId}/`,
+        href: `/admin/faelle/${a.case.caseNumber}/`,
       })),
     }, { headers: H });
   } catch (e) {

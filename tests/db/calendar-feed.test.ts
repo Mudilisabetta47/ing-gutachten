@@ -65,6 +65,9 @@ test('Abo-Inhalt: ohne Details keine Kundennamen/Orte; mit Details ja', async ()
   const plain = (await feedForToken((await createFeed(e1, { showDetails: false })).token))!;
   assert.ok(!plain.includes('Geheimname') && !plain.includes('Geheimstraße') && !plain.includes('LOCATION'));
   assert.ok(plain.includes(`SUMMARY:Besichtigung (${c1.caseNumber})`));
+  const unfolded = plain.replace(/\r\n /g, '');
+  assert.ok(unfolded.includes(`/admin/faelle/${c1.caseNumber}/`), 'Kalender verweist auf die Fallnummer');
+  assert.ok(!unfolded.includes(`/admin/faelle/${c1.id}/`), 'interne ID ist kein Fallseiten-Pfad');
   const rich = (await feedForToken((await createFeed(e1, { showDetails: true })).token))!;
   assert.match(rich, /Geheimname/); assert.match(rich, /Geheimstraße 1\\, Hannover/);
 });

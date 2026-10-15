@@ -27,7 +27,10 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       <ScrollProgress />
       <CustomCursor />
       <Nav />
-      <main id="main">{children}</main>
+      <main id="main">
+        {process.env.ING_PRESENTATION_PREVIEW === 'true' && <aside className="border-b border-line bg-ink-850 px-5 pb-4 pt-28 text-center text-sm text-fg-dim" aria-label="Präsentationsvorschau">Website-Entwurf · Formular und Studio sind in dieser Vorschau nicht freigeschaltet. Bitte keine echten Kundendaten eingeben.</aside>}
+        {children}
+      </main>
       <Footer />
       <Dock />
       <CookieNotice />

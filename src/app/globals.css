@@ -597,3 +597,12 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Presentation additions: quiet motion, identical keyboard and pointer feedback. */
+.premium-service, .vehicle-card { transition: background-color .25s, border-color .25s, transform .25s; }
+.premium-service:hover, .premium-service:focus-visible { border-color: rgb(var(--c-signal-bright)); transform: translateY(-3px); }
+.vehicle-card:hover, .vehicle-card:focus-visible { background: rgb(var(--c-ink-800)); }
+@media (prefers-reduced-motion: reduce) {
+  .premium-service, .vehicle-card { transition: none; }
+  .premium-service:hover, .premium-service:focus-visible { transform: none; }
+}

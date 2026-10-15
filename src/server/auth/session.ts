@@ -56,6 +56,7 @@ export async function clearSessionCookie() {
  * Pro Request nur einmal ausgeführt (React cache).
  */
 export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
+  if (process.env.ING_PRESENTATION_PREVIEW === 'true') return null;
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
 

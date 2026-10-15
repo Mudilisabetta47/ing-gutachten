@@ -17,3 +17,8 @@ HANDOVER*.md
 .env.test
 .migtest/
 backups/
+
+# Vercel-Projektverknüpfung (lokal) und Umgebungsdateien – Vorlagen (*.example) bleiben versioniert
+.vercel
+.env*
+!.env*.example

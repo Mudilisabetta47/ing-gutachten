@@ -17,11 +17,11 @@ import { pgConfig } from './db-config';
 const globalForPrisma = globalThis as unknown as { __ingPrisma?: PrismaClient };
 
 export function isDbConfigured(): boolean {
-  return Boolean(process.env.DATABASE_URL);
+  return process.env.ING_PRESENTATION_PREVIEW !== 'true' && Boolean(process.env.DATABASE_URL);
 }
 
 function create(): PrismaClient {
-  if (!process.env.DATABASE_URL) {
+  if (!isDbConfigured()) {
     throw new Error('DATABASE_URL ist nicht gesetzt. Siehe .env.example und docs/BETRIEB.md.');
   }
   const adapter = new PrismaPg(pgConfig());

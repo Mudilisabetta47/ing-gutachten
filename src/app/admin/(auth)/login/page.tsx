@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           {configured ? (
             <LoginForm next={weiter ? safeNext(weiter) : undefined} />
           ) : (
-            <p role="alert" className="adm-alert">Das System ist hier noch nicht eingerichtet: <code className="mono">DATABASE_URL</code> fehlt. Die öffentliche Website ist davon nicht betroffen.</p>
+            <p role="status" className="adm-alert">ING Studio ist in dieser Vorschau noch nicht freigeschaltet. Der persönliche Zugang wird nach Einrichtung der geschützten Testumgebung bereitgestellt.</p>
           )}
         </div>
         <p className="t-3" style={{ textAlign: 'center', fontSize: 12, margin: '20px 0 0' }}>Zugang nur für Mitarbeiter von ING Gutachten.</p>

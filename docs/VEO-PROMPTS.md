@@ -1,0 +1,35 @@
+# ING Gutachten – Gemini / Veo
+
+Vier einzeln kopierbare Prompts. Clips sind illustrative KI-Szenen, keine Aufnahmen tatsächlicher Mitarbeiter oder Kunden. Im Showcase bleibt diese Kennzeichnung sichtbar. Keine Behauptungen über reale Ausstattung oder Betriebsräume aus dem Film ableiten.
+
+## 1 · Begutachtung — begutachtung.mp4
+
+```text
+Create an 8-second photorealistic automotive inspection film, 16:9 landscape, 1920x1080, 25 fps. One continuous, restrained camera move. A fictional adult automotive assessor in plain charcoal workwear inspects a stationary black unbranded midsize car in a clean, believable independent inspection workshop. Use a slow 40 cm lateral dolly at waist height with a 50 mm cinema lens. The assessor calmly examines the front quarter panel with a compact inspection light; hands and tool contact must be anatomically and mechanically accurate. Soft overhead strip lights create controlled reflections along real paint and metal. Neutral cool daylight, deep but detailed blacks, subtle warm skin tones, premium editorial automotive cinematography. Frame the car and inspection gesture in the central 60 percent so the image remains readable on a phone. Leave the lower left uncluttered for a website overlay added later. Quiet, credible working behavior, no posing. No crash, driving, dangerous activity or theatrical gestures. No logos, brand badges, readable registration plates, signage, watermarks, captions or generated text. No identifiable real person or customer; all people are fictional. No impossible bodywork, warped wheels, extra fingers, floating tools, artificial lens flares, aggressive transitions or exaggerated depth of field. Silent output with no music, speech or audio track. Begin and end on stable compositions suitable for a subtle loop. Do not imply this is documentary footage of ING employees or premises.
+```
+
+## 2 · Schadenaufnahme — schadenaufnahme.mp4
+
+```text
+Create an 8-second photorealistic macro automotive damage documentation film, 16:9 landscape, 1920x1080, 25 fps. One continuous close-up shot of a small, physically plausible paint scratch and shallow dent on the front door of a stationary black unbranded car. A fictional assessor's anatomically correct hand holds a plain inspection light beside the panel without touching the damaged paint. A camera used for documentation is visible softly out of focus at the edge of the scene. Slowly slide the filming camera 15 cm parallel to the panel using an 85 mm macro lens. Keep the actual scratch and panel gap sharp, with realistic focus falloff rather than excessive bokeh. The scratch, dent and reflections must remain geometrically stable throughout the shot. Soft strip lighting reveals surface texture, fine metallic paint and an accurate panel seam. Restrained cool-neutral grading, tactile detail, measured professional pace. Keep the evidence centered and leave a quiet lower-left area for a later website overlay. No injury, collision, sparks, dramatic damage or sensationalism. No logos, badges, readable number plates, measuring-device text, captions, watermark or generated lettering. No real customer identity, documents or personal data. No morphing damage, distorted hands, extra fingers or floating equipment. Silent, no speech or soundtrack. This is an illustrative fictional scene, never footage of actual ING staff. End with a stable hold.
+```
+
+## 3 · Digitale Auswertung — auswertung.mp4
+
+```text
+Create an 8-second photorealistic scene of a fictional adult vehicle assessor reviewing inspection photographs at a tidy professional workstation. 16:9 landscape, 1920x1080, 25 fps. Shoot from behind and slightly to the side at shoulder height using a 50 mm lens; make a slow 25 cm push-in. The monitor shows only large photographic thumbnails of an unbranded black car and neutral abstract gray interface shapes, with no readable text, numbers, brand interface or invented report wording. No real software, license plates, VINs, names, addresses, signatures or customer data. The assessor makes one natural small mouse movement, then studies the screen, without typing theatrically. Plain navy clothing, no logo. A simple desk lamp and soft window light create neutral skin tones and controlled contrast; realistic screen illumination, no flicker or rolling bands. Premium yet believable independent appraisal office, not a futuristic command center. Central composition remains legible at mobile size; lower left is visually calm for an overlay added in editing. Accurate hand anatomy, coherent monitor perspective, stable desk geometry. No holograms, glowing data streams, floating screens, visual transitions, fake UI text, captions or watermark. All people are fictional and do not resemble actual ING employees. This is an illustrative AI scene, not documentary evidence. Silent output without speech or music. Hold the final composition for one second.
+```
+
+## 4 · Beratung — beratung.mp4
+
+```text
+Create an 8-second photorealistic professional consultation scene, 16:9 landscape, 1920x1080, 25 fps. Two fictional adults sit at a simple table in a calm, contemporary automotive appraisal office. A vehicle assessor in plain navy business-casual clothing explains a printed report to a fictional customer. The paper contains only a large photograph of an unbranded black car and abstract gray layout blocks; absolutely no readable text, names, signatures, prices or personal details. Use a gently moving 50 mm camera at seated eye level, a slow 20 cm lateral slide. The assessor points once to a photograph with a natural hand gesture; the customer listens and gives a subtle nod. No handshake, sales performance or exaggerated smiles. Soft natural side light, honest skin texture, restrained blue-gray and warm neutral palette, realistic furniture and proportion. Frame hands and report clearly in the central area with faces non-prominent, retaining a quiet lower-left space for a later website overlay. No identifiable real customers or actual ING staff. No logos, brand names, badges, signage, captions, watermarks or generated lettering. No warped hands, duplicate fingers, shifting paperwork or inconsistent facial geometry. This is a fictional illustration of explaining findings, not documentary footage of a real business meeting. Silent output, no speech, music or sound effects. Finish on a stable, calm composition.
+```
+
+## Einbau und Abnahme
+
+1. Ergebnisse auf Hände, Geometrie, Kennzeichen, Logos und Fantasietexte prüfen; fehlerhafte Ergebnisse verwerfen.
+2. Als MP4/H.264 mit Fast-Start, ohne Ton, 16:9 exportieren. Ziel: 2–4 MB pro Clip. Optional WebM ergänzen.
+3. Dateien in `public/assets/video/` ablegen. Erst dann `sources` in `src/lib/showcase.ts` befüllen; keine Platzhalter-URLs eintragen.
+4. Je Szene ein geprüftes WebP-Poster ergänzen und im selben Manifest zuweisen. Rechte am Ausgangsmaterial prüfen.
+5. Preview auf Desktop und Smartphone prüfen: Abspielen/Pause, Szenenwechsel, Scroll-Pause, reduzierte Bewegung und langsames Netz. Filme bleiben als KI-generierte Illustration gekennzeichnet.

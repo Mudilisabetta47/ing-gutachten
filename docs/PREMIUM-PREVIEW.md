@@ -1,0 +1,61 @@
+# Präsentationsentwurf – 15.10.2026
+
+## Umfang
+
+Bestehende Next.js-/Prisma-/Studio-Architektur erhalten. Der Kunde hat die Priorität nach Infrastrukturprüfung auf **Website-Preview zuerst** eingegrenzt. Kein produktiver Studio-Go-live.
+
+- Vorhandene Leistungssektion ersetzt durch differenziertes Bento-Raster mit neun Einträgen. Keine doppelte Leistungsliste.
+- Neue Fahrzeugübersicht mit neun konsistent gezeichneten SVG-Silhouetten.
+- Vier Szenen als manuell navigierbarer Showcase mit vorhandenen Postern. Noch keine Videodateien. Quellen ausschließlich aus `src/lib/showcase.ts`.
+- Bestehende Hero-, Vertrauens-, Ablauf-, Kontakt-, FAQ- und Footer-Bereiche erhalten. Die bisherige zusätzliche Crash-Animation wird auf der Startseite nicht mehr eingebunden, um den Ablauf klar zu halten; Komponente bleibt verfügbar.
+- `ING_PRESENTATION_PREVIEW=true`: sichtbarer Vorschauhinweis, deaktiviertes Anfrageformular, POST-Anfragen abgewiesen bevor Dateien gelesen werden, Datenbankzugriff und Sessions in dieser Präsentation deaktiviert. Flag nur auf dem manuellen Preview-Deployment setzen.
+- Kalenderlinks in Taskleisten-API und ICS nutzen jetzt die Fallnummer statt der internen ID; die Fallseite sucht nach Fallnummer.
+
+## Inhaltsgrundlage
+
+Die vorhandenen Leistungsseiten sind die Grundlage, keine unabhängige neue Bestätigung durch den Betreiber:
+
+| Inhalte | Bestehender Nachweis |
+|---|---|
+| Unfall, Haftpflicht, Beweissicherung | `/unfallgutachten` |
+| Schadengutachten | `/schadensgutachten` |
+| Wertgutachten, Fahrzeugbewertung, Leasingrückgabe | `/wertgutachten` |
+| Oldtimer/Youngtimer | `/oldtimer-gutachten` |
+| Technische Analyse | `/unfallanalyse` |
+| Pkw, Transporter | `/pkw-gutachten` |
+| Elektro, Hybrid | `/e-auto-hybrid-gutachten` |
+| Motorräder | `/motorrad-gutachten` |
+| Nutzfahrzeuge, Anhänger, Flotten | `/lkw-gutachten` |
+
+Wohnmobile/Camper nicht ergänzt. Technische Stellungnahmen nicht als zusätzliche eigenständige Leistung behauptet. Kasko nur als Hinweis zur vorherigen Abstimmung mit dem Versicherer; kein uneingeschränktes Leistungsversprechen. Keine neuen Bewertungen, Auszeichnungen, Bearbeitungszeiten oder Zertifizierungen.
+
+## Video
+
+`docs/VEO-PROMPTS.md` enthält vier vollständige englische Prompts. Geprüfte echte Dateien später unter `public/assets/video/` ablegen und im Manifest als `sources` eintragen. MP4/H.264, optional WebM; feste 16:9-Fläche, vorhandenes Bild als Fallback, nur ausgewählte sichtbare Szene mit Videoelement. Muted/playsInline, Pause beim Verlassen des Bereichs bzw. Ausblenden des Tabs, manuelle Pause, reduzierte Bewegung ohne automatische Wiedergabe. Keine automatische Szenenrotation. Kennzeichnung als illustrative KI-Szene beibehalten. Keine Video-URL ist vorgetäuscht.
+
+## Infrastruktur-Befund
+
+- GitHub `Mudilisabetta47/ingstudionew92` ist privat. Ausgangsbranch `feature/ing-operating-system`.
+- Vercel-Projekt `ingstudionew92`, Production-Branch laut Projektverknüpfung `main`; bestehende Adresse `https://ingstudionew92.vercel.app/` ist Production.
+- Vercel Deployment Protection ist für geschützte Deployments konfiguriert. Nicht abgeschaltet.
+- Die aufgelisteten DB-Variablen gelten zugleich für Preview und Production; keine getrennten Testressourcen vorhanden (vom Auftraggeber bestätigt). Keine Cloud-Migration oder Cloud-Datenänderung ausgeführt.
+- Vorhandene AWS-Integrationsvariablen sind nicht die vom jetzigen Storage-Treiber erwarteten `STORAGE_DRIVER`, `S3_BUCKET_PRIVATE`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `STORAGE_ENCRYPTION_KEY`. Live-S3-Verbindung, Bucketrechte und Restore daher nicht als geprüft ausweisen.
+- Dieser Branch löst kein automatisches Vercel-Deployment aus. Manuelle Website-Preview erhält den Präsentationsschalter und leere DB-Overrides. Production-Alias nicht verändert.
+
+## Studio: geprüfter Code und offene Betriebsprüfung
+
+Vorhanden: individuelle Konten und Rollen, Argon2-Passwortprüfung, gedrosselte Logins, serverseitig widerrufbare Sessions mit HttpOnly/Secure-Cookies, MFA inklusive Wiederherstellung, erzwungener Passwortwechsel, fallbezogene Zugriffskontrollen. Demo-Konten und bekanntes Entwicklungspasswort werden in Staging/Production abgewiesen. Statischer Audit ist kein Beweis für einen vollständig sicheren Betrieb.
+
+Benutzeranlage erfolgt durch einen berechtigten Administrator mit Startpasswort und Pflichtwechsel. Einladungslink per E-Mail und Self-Service-Passwort-Reset sind nicht implementiert; Admin-Reset ist vorhanden. Keine öffentliche Kundenrolle mit Mandantentrennung: Büro-/Adminrollen sind Mitarbeiterrollen und sehen breitere Datenbestände. Kunden zur Präsentation deshalb nur in isolierter Testumgebung mit synthetischen Daten zulassen.
+
+Kalenderfeed: zufälliger Token, nur Hash gespeichert, Erneuerung/Widerruf, aktuelle Rollenprüfung, Details optional. Ohne Details bleiben Fallnummer und ggf. Sachverständigenname enthalten; Feed-Link vertraulich behandeln. Keine vertraulichen Links in Berichten speichern.
+
+Für eine Studio-Präsentation folgen getrennte Testdatenbank, privater Test-Bucket, Verschlüsselungsschlüssel, Mail-Positivliste, persönliches Konto mit MFA und reale End-to-End-Prüfung. Für Kundenbetrieb zusätzlich Backup/Restore, Geräte-, Berechtigungs- und Datenschutznachweise gemäß vorhandener Betriebsdokumentation.
+
+## Übernahme und Wiederherstellung (2026-10-15)
+
+Der Arbeitsstand der Vorbearbeitung lag als Kopie unter `/tmp/ing-premium-20261015/source` (ohne `.git`, ohne `node_modules`). Übernommen wurden alle neuen Dateien und alle echten Änderungen. **Nicht übernommen** wurden vier Dateien, die in der Kopie leer (0 Byte, durch den abgebrochenen Synchronlauf beschädigt) waren: `src/lib/content.ts`, `src/lib/mail/index.ts`, `src/lib/vehicle-data.ts`, `src/components/admin/CommunicationPanel.tsx` – dort gilt der intakte Repository-Stand. `.env.local` (enthält nur ein kurzlebiges Vercel-Token) und `.vercel/` bleiben lokal und werden nicht versioniert (`.gitignore`).
+
+Wichtig für die Vorschau: `ING_PRESENTATION_PREVIEW` wird beim **Bauen** ausgewertet (statische Seiten). Beim Deployment deshalb als Build-Variable setzen (`--build-env ING_PRESENTATION_PREVIEW=true`) und zusätzlich als Laufzeitvariable; Datenbank- und Speicher-Variablen für die Vorschau leer überschreiben.
+
+Nachgebessert: Der Testlauf `tests/e2e/premium.e2e.mjs` hatte falsch maskierte Selektoren und eine unrealistische Enter-Taste; beides korrigiert.

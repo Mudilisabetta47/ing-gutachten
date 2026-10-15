@@ -70,7 +70,7 @@ export async function feedForToken(token: string, now = new Date()): Promise<str
       start: a.startsAt, end: a.endsAt, updated: a.updatedAt,
       summary: detail ? `${kind} · ${who} (${a.case.caseNumber})` : `${kind} (${a.case.caseNumber})`,
       location: detail ? a.location ?? undefined : undefined,
-      description: [`Fall ${a.case.caseNumber}`, detail && a.case.vehicle ? [a.case.vehicle.manufacturer, a.case.vehicle.model].filter(Boolean).join(' ') : '', all ? `Sachverständiger: ${a.expert.firstName} ${a.expert.lastName}` : '', `Öffnen: ${SITE_URL.replace(/\/+$/, '')}/admin/faelle/${a.caseId}/`].filter(Boolean).join('\n'),
+      description: [`Fall ${a.case.caseNumber}`, detail && a.case.vehicle ? [a.case.vehicle.manufacturer, a.case.vehicle.model].filter(Boolean).join(' ') : '', all ? `Sachverständiger: ${a.expert.firstName} ${a.expert.lastName}` : '', `Öffnen: ${SITE_URL.replace(/\/+$/, '')}/admin/faelle/${a.case.caseNumber}/`].filter(Boolean).join('\n'),
       status: a.status === 'CANCELLED' || a.status === 'NO_SHOW' ? 'CANCELLED' : a.status === 'PLANNED' ? 'TENTATIVE' : 'CONFIRMED',
     };
   });
