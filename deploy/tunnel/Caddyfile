@@ -7,13 +7,14 @@
 }
 
 :8080 {
-	# Gilt für ALLE Antworten, auch für die 401 des Zugangsschutzes
+	# Gilt für normale Antworten. Bewusst OHNE "-Server" in diesem Block: Caddy führt einen Header-Block
+	# mit Feldlöschung verzögert aus, und das greift bei der selbst erzeugten 401 des Zugangsschutzes
+	# nicht -> dort fehlten X-Robots-Tag & Co. (im Pruefmodus mit echtem Caddy 2.10.2 festgestellt).
 	header {
 		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
 		Referrer-Policy "no-referrer"
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
-		-Server
 	}
 
 	# Einzige Ausnahme ohne Anmeldung: robots.txt (sagt Suchmaschinen: nichts indexieren)
@@ -29,5 +30,12 @@
 	handle {
 		import /etc/gate/auth.caddy
 		reverse_proxy web:3000
+	}
+
+	# Fehlerantworten (401 der Sperre, 502 wenn ING Web nicht läuft, ...): "Server" entfernen.
+	# Die übrigen Header setzt der normale Block oben auch hier; WWW-Authenticate bleibt erhalten.
+	handle_errors {
+		header -Server
+		respond "{err.status_code} {err.status_text}"
 	}
 }

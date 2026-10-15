@@ -37,7 +37,12 @@ async function gate() {
   }
   out(hleaks.length === 0, 'Header-Tricks, falsches Passwort, leere/falsche Authorization und Session-Cookies umgehen die Sperre nicht', hleaks.join('; '));
   const r401 = await req('/admin/');
-  out(r401.status === 401 && /noindex/.test(r401.headers.get('x-robots-tag') || '') && /Basic/i.test(r401.headers.get('www-authenticate') || ''), 'Die 401-Antwort fordert Basic Auth und trägt X-Robots-Tag: noindex');
+  const hdr = (r, k) => r.headers.get(k) || '';
+  const shown = (r) => `Status ${r.status}; www-authenticate=[${hdr(r, 'www-authenticate')}]; x-robots-tag=[${hdr(r, 'x-robots-tag')}]; referrer-policy=[${hdr(r, 'referrer-policy')}]; x-content-type-options=[${hdr(r, 'x-content-type-options')}]; server=[${hdr(r, 'server')}]`;
+  out(r401.status === 401, 'Ohne Anmeldung antwortet die Sperre mit Status 401', 'Status ' + r401.status);
+  out(/^basic\b/i.test(hdr(r401, 'www-authenticate')), 'Die 401-Antwort enthält WWW-Authenticate: Basic', 'www-authenticate=[' + hdr(r401, 'www-authenticate') + ']');
+  out(/noindex/.test(hdr(r401, 'x-robots-tag')) && /nofollow/.test(hdr(r401, 'x-robots-tag')) && /noarchive/.test(hdr(r401, 'x-robots-tag')), 'Die 401-Antwort enthält X-Robots-Tag: noindex, nofollow, noarchive', 'x-robots-tag=[' + hdr(r401, 'x-robots-tag') + ']');
+  if (failed) console.log('      Header der 401-Antwort (zur Diagnose): ' + shown(r401));
   const rb = await req('/robots.txt');
   const tb = await rb.text();
   out(rb.status === 200 && /Disallow:\s*\//.test(tb) && /noindex/.test(rb.headers.get('x-robots-tag') || ''), 'robots.txt ist öffentlich lesbar und sperrt alles (Disallow: /)');
