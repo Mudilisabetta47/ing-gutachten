@@ -28,5 +28,5 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 
-/** true auf Vercel-Preview-Deployments – dort wird nichts indexiert. */
-export const IS_PREVIEW = process.env.VERCEL_ENV === 'preview';
+/** true auf Vercel-Preview-Deployments und in der Präsentationsvorschau (ING_PRESENTATION_PREVIEW) – dort wird nichts indexiert. */
+export const IS_PREVIEW = process.env.VERCEL_ENV === 'preview' || process.env.ING_PRESENTATION_PREVIEW === 'true';
