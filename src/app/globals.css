@@ -606,3 +606,50 @@
   .premium-service, .vehicle-card { transition: none; }
   .premium-service:hover, .premium-service:focus-visible { transform: none; }
 }
+
+/* ---------- Mehr Bewegung (alles hinter prefers-reduced-motion abgesichert) ---------- */
+/* Leistungen: Lichtkegel, Icon-Impuls, Pfeil */
+.premium-service { position: relative; overflow: hidden; }
+.premium-service::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .35s; background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 0%), rgb(var(--c-signal-bright) / .16), transparent 62%); }
+.premium-service:hover::before { opacity: 1; }
+.premium-service .svc-icon { transition: transform .55s var(--ease); }
+.premium-service:hover .svc-icon, .premium-service:focus-visible .svc-icon { transform: translateY(-3px) rotate(-7deg) scale(1.1); }
+.premium-service .svc-arrow { transition: transform .35s var(--ease); }
+.premium-service:hover .svc-arrow, .premium-service:focus-visible .svc-arrow { transform: translateX(7px); }
+
+/* Fahrzeugklassen: Silhouetten zeichnen sich beim Einblenden, fahren beim Hover ein Stück */
+.js .vc-draw path, .js .vc-draw circle { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.9s var(--ease) calc(var(--rv-delay, 0s) + .2s); }
+.js .is-in .vc-draw path, .js .is-in .vc-draw circle { stroke-dashoffset: 0; }
+.vc-draw { transition: transform .6s var(--ease); overflow: visible; }
+.vehicle-card:hover .vc-draw, .vehicle-card:focus-visible .vc-draw { transform: translateX(10px); }
+
+/* Laufband */
+.marquee { overflow: hidden; padding-block: 1.1rem; }
+.marquee-track { display: flex; width: max-content; animation: marquee 46s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-row { display: flex; flex-shrink: 0; margin: 0; padding: 0; list-style: none; }
+.marquee-row li { display: flex; align-items: center; gap: 2.2rem; padding-right: 2.2rem; font-size: clamp(1.4rem, 1rem + 1.6vw, 2.4rem); white-space: nowrap; color: rgb(var(--c-fg-mute, 140 150 170)); }
+.marquee-row li span { color: rgb(var(--c-signal-bright)); font-size: .6em; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* Einblicke: langsamer Zoom, sanfter Szenenwechsel, Titel fährt ein, Tab-Balken füllt sich */
+.showcase-fade { animation: sc-fade .9s var(--ease) both; }
+.kb { animation: sc-fade .9s var(--ease) both, sc-kb 16s ease-out .2s both; }
+.showcase-title { animation: sc-rise .8s var(--ease) .1s both; }
+.sc-tab { position: relative; }
+.sc-tab::after { content: ''; position: absolute; left: 0; top: -2px; height: 2px; width: 100%; background: rgb(var(--c-signal-bright)); transform: scaleX(0); transform-origin: 0 50%; transition: transform .9s var(--ease); }
+.sc-tab[aria-pressed='true']::after { transform: scaleX(1); }
+@keyframes sc-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sc-kb { from { transform: scale(1); } to { transform: scale(1.07); } }
+@keyframes sc-rise { from { opacity: 0; transform: translate3d(0, 22px, 0); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-service::before, .premium-service .svc-icon, .premium-service .svc-arrow, .vc-draw { transition: none; }
+  .premium-service:hover .svc-icon, .premium-service:hover .svc-arrow, .vehicle-card:hover .vc-draw { transform: none; }
+  .js .vc-draw path, .js .vc-draw circle { stroke-dasharray: none; stroke-dashoffset: 0; transition: none; }
+  .marquee-track { animation: none; width: auto; }
+  .marquee-row { flex-wrap: wrap; }
+  .marquee-dup { display: none; }
+  .showcase-fade, .kb, .showcase-title { animation: none; }
+  .sc-tab::after { transition: none; }
+}

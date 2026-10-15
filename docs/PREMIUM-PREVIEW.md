@@ -67,3 +67,7 @@ Nachgebessert: Der Testlauf `tests/e2e/premium.e2e.mjs` hatte falsch maskierte S
 - Gebaut mit `ING_PRESENTATION_PREVIEW=true` (Build- und Laufzeitvariable) und **leeren Überschreibungen** für `DATABASE_URL`, `PRISMA_DATABASE_URL`, `POSTGRES_URL`, `S3_BUCKET_NAME`, `AWS_RESOURCE_ARN`, `AWS_ACCOUNT_ID`, `AWS_ROLE_ARN`; zusätzlich ignoriert der Code in diesem Modus jeden Datenbankzugriff. Die Projekt-Variablen selbst (gelten für Preview **und** Production) wurden nicht verändert.
 - Kein Production-Deployment, keine Domain-Zuordnung, keine Migration.
 - Befehl (zur Wiederholung): `vercel deploy --target=preview -b ING_PRESENTATION_PREVIEW=true -e ING_PRESENTATION_PREVIEW=true -b DATABASE_URL= -e DATABASE_URL= …` (vollständige Liste oben).
+
+## Zusätzliche Bewegung (2026-10-15)
+
+Auf Wunsch des Auftraggebers: Überschriften der neuen Bereiche laufen wortweise aus der Maske (bestehendes `SplitWords`), Karten blenden gestaffelt ein, Leistungskarten mit Lichtkegel am Mauszeiger, Icon-Impuls und Pfeil-Versatz beim Hover, Fahrzeug-Silhouetten zeichnen sich beim Einblenden und fahren beim Hover ein Stück, Laufband mit den belegten Leistungen (pausiert bei Hover), Zähler „15+“ im Vertrauensstreifen, im Einblicke-Slider sanfter Szenenwechsel mit langsamem Zoom, einfahrendem Titel und sich füllendem Tab-Balken. Alles ist bei `prefers-reduced-motion` abgeschaltet (Endzustand sofort sichtbar), ohne JavaScript ist der Inhalt sichtbar. Keine neue Abhängigkeit.

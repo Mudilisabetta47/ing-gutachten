@@ -3,6 +3,7 @@ import { Hero } from '@/components/sections/Hero';
 import { FactStrip } from '@/components/sections/FactStrip';
 import { CrashSequence } from '@/components/sections/CrashSequence';
 import { VehicleClasses } from '@/components/sections/VehicleClasses';
+import { ServiceMarquee } from '@/components/sections/ServiceMarquee';
 import { VideoShowcase } from '@/components/sections/VideoShowcase';
 import { Leistungen } from '@/components/sections/Leistungen';
 import { DamageConfigurator } from '@/components/sections/DamageConfigurator';
@@ -37,6 +38,7 @@ export default function HomePage() {
       <CrashSequence />
       <Leistungen />
       <VehicleClasses />
+      <ServiceMarquee />
       <VideoShowcase />
       <DamageConfigurator />
       <WhyIng />
