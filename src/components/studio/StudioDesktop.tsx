@@ -8,6 +8,7 @@ import {
 import { SETTINGS_APP, appIdForHref, isDetailPath, softLabel, type StudioAppDto } from '@/lib/studio-apps';
 import { ContextMenu, type MenuItem } from './ContextMenu';
 import { NotificationCenter, type Notice, type Notif } from './NotificationCenter';
+import { CalendarFlyout } from './CalendarFlyout';
 import { SettingsWindow } from './SettingsWindow';
 import { StartMenu } from './StartMenu';
 import { StudioIcon, SysIcon } from './StudioIcon';
@@ -44,6 +45,7 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
   const [ready, setReady] = useState(false);
   const [startOpen, setStartOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [calOpen, setCalOpen] = useState(false);
   const [ctx, setCtx] = useState<Ctx>(null);
   const [zone, setZone] = useState<Zone>(null);
   const [dragging, setDragging] = useState(false);
@@ -57,6 +59,7 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
 
   const frames = useRef(new Map<string, HTMLIFrameElement>());
   const allowed = useMemo(() => new Set(apps.map((a) => a.id)), [apps]);
+  const canCalendar = allowed.has('kalender');
   const appById = useMemo(() => new Map(apps.map((a) => [a.id, a])), [apps]);
   const themeRef = useRef(settings.theme);
   themeRef.current = settings.theme;
@@ -133,7 +136,7 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
 
   /* ---------- Tastenkürzel (auch aus eingebetteten Seiten weitergeleitet) ---------- */
   const shortcut = useCallback((k: { code: string; ctrl: boolean; alt: boolean; shift: boolean; meta: boolean }): boolean => {
-    if ((k.ctrl || k.meta) && !k.alt && k.code === 'KeyK') { setStartOpen((o) => !o); setNotifOpen(false); return true; }
+    if ((k.ctrl || k.meta) && !k.alt && k.code === 'KeyK') { setStartOpen((o) => !o); setNotifOpen(false); setCalOpen(false); return true; }
     if (!(k.ctrl && k.alt)) return false;
     const cur = stateRef.current;
     const fw = cur.windows.find((w) => w.id === cur.focus && !w.min);
@@ -152,7 +155,7 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (shortcut({ code: e.code, ctrl: e.ctrlKey, alt: e.altKey, shift: e.shiftKey, meta: e.metaKey })) e.preventDefault();
-      else if (e.key === 'Escape') { setStartOpen(false); setNotifOpen(false); }
+      else if (e.key === 'Escape') { setStartOpen(false); setNotifOpen(false); setCalOpen(false); }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -179,7 +182,7 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
           break;
         }
         case 'ready': (frame as HTMLIFrameElement).contentWindow?.postMessage({ source: 'ing-studio', type: 'theme', value: themeRef.current }, window.location.origin); break;
-        case 'focus': dispatch({ type: 'focus', id: winId }); setStartOpen(false); setNotifOpen(false); break;
+        case 'focus': dispatch({ type: 'focus', id: winId }); setStartOpen(false); setNotifOpen(false); setCalOpen(false); break;
         case 'open': openHref(String(d.href ?? ''), String(d.label ?? '')); break;
         case 'key': shortcut({ code: String(d.code ?? ''), ctrl: Boolean(d.ctrl), alt: Boolean(d.alt), shift: Boolean(d.shift), meta: Boolean(d.meta) }); break;
         case 'auth': window.location.href = '/admin/login/?weiter=/studio/'; break;
@@ -293,7 +296,7 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
   const desktopMenu = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.st-win, .st-taskbar, .st-start, .st-notif, .st-dicon')) return;
     e.preventDefault();
-    setStartOpen(false); setNotifOpen(false);
+    setStartOpen(false); setNotifOpen(false); setCalOpen(false);
     setCtx({
       x: e.clientX, y: e.clientY,
       items: [
@@ -399,6 +402,8 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
         <NotificationCenter notices={notices} notifications={notifs} loaded={notifLoaded} onOpen={openHref} onMarkRead={() => void markAllRead()} onRefresh={() => void refreshState()} onClose={() => setNotifOpen(false)} />
       )}
 
+      {calOpen && <CalendarFlyout canView={canCalendar} onOpen={openHref} onClose={() => setCalOpen(false)} />}
+
       {/* Taskleiste */}
       <footer className="st-taskbar" style={{ height: TASKBAR_H }} onContextMenu={(e) => { if (!(e.target as HTMLElement).closest('.st-task')) e.preventDefault(); }}>
         <div className="st-bar">
@@ -428,9 +433,10 @@ export function StudioDesktop({ apps, prefs, user, initialNotices, initialNotifs
             <button type="button" className="st-iconbtn" aria-label={settings.theme === 'light' ? 'Dunkel schalten' : 'Hell schalten'} title={settings.theme === 'light' ? 'Dunkelmodus' : 'Hellmodus'} onClick={() => patchSettings({ theme: settings.theme === 'light' ? 'dark' : 'light' })}>
               <SysIcon name={settings.theme === 'light' ? 'moon' : 'sun'} />
             </button>
-            <button type="button" className="st-clock" onClick={() => dispatch({ type: 'showDesktop' })} title="Desktop anzeigen" aria-label={`Uhrzeit ${clock}, Desktop anzeigen`}>
+            <button type="button" data-cal-toggle className={`st-clock${calOpen ? ' is-on' : ''}`} onClick={() => { setCalOpen((o) => !o); setStartOpen(false); setNotifOpen(false); }} title="Kalender" aria-expanded={calOpen} aria-label={`Uhrzeit ${clock}, Kalender öffnen`}>
               <b>{clock}</b><small>{date}</small>
             </button>
+            <button type="button" className="st-showdesk" onClick={() => dispatch({ type: 'showDesktop' })} title="Desktop anzeigen (Strg+Alt+D)" aria-label="Desktop anzeigen" />
           </div>
         </div>
       </footer>

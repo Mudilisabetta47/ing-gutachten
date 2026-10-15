@@ -5,6 +5,8 @@ import { ROLE_LABELS } from '@/server/auth/permissions';
 import { Alert, Badge, PageHeader, Section, fmtWhen } from '@/components/admin/ui';
 import { PasswordForm } from './PasswordForm';
 import { MfaSection } from './MfaSection';
+import { CalendarSyncSection } from './CalendarSyncSection';
+import { feedStatus } from '@/server/calendar/feed';
 import { mfaAvailable, mfaStatus } from '@/server/auth/mfa';
 import { getSetting } from '@/server/settings';
 import { revokeOtherSessionsAction } from './actions';
@@ -14,7 +16,7 @@ export const metadata: Metadata = { title: 'Mein Profil' };
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ pflicht?: string; mfa?: string }> }) {
   const user = await requireUser({ allowPasswordChange: true });
   const { pflicht } = await searchParams;
-  const [mfa, security] = await Promise.all([mfaStatus(user.id), getSetting('security')]);
+  const [mfa, security, feed] = await Promise.all([mfaStatus(user.id), getSetting('security'), feedStatus(user.id)]);
   const enforced = (user.role === 'OWNER' || user.role === 'ADMIN') && security.requireMfaForAdmins;
   const sessions = await db.session.findMany({ where: { userId: user.id, revokedAt: null, expiresAt: { gt: new Date() } }, orderBy: { lastSeenAt: 'desc' }, take: 20 });
 
@@ -29,6 +31,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       <div className="adm-grid-2" style={{ alignItems: 'start' }}>
         <div style={{ display: 'grid', gap: 20 }}>
           <PasswordForm />
+          <CalendarSyncSection status={{ exists: feed.exists, showDetails: feed.showDetails, createdAt: feed.createdAt?.toISOString() ?? null, lastUsedAt: feed.lastUsedAt?.toISOString() ?? null }} available={user.permissions.has('appointments.read.all') || user.permissions.has('appointments.read.own')} />
           <MfaSection status={{ enabled: mfa.enabled, enabledAt: mfa.enabledAt?.toISOString() ?? null, pending: mfa.pending, recoveryLeft: mfa.recoveryLeft }} available={mfaAvailable()} enforced={enforced} />
         </div>
         <Section

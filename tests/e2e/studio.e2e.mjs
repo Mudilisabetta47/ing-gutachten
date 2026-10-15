@@ -239,6 +239,38 @@ try {
   const anon = await pg.evalJs(`Promise.all(['/api/studio/state/','/api/studio/prefs/'].map(u=>fetch(u).then(r=>r.status)))`);
   check('Ohne Anmeldung: Studio-Schnittstellen liefern 401', anon.every((s) => s === 401), anon.join(','));
 
+  /* ---------- Kalender in der Taskleiste + Kalender-Synchronisierung ---------- */
+  await login('inhaber@demo.ing.test');
+  await pg.viewport(1500, 900);
+  await pg.goto(BASE + '/studio/', 2500);
+  const clock = await pg.rect('.st-clock');
+  await pg.click(clock.x + clock.w / 2, clock.y + clock.h / 2);
+  check('Klick auf die Uhr öffnet den Kalender', await waitFor(() => pg.evalJs(`!!document.querySelector('.st-cal')`)));
+  check('Kalender: 42 Tage, heute markiert, Monatsname', await pg.evalJs(`document.querySelectorAll('.st-cal-day').length===42 && document.querySelectorAll('.st-cal-day.is-today').length===1 && /20\\d\\d/.test(document.querySelector('.st-cal h3')?.innerText||'')`));
+  const todayCell = await pg.rect('.st-cal-day.is-today');
+  await pg.click(todayCell.x + todayCell.w / 2, todayCell.y + todayCell.h / 2);
+  check('Kalender: Tagesliste lädt (Termine oder „keine Termine“)', await waitFor(() => pg.evalJs(`/Termine|Lädt|\\d\\d:\\d\\d/.test(document.querySelector('.st-cal-list')?.innerText||'') && !/Lädt/.test(document.querySelector('.st-cal-list')?.innerText||'')`)));
+  check('Kalender: Link zur Synchronisierung vorhanden', await pg.evalJs(`/Mit meinem Kalender verbinden/.test(document.querySelector('.st-cal footer')?.innerText||'')`));
+  await pg.key('Escape', 'Escape');
+  check('Escape schließt den Kalender', await waitFor(() => pg.evalJs(`!document.querySelector('.st-cal')`)));
+  check('„Desktop anzeigen“ liegt jetzt am rechten Rand der Taskleiste', await pg.evalJs(`!!document.querySelector('.st-showdesk')`));
+
+  await pg.goto(BASE + '/admin/profil/', 2500);
+  check('Profil: Abschnitt „Kalender-Synchronisierung“', await pg.evalJs(`/Kalender-Synchronisierung/.test(document.querySelector('#kalender')?.innerText||'')`));
+  const create = await pg.evalJs(`(()=>{const b=[...document.querySelectorAll('#kalender button')].find(x=>/Abo-Link erzeugen|Neuen Link erzeugen/.test(x.innerText)); const r=b.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+  await pg.click(create.x, create.y);
+  check('Profil: Link wird einmal angezeigt', await waitFor(() => pg.evalJs(`/\\/api\\/kalender\\/[A-Za-z0-9_-]{43}\\.ics$/.test(document.querySelector('#kalender input[readonly]')?.value||'')`)));
+  const feed = await pg.evalJs(`document.querySelector('#kalender input[readonly]').value`);
+  const r1 = await fetch(feed.replace(/^https?:\/\/[^/]+/, BASE));
+  const body = await r1.text();
+  check('Abo-Link liefert text/calendar (ohne Anmeldung, ohne Cookies)', r1.status === 200 && /text\/calendar/.test(r1.headers.get('content-type') ?? '') && body.startsWith('BEGIN:VCALENDAR') && /no-store/.test(r1.headers.get('cache-control') ?? ''));
+  check('Abo-Inhalt ohne Kundennamen (Standard)', !/Mustermann|Müller|LOCATION/.test(body));
+  await pg.goto(BASE + '/admin/profil/', 2500);
+  check('Nach Neuladen wird der Link nicht erneut angezeigt', await pg.evalJs(`!document.querySelector('#kalender input[readonly]') && /Aktiv/.test(document.querySelector('#kalender')?.innerText||'')`));
+  const revoke = await pg.evalJs(`(()=>{const b=[...document.querySelectorAll('#kalender button')].find(x=>/Widerrufen/.test(x.innerText)); const r=b.getBoundingClientRect(); return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+  await pg.click(revoke.x, revoke.y);
+  check('Widerruf macht den Link ungültig (404)', await waitFor(async () => (await fetch(feed.replace(/^https?:\/\/[^/]+/, BASE))).status === 404));
+
   /* ---------- Desktop: die Startseite des Admin-Bereichs führt immer in den Desktop ---------- */
   await login('inhaber@demo.ing.test');
   await pg.goto(BASE + '/admin/', 2500);

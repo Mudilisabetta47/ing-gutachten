@@ -11,7 +11,7 @@ export async function resetDb(): Promise<void> {
   assertTestDb();
   await db.$executeRawUnsafe(
     'TRUNCATE TABLE organizations, inspections, appointments, damages, case_photos, documents, media, notes, case_status_history, lead_status_history, cases, vehicles, customers, leads, inquiry_attachments, inquiries, case_counters, ' +
-      'audit_logs, login_attempts, sessions, user_permissions, employees, system_settings, users, ' +
+      'audit_logs, login_attempts, sessions, calendar_feeds, user_permissions, employees, system_settings, users, ' +
       'vehicle_data_conflicts, vehicle_import_rows, vehicle_import_jobs, vehicle_provider_logs, vehicle_data_history, vehicle_data_points, vehicle_hsn_tsn, ' +
       'vehicle_variants, vehicle_generations, vehicle_models, vehicle_makes RESTART IDENTITY CASCADE',
   );

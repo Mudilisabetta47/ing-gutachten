@@ -75,3 +75,35 @@ export async function disableMfaAction(password: string, code: string): Promise<
 export async function regenerateRecoveryAction(code: string): Promise<MfaResult> {
   try { return { ok: true, codes: await regenerateRecoveryCodes(await me(), String(code)) }; } catch (e) { return fail(e); }
 }
+
+/* ---------- Kalender-Synchronisierung (ICS-Abo) ---------- */
+export type CalendarResult = { ok: boolean; error?: string; url?: string };
+
+async function originOf(): Promise<string> {
+  const { headers } = await import('next/headers');
+  const h = await headers();
+  const host = (h.get('x-forwarded-host') ?? h.get('host') ?? '').split(',')[0].trim();
+  const proto = (h.get('x-forwarded-proto') ?? 'https').split(',')[0].trim();
+  return /^[a-z0-9.-]+(:\d+)?$/i.test(host) && /^https?$/.test(proto) ? `${proto}://${host}` : '';
+}
+
+/** Erzeugt (oder ersetzt) den privaten Abo-Link. Der Link wird nur in dieser Antwort angezeigt. */
+export async function createCalendarFeedAction(showDetails: boolean): Promise<CalendarResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: 'Bitte erneut anmelden.' };
+  try {
+    const { createFeed, feedUrl } = await import('@/server/calendar/feed');
+    const { token } = await createFeed(user, { showDetails: Boolean(showDetails) });
+    return { ok: true, url: feedUrl(token, (await originOf()) || undefined) };
+  } catch {
+    return { ok: false, error: 'Für dieses Konto sind keine Termine freigegeben.' };
+  }
+}
+
+export async function revokeCalendarFeedAction(): Promise<CalendarResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: 'Bitte erneut anmelden.' };
+  const { revokeFeed } = await import('@/server/calendar/feed');
+  await revokeFeed(user);
+  return { ok: true };
+}

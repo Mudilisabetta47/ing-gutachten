@@ -42,6 +42,7 @@ model User {
   mfaChallenges MfaChallenge[]
   mfaRecovery   MfaRecoveryCode[]
   preferences   UserPreference[]
+  calendarFeed  CalendarFeed?
   tasksAssigned Task[]            @relation("TaskAssignee")
   notifications Notification[]
   id            String            @id @default(cuid())
@@ -844,6 +845,22 @@ model Damage {
   @@index([caseId, sortOrder])
   @@index([caseId, partId])
   @@map("damages")
+}
+
+/// Privater Kalender-Abonnement-Link (ICS) je Benutzer: Google/Apple/Outlook können die eigenen ING-Termine abonnieren.
+/// Der Link-Schlüssel (256 Bit) wird nur als SHA-256-Hash gespeichert und nur einmal angezeigt; Neuerzeugen/Widerrufen macht den alten Link ungültig.
+model CalendarFeed {
+  id          String    @id @default(cuid())
+  userId      String    @unique @map("user_id")
+  tokenHash   String    @unique @map("token_hash")
+  /// Kundennamen, Ort und Fahrzeug im Kalendereintrag (Standard: aus – Kalenderdienste speichern Abos bei Dritten).
+  showDetails Boolean   @default(false) @map("show_details")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastUsedAt  DateTime? @map("last_used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("calendar_feeds")
 }
 
 /// Datei im Speicher. Der Schlüssel ist zufällig (nie Dateiname oder Fallnummer); der Original-Dateiname wird nicht gespeichert.

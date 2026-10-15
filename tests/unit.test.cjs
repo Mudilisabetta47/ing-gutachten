@@ -524,3 +524,18 @@ test('Alarm-Mail: nur gültige Empfänger (höchstens 3), nie werfend, Fehlerber
     assert.equal(sent.length, 1); assert.ok(!sent[0][1].includes('a@b.de'), 'keine Mailadresse im Alarmtext');
   } finally { console.error = origErr; ER._resetErrorReporter(); }
 });
+
+/* ------------------------------------------------------------ Kalender (ICS) */
+const ICS = lib('ics');
+test('ICS: Escaping, Faltung nach 75 Oktetten (UTF-8-sicher), UTC-Zeiten, CRLF', () => {
+  assert.equal(ICS.icsEscape('a,b;c\\d\ne'), 'a\\,b\\;c\\\\d\\ne');
+  const long = 'Besichtigung · ' + 'Müller-Äpfel '.repeat(20);
+  const folded = ICS.icsFold('SUMMARY:' + long).split('\r\n');
+  for (const [i, l] of folded.entries()) assert.ok(Buffer.byteLength(i ? l.slice(1) : l, 'utf8') <= 75, `Zeile ${i} zu lang`);
+  assert.equal(folded.map((l, i) => (i ? l.slice(1) : l)).join(''), 'SUMMARY:' + long, 'Entfalten ergibt den Original-Text');
+  const ics = ICS.buildIcs([{ uid: 'a@x', start: new Date('2026-10-20T07:30:00Z'), end: new Date('2026-10-20T08:30:00Z'), updated: new Date('2026-10-14T10:00:00Z'), summary: 'Besichtigung (2026-0001)', status: 'TENTATIVE' }], { name: 'Test' });
+  assert.ok(ics.startsWith('BEGIN:VCALENDAR\r\nVERSION:2.0\r\n') && ics.endsWith('END:VCALENDAR\r\n'));
+  assert.match(ics, /DTSTART:20261020T073000Z\r\nDTEND:20261020T083000Z/);
+  assert.match(ics, /STATUS:TENTATIVE/); assert.match(ics, /UID:a@x/);
+  assert.ok(!/\n(?!\s)[^\r\n]*[^\r]\n/.test(ics.replace(/\r\n/g, '')), 'nur CRLF');
+});

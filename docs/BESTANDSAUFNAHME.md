@@ -42,7 +42,7 @@ Geprüft wurde die tatsächliche Codebasis im Repository `inggutachtenrot`, Bran
 
 - DAT/Audatex/GT Motive/Schwacke, Restwertbörse, KBA-/FIN-Decoder (keine Zugänge/Verträge; Werte manuell mit Quelle und Stand).
 - Digitale Signatur im Gutachten (es gibt Freigabe-Vermerk mit Person und Datum, **keine** Signaturgrafik/qualifizierte Signatur).
-- OCR des Fahrzeugscheins, Excel-Import der Fahrzeugdaten, Foto-Annotationen/KI, Provisionen, Kalender-Sync, DATEV, SMS, Zahlungsanbieter.
+- OCR des Fahrzeugscheins, Excel-Import der Fahrzeugdaten, Foto-Annotationen/KI, Provisionen, Kalender-Sync (ICS-Abo ING → eigener Kalender ist gebaut, siehe Abschnitt „Kalender“; Zwei-Wege-Sync mit Google/Microsoft nicht), DATEV, SMS, Zahlungsanbieter.
 - Offline-Betrieb mit Synchronisation (nicht gebaut → in der Oberfläche als „nicht verfügbar“ gekennzeichnet).
 - Website-CMS/SEO-Verwaltung/Regionen/Ratgeber im Admin (Phase 5).
 
@@ -57,3 +57,10 @@ Grenze: Die Fenster sind iframes derselben Anwendung (gleicher Ursprung, `frame-
 
 - Nur Entwicklung: Next.js-Dev-Plakette (jetzt abgeschaltet); Port 3100 kann von einem anderen lokalen Projekt belegt sein (ING-Server läuft dann auf 3101).
 - Die Studio-Fenster teilen den Seitenstil des Operating Systems; ein eigenes „Fenster-Design“ pro App gibt es nicht.
+
+## 6. Kalender (Taskleiste und Synchronisierung)
+
+- **Kalender in der Taskleiste:** Klick auf die Uhr öffnet ein Monatsraster mit Terminpunkten, Tagesliste (Klick öffnet den Fall) und Sprung in den ING Kalender. Rechte wie im ING Kalender (eigene bzw. alle Termine). „Desktop anzeigen“ liegt jetzt als schmaler Streifen am rechten Rand der Taskleiste (Strg+Alt+D wie zuvor).
+- **Kalender-Synchronisierung (Profil):** privater Abo-Link (ICS, `webcal://` möglich) für Google, Apple, Outlook. **Eine Richtung** (ING → eigener Kalender). Der 256-Bit-Schlüssel steht nur als SHA-256-Hash in der Datenbank, wird nur einmal angezeigt und lässt sich widerrufen oder ersetzen; der Inhalt folgt den Rechten des Benutzers; Standard ohne Kundennamen/Orte (Schalter „Details“). Abgesagte Termine erscheinen als „abgesagt“. Wie oft der fremde Kalender abruft, bestimmt dessen Anbieter (bei Google teils viele Stunden).
+- **Nicht gebaut:** Zwei-Wege-Abgleich (Termine aus Google/Outlook in ING übernehmen) – dafür wären Anmeldungen bei Google/Microsoft (OAuth) bzw. CalDAV nötig. **Kundenkalender** (Geschädigte sehen ihren Termin) gibt es nicht: Kunden haben kein Konto.
+- Datenschutz: Kalenderdienste speichern den Abo-Inhalt bei einem Drittanbieter; deshalb ist „Details“ standardmäßig aus (in Verarbeitungsverzeichnis/Datenschutzhinweis aufnehmen, siehe `docs/DATENSCHUTZ-VERARBEITER.md`).
