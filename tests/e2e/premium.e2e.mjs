@@ -19,7 +19,8 @@ try {
     check(await pg.evalJs('document.querySelectorAll("#fahrzeugklassen li").length === 9'), `${width}: nine vehicle classes`);
     check(await pg.evalJs('document.documentElement.scrollWidth <= innerWidth + 1'), `${width}: no horizontal overflow`);
     await pg.evalJs('document.querySelector("#einblicke").scrollIntoView()'); await sleep(300);
-    check(await pg.evalJs('!document.querySelector("#einblicke video")'), `${width}: no invented video sources`);
+    const srcs = await pg.evalJs('Array.from(document.querySelectorAll("#einblicke video source")).map(x=>x.getAttribute("src"))');
+    for (const src of srcs) { const r = await fetch(BASE + src, { method: 'HEAD' }); check(r.ok && /video\/mp4/.test(r.headers.get('content-type') ?? ''), `${width}: video source exists ${src}`); }
     const frame = await pg.evalJs('(()=>{const r=document.querySelector("#einblicke [aria-roledescription=Folie]").getBoundingClientRect();return {w:r.width,h:r.height}})()');
     check(Math.abs(frame.w / frame.h - 16 / 9) < 0.02, `${width}: stable 16:9 media frame`);
     for (let i=1;i<4;i++) {

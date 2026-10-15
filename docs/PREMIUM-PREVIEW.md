@@ -71,3 +71,7 @@ Nachgebessert: Der Testlauf `tests/e2e/premium.e2e.mjs` hatte falsch maskierte S
 ## Zusätzliche Bewegung (2026-10-15)
 
 Auf Wunsch des Auftraggebers: Überschriften der neuen Bereiche laufen wortweise aus der Maske (bestehendes `SplitWords`), Karten blenden gestaffelt ein, Leistungskarten mit Lichtkegel am Mauszeiger, Icon-Impuls und Pfeil-Versatz beim Hover, Fahrzeug-Silhouetten zeichnen sich beim Einblenden und fahren beim Hover ein Stück, Laufband mit den belegten Leistungen (pausiert bei Hover), Zähler „15+“ im Vertrauensstreifen, im Einblicke-Slider sanfter Szenenwechsel mit langsamem Zoom, einfahrendem Titel und sich füllendem Tab-Balken. Alles ist bei `prefers-reduced-motion` abgeschaltet (Endzustand sofort sichtbar), ohne JavaScript ist der Inhalt sichtbar. Keine neue Abhängigkeit.
+
+## Erstes Video eingebaut (2026-10-15)
+
+Szene 1 („Begutachtung“, Titel „Genau hinsehen.“) spielt jetzt `public/assets/video/begutachtung.mp4` (10,6 s, 1280×720, H.264, ohne Ton, ca. 3,9 MB, Fast-Start) mit Poster `public/assets/img/showcase-begutachtung.jpg`. Das gelieferte Original (2560×1440 HEVC, 56 MB) liegt **außerhalb des Projekts** unter `~/Movies/ING-Originalvideos/1015.mp4`. Wiedergabe: stumm, Schleife, startet nur im sichtbaren Bereich, pausiert beim Wegscrollen/Tab-Wechsel, bei „Bewegung reduzieren“ nur per Knopf; Kennzeichnung „Illustrative Filmszene“ bleibt. Im Clip erscheinen eingeblendete Messwerte, die nicht lesbar bzw. nicht echt sind (KI-Erzeugnis) – sie zeigen keine tatsächlichen Messungen.
