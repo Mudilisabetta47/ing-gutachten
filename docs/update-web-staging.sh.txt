@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+# ING Studio Staging: kontrollierte Aktualisierung NUR des Web-Containers auf Commit 554331f (Branch codex/premium-presentation).
+# Fasst PostgreSQL, SeaweedFS, S3-Proxy und alle anderen Projekte (GoKlinik) nicht an: kein prune, kein rm, kein down/stop/restart,
+# keine Volumes/Netzwerke, nur `compose up --no-deps web`. Gibt keine Geheimnisse aus.
+# Aufruf auf dem VPS (Benutzer mit Docker-Rechten):  sudo bash /opt/ing-studio/deploy/update-web.sh
+set -Eeuo pipefail
+
+REL=554331f
+DEPLOY=${DEPLOY:-/opt/ing-studio/deploy}
+SRC=${SRC:-/opt/ing-studio/releases/$REL}
+OLD_TAG_BASE=rollback-7cc47fc
+PROJECT=ing-staging
+WEB_NAME=ing-staging-web-1
+PG_NAME=ing-staging-postgres-1
+MIN_FREE_GB=${MIN_FREE_GB:-6}
+MIN_MEM_MB=${MIN_MEM_MB:-3000}
+HEALTH_TRIES=${HEALTH_TRIES:-40}
+HEALTH_SLEEP=${HEALTH_SLEEP:-3}
+TS=$(date -u +%Y%m%dT%H%M%SZ)
+
+step() { printf '\n== %s\n' "$*"; }
+fail() { printf '\nFEHLER: %s\n' "$*" >&2; exit 1; }
+
+# Nur ein Lauf gleichzeitig
+exec 9>"$DEPLOY/.update-web.lock"
+if command -v flock >/dev/null 2>&1; then flock -n 9 || fail "Ein anderer Lauf ist aktiv."; else echo "Hinweis: flock fehlt, kein Sperrschutz gegen Parallelläufe."; fi
+cd "$DEPLOY"
+
+SWITCHED=0   # 1, sobald das Image-Tag :local auf die neue Version zeigt (ab da ist ein Rollback nötig)
+ROLLED_BACK=0
+rollback() {
+  [ "$ROLLED_BACK" = 1 ] && return 0
+  ROLLED_BACK=1
+  printf '\n!! ROLLBACK auf ing-studio-staging:%s\n' "$OLD_TAG" >&2
+  docker tag "ing-studio-staging:$OLD_TAG" ing-studio-staging:local
+  "${COMPOSE[@]}" up -d --no-deps --force-recreate web
+  for i in $(seq 1 "$HEALTH_TRIES"); do
+    if docker exec "$WEB_NAME" node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.status<600?0:1)).catch(()=>process.exit(1))" 2>/dev/null; then
+      echo "Rollback abgeschlossen, alter Stand antwortet wieder."; return 0
+    fi
+    sleep "$HEALTH_SLEEP"
+  done
+  echo "WARNUNG: Nach dem Rollback antwortet der Web-Container nicht. Bitte manuell prüfen (docker logs $WEB_NAME)." >&2
+}
+on_err() { code=$?; trap - ERR; printf '\nFehler in Zeile %s (Exit %s).\n' "${BASH_LINENO[0]}" "$code" >&2; [ "$SWITCHED" = 1 ] && rollback; exit "$code"; }
+trap on_err ERR
+
+step "0. Voraussetzungen (nur Prüfungen)"
+docker info >/dev/null 2>&1 || fail "Kein Docker-Zugriff für $(whoami)."
+[ -f "$SRC/package.json" ] && [ -f "$SRC/GIT_COMMIT" ] || fail "Release-Ordner $SRC fehlt oder ist unvollständig."
+[ "$(tr -d '[:space:]' < "$SRC/GIT_COMMIT")" = "$REL" ] || fail "Release-Ordner gehört nicht zu Commit $REL."
+[ -f "$DEPLOY/Dockerfile" ] || fail "Dockerfile fehlt."
+OLD_ID=$(docker image inspect ing-studio-staging:local --format '{{.Id}}') || fail "Image ing-studio-staging:local nicht gefunden."
+WEB=$(docker ps -q -f "name=^${WEB_NAME}$"); [ "$(echo "$WEB" | wc -w | tr -d " ")" = 1 ] || fail "Container $WEB_NAME nicht eindeutig gefunden."
+PG=$(docker ps -q -f "name=^${PG_NAME}$"); [ "$(echo "$PG" | wc -w | tr -d " ")" = 1 ] || fail "Container $PG_NAME nicht eindeutig gefunden."
+[ "$(docker inspect "$WEB_NAME" --format '{{index .Config.Labels "com.docker.compose.project"}}')" = "$PROJECT" ] || fail "$WEB_NAME gehört nicht zum Compose-Projekt $PROJECT."
+[ "$(docker inspect "$PG_NAME" --format '{{index .Config.Labels "com.docker.compose.project"}}')" = "$PROJECT" ] || fail "$PG_NAME gehört nicht zum Compose-Projekt $PROJECT."
+FILES=$(docker inspect "$WEB_NAME" --format '{{index .Config.Labels "com.docker.compose.project.config_files"}}')
+[ -n "$FILES" ] || fail "Compose-Dateien des laufenden Stacks nicht ermittelbar."
+COMPOSE=(docker compose -p "$PROJECT" --project-directory "$DEPLOY"); for f in ${FILES//,/ }; do [ -f "$f" ] || fail "Compose-Datei fehlt: $f"; COMPOSE+=(-f "$f"); done
+echo "Compose-Projekt: $PROJECT | Dateien: $FILES"
+DOCKER_FS=/var/lib/docker; [ -d "$DOCKER_FS" ] || DOCKER_FS=/
+FREE_GB=$(df -Pk "$DOCKER_FS" | awk 'NR==2{print int($4/1048576)}')
+MEM_MB=${MEM_MB_OVERRIDE:-$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)}   # Override nur für Tests
+echo "Freier Speicherplatz: ${FREE_GB} GB (mind. $MIN_FREE_GB) | verfügbarer Arbeitsspeicher: ${MEM_MB} MB (mind. $MIN_MEM_MB)"
+[ "${FREE_GB:-0}" -ge "$MIN_FREE_GB" ] || fail "Zu wenig Speicherplatz für den Build."
+[ "${MEM_MB:-0}" -ge "$MIN_MEM_MB" ] || fail "Zu wenig freier Arbeitsspeicher für den Build (GoKlinik läuft auf demselben Server)."
+
+step "1. Rollback-Punkt (nur ein zusätzlicher Image-Tag)"
+OLD_TAG="$OLD_TAG_BASE"
+if docker image inspect "ing-studio-staging:$OLD_TAG" >/dev/null 2>&1; then OLD_TAG="$OLD_TAG_BASE-$TS"; fi   # niemals einen bestehenden Rollback-Tag überschreiben
+docker tag "$OLD_ID" "ing-studio-staging:$OLD_TAG"
+echo "Rollback-Image: ing-studio-staging:$OLD_TAG -> ${OLD_ID:7:12}"
+
+step "2. Datenbank-Sicherung (nur lesend: pg_dump) und Prüfung"
+DUMP="$DEPLOY/backups/ing-staging-before-premium-$TS.dump"
+( umask 077; docker exec "$PG_NAME" pg_dump -U ing_staging -d ing_staging -Fc > "$DUMP" )
+if [ "$(id -u)" = 0 ]; then chown "$(stat -c %U:%G "$DEPLOY")" "$DUMP"; fi   # unter sudo: Datei gehört wieder dem Verwalter
+[ -s "$DUMP" ] || fail "Sicherung ist leer."
+TOC=$(docker exec -i "$PG_NAME" pg_restore --list < "$DUMP")
+ENTRIES=$(printf '%s\n' "$TOC" | grep -c . || true)
+[ "$ENTRIES" -gt 50 ] || fail "Sicherung unplausibel ($ENTRIES Einträge)."
+printf '%s\n' "$TOC" | grep -q "TABLE DATA public users" || fail "Sicherung enthält die Tabelle users nicht."
+printf '%s\n' "$TOC" | grep -q "TABLE DATA public _prisma_migrations" || fail "Sicherung enthält _prisma_migrations nicht."
+USERS=$(docker exec "$PG_NAME" psql -U ing_staging -d ing_staging -Atc "select count(*) from users")
+echo "Sicherung: $(du -h "$DUMP" | cut -f1), $ENTRIES Einträge im Inhaltsverzeichnis, Konten in der Datenbank: $USERS"
+
+step "3. Neues Image bauen (Quelltext = Commit $REL; Basis-Image bleibt wie lokal vorhanden, kein --pull)"
+docker build -t "ing-studio-staging:$REL" -f "$DEPLOY/Dockerfile" "$SRC"
+NEW_ID=$(docker image inspect "ing-studio-staging:$REL" --format '{{.Id}}')
+[ "$NEW_ID" != "$OLD_ID" ] || fail "Neues Image ist identisch mit dem alten."
+docker tag "$NEW_ID" ing-studio-staging:local
+SWITCHED=1
+
+step "4. Nur den Web-Container neu erzeugen (--no-deps: PostgreSQL, SeaweedFS und GoKlinik bleiben unberührt)"
+"${COMPOSE[@]}" up -d --no-deps --force-recreate web
+READY=0
+for i in $(seq 1 "$HEALTH_TRIES"); do
+  if docker exec "$WEB_NAME" node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.status<600?0:1)).catch(()=>process.exit(1))" 2>/dev/null; then READY=1; break; fi
+  sleep "$HEALTH_SLEEP"
+done
+[ "$READY" = 1 ] || { echo "Web-Container antwortet nicht."; rollback; exit 1; }
+
+step "5. Prüfungen (im Container, ohne Ausgabe von Geheimnissen)"
+OK=1
+check() { if docker exec "$WEB_NAME" node -e "$2"; then echo "OK    $1"; else echo "FEHL  $1"; OK=0; fi; }
+check "1 Startseite enthält die neuen Bereiche (Fahrzeugklassen, Einblicke, Laufband, Unfall-Film), kein Entwurfs-Banner" \
+  "fetch('http://127.0.0.1:3000/').then(r=>r.text()).then(t=>process.exit(['id=\"fahrzeugklassen\"','id=\"einblicke\"','class=\"marquee','id=\"kollision\"'].every(s=>t.includes(s))&&!t.includes('Website-Entwurf')?0:1)).catch(()=>process.exit(1))"
+check "2 Video erreichbar (video/mp4)" \
+  "fetch('http://127.0.0.1:3000/assets/video/begutachtung.mp4',{method:'HEAD'}).then(r=>process.exit(r.ok&&/video\\/mp4/.test(r.headers.get('content-type')||'')?0:1)).catch(()=>process.exit(1))"
+check "3 Poster-Bild erreichbar" \
+  "fetch('http://127.0.0.1:3000/assets/img/showcase-begutachtung.jpg',{method:'HEAD'}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+check "4 Admin-Login zeigt das Formular (Datenbank aktiv, kein Vorschau-Modus)" \
+  "fetch('http://127.0.0.1:3000/admin/login/').then(r=>r.text()).then(t=>process.exit(t.includes('name=\"password\"')&&!t.includes('nicht freigeschaltet')?0:1)).catch(()=>process.exit(1))"
+check "5 API-Health: Datenbank und Migrationen ok (Speicher/Mail/2FA nur zur Information)" \
+  "fetch('http://127.0.0.1:3000/api/health',{headers:{authorization:'Bearer '+process.env.HEALTH_TOKEN}}).then(r=>r.json()).then(j=>{console.log('      Health:',j.status,JSON.stringify(Object.fromEntries(Object.entries(j.checks||{}).map(([k,v])=>[k,v.ok]))));process.exit(j.checks&&j.checks.database&&j.checks.database.ok&&j.checks.migrations&&j.checks.migrations.ok?0:1)}).catch(()=>process.exit(1))"
+check "6 Vorschau-Schalter ING_PRESENTATION_PREVIEW ist NICHT gesetzt, ING_ENV=staging" \
+  "process.exit(!process.env.ING_PRESENTATION_PREVIEW&&process.env.ING_ENV==='staging'?0:1)"
+check "7 Anfrage-Schnittstelle nicht im Vorschau-Modus (Antwort enthält nicht presentation_preview)" \
+  "fetch('http://127.0.0.1:3000/api/anfrage/',{method:'POST',headers:{'content-length':'2','content-type':'application/json'},body:'{}'}).then(r=>r.json()).then(j=>process.exit(j.error==='presentation_preview'?1:0)).catch(()=>process.exit(1))"
+check "8 Interne Bereiche sind anonym gesperrt (/studio → Login, Kalender-API 401, Abo-Link unbekannt 404)" \
+  "Promise.all([fetch('http://127.0.0.1:3000/studio/',{redirect:'manual'}),fetch('http://127.0.0.1:3000/api/studio/kalender/?monat=2026-10'),fetch('http://127.0.0.1:3000/api/kalender/'+'a'.repeat(43)+'.ics')]).then(([a,b,c])=>process.exit([307,308].includes(a.status)&&/admin\\/login/.test(a.headers.get('location')||'')&&b.status===401&&c.status===404?0:1)).catch(()=>process.exit(1))"
+POST_USERS=$(docker exec "$PG_NAME" psql -U ing_staging -d ing_staging -Atc "select count(*) from users")
+if [ "$POST_USERS" = "$USERS" ]; then echo "OK    9 Konten unverändert ($POST_USERS)"; else echo "FEHL  9 Konten: $POST_USERS statt $USERS"; OK=0; fi
+INDEXABLE=$(docker exec "$WEB_NAME" node -e "fetch('http://127.0.0.1:3000/robots.txt').then(r=>r.text()).then(t=>console.log(/Disallow: \\/\$/m.test(t)?'gesperrt':'INDEXIERBAR (Web-Container ist nicht veröffentlicht; vor einer Freigabe über Proxy Zugangsschutz/noindex setzen)'))")
+echo "INFO  robots.txt: $INDEXABLE"
+
+step "6. Ergebnis"
+if [ "$OK" = 1 ]; then
+  echo "ALLE PRÜFUNGEN BESTANDEN. Aktiv: ing-studio-staging:$REL (${NEW_ID:7:12}). Rollback-Image: ing-studio-staging:$OLD_TAG"
+  docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' | grep -E "NAMES|^ing-staging"
+  echo "Sicherung: $DUMP"
+else
+  echo "Mindestens eine Prüfung ist fehlgeschlagen."; rollback; exit 1
+fi
