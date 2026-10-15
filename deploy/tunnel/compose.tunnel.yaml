@@ -9,7 +9,9 @@ services:
     image: caddy:2.10.2-alpine
     container_name: ing-gate
     restart: "no"
-    user: "${GATE_UID:-1001}:${GATE_GID:-1001}"
+    # Das offizielle Caddy-Image trägt eine Datei-Fähigkeit (cap_net_bind_service=+ep). Mit "cap_drop: ALL" allein verweigert der Kernel den Start
+    # ("exec /usr/bin/caddy: operation not permitted"). Deshalb genau diese eine Fähigkeit wieder zulassen. Läuft wie der vorhandene S3-Proxy als
+    # Container-root (ohne weitere Fähigkeiten, Dateisystem nur lesbar); die Hash-Datei ist deshalb lesbar (644), liegt aber im 700-Ordner.
     read_only: true
     tmpfs: [/data, /config, /tmp]
     environment:
@@ -23,6 +25,7 @@ services:
     cpus: "0.25"
     pids_limit: 128
     cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
     security_opt: ["no-new-privileges:true"]
 
   cloudflared:

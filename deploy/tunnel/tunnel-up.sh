@@ -5,10 +5,11 @@
 # (2) die Netz-Isolation bestätigt ist und (3) die automatische Abschaltung geplant UND überprüft ist. Jeder Fehler baut alles wieder ab.
 set -Eeuo pipefail
 
+CHECK_ONLY=0; [ "${1:-}" = "--check" ] && CHECK_ONLY=1   # Prüfmodus: nur Tor + Prüfungen A/B, KEIN Tunnel, KEIN Timer, KEINE öffentliche Adresse
 TUN=${TUN:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}
 TTL_SECONDS=${TTL_SECONDS:-14400}          # 4 Stunden
 WATCHDOG_EXTRA=${WATCHDOG_EXTRA:-120}      # zweite, unabhängige Abschaltung etwas später
-URL_TRIES=${URL_TRIES:-45}; URL_SLEEP=${URL_SLEEP:-2}; PUBLIC_SLEEP=${PUBLIC_SLEEP:-8}
+URL_TRIES=${URL_TRIES:-45}; URL_SLEEP=${URL_SLEEP:-2}; PUBLIC_SLEEP=${PUBLIC_SLEEP:-8}; GATE_TRIES=${GATE_TRIES:-30}; GATE_SLEEP=${GATE_SLEEP:-1}
 PROJECT=ing-tunnel
 WEB_NAME=ing-staging-web-1
 ING_NET=ing-staging_private
@@ -33,7 +34,7 @@ trap 'code=$?; printf "\nFehler in Zeile %s (Exit %s).\n" "${BASH_LINENO[0]}" "$
 
 step "0. Voraussetzungen (nur Prüfungen)"
 docker info >/dev/null 2>&1 || fail "Kein Docker-Zugriff für $(whoami)."
-command -v systemd-run >/dev/null && command -v systemctl >/dev/null || fail "systemd-run fehlt: Ohne geplante automatische Abschaltung wird kein Tunnel gestartet."
+if [ "$CHECK_ONLY" = 0 ]; then command -v systemd-run >/dev/null && command -v systemctl >/dev/null || fail "systemd-run fehlt: Ohne geplante automatische Abschaltung wird kein Tunnel gestartet."; fi
 [ "$(id -u)" = 0 ] || fail "Bitte mit sudo ausführen (nötig für die geplante Abschaltung)."
 for f in compose.tunnel.yaml Caddyfile probe.mjs tunnel-down.sh; do [ -f "$TUN/$f" ] || fail "Datei fehlt: $TUN/$f"; done
 [ -n "$(docker ps -q -f "name=^${WEB_NAME}$")" ] || fail "$WEB_NAME läuft nicht – erst das Update (update-web.sh) abschließen."
@@ -46,8 +47,7 @@ GATE_UID=$(id -u "$ADMIN"); GATE_GID=$(id -g "$ADMIN"); export GATE_UID GATE_GID
 echo "Verwalter für Geheimnisse: $ADMIN (uid $GATE_UID) | Laufzeit: $((TTL_SECONDS/3600)) h ($TTL_SECONDS s)"
 docker image inspect "$PROBE_IMAGE" >/dev/null 2>&1 || fail "Image $PROBE_IMAGE fehlt."
 docker image inspect "$CADDY_IMAGE" >/dev/null 2>&1 || docker pull "$CADDY_IMAGE"
-docker pull "$CF_IMAGE" >/dev/null
-echo "cloudflared-Image: $(docker image inspect "$CF_IMAGE" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -c1-90)"
+if [ "$CHECK_ONLY" = 0 ]; then docker pull "$CF_IMAGE" >/dev/null; echo "cloudflared-Image: $(docker image inspect "$CF_IMAGE" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -c1-90)"; else echo "PRÜFMODUS: es wird kein Tunnel gestartet und keine öffentliche Adresse erzeugt."; fi
 
 step "1. Ausgangszustand festhalten (zum späteren Vergleich: nichts anderes darf sich ändern)"
 snapshot_containers() { docker ps -q --no-trunc | while read -r id; do docker inspect -f '{{.Name}} {{.Id}} {{.State.StartedAt}}' "$id"; done | sort; }
@@ -66,7 +66,7 @@ EXPIRES=$(date -d "+${TTL_SECONDS} seconds" '+%F %H:%M' 2>/dev/null || date -v+"
 ( umask 077
   printf 'basic_auth {\n\t%s %s\n}\n' "$GATE_USER_NAME" "$HASH" > "$SECDIR/gate-auth.caddy"
   printf 'Benutzer:  %s\nPasswort:  %s\nGültig bis: %s (automatische Abschaltung)\n' "$GATE_USER_NAME" "$PW" "$EXPIRES" > "$SECDIR/gate-password.txt" )
-chown "$ADMIN" "$SECDIR/gate-password.txt" "$SECDIR/gate-auth.caddy"; chmod 600 "$SECDIR/gate-password.txt"; chmod 640 "$SECDIR/gate-auth.caddy"
+chown "$ADMIN" "$SECDIR/gate-password.txt" "$SECDIR/gate-auth.caddy"; chmod 600 "$SECDIR/gate-password.txt"; chmod 644 "$SECDIR/gate-auth.caddy"   # Hash (nicht das Passwort); Ordner ist 700
 echo "Passwort liegt in: $SECDIR/gate-password.txt (Rechte 600, Besitzer $ADMIN)"
 docker run --rm --network none --user "$GATE_UID:$GATE_GID" -v "$TUN/Caddyfile:/etc/caddy/Caddyfile:ro" -v "$SECDIR/gate-auth.caddy:/etc/gate/auth.caddy:ro" \
   -e XDG_CONFIG_HOME=/tmp -e XDG_DATA_HOME=/tmp "$CADDY_IMAGE" caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 || fail "Caddy-Konfiguration ist ungültig."
@@ -77,11 +77,35 @@ probe() { # $1 Modus, $2 Ziel
     -v "$TUN/probe.mjs:/probe.mjs:ro" -e MODE="$1" -e TARGET="${2:-}" -e GATE_USER="$GATE_USER_NAME" -e GATE_PW "$PROBE_IMAGE" /probe.mjs
 }
 
+if [ "$CHECK_ONLY" = 1 ]; then
+  step "2b. Diagnose (nur Prüfmodus): Startet das Caddy-Image mit den Einstellungen des Tors?"
+  if docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges:true "$CADDY_IMAGE" caddy version >/dev/null 2>&1; then echo "cap_drop ALL ohne Zusatz:        startet"; else echo "cap_drop ALL ohne Zusatz:        STARTET NICHT (Datei-Fähigkeit des Caddy-Images) – daher cap_add NET_BIND_SERVICE"; fi
+  if docker run --rm --network none --cap-drop ALL --cap-add NET_BIND_SERVICE --security-opt no-new-privileges:true "$CADDY_IMAGE" caddy version >/dev/null 2>&1; then echo "cap_drop ALL + NET_BIND_SERVICE: startet (Einstellung des Tors)"; else fail "Caddy startet auch mit NET_BIND_SERVICE nicht – siehe Diagnose unten."; fi
+fi
+
+gate_diag() {  # Zustand und Protokoll des Tors (enthält keine Geheimnisse) – wird VOR dem Abbau ausgegeben
+  echo "--- Zustand ing-gate: $(docker inspect ing-gate --format 'Status={{.State.Status}} Exit={{.State.ExitCode}} OOM={{.State.OOMKilled}} Fehler={{.State.Error}}' 2>&1 | cut -c1-200)" >&2
+  echo "--- Letzte Protokollzeilen:" >&2; docker logs --tail 25 ing-gate 2>&1 | sed 's/^/    /' >&2 || true
+}
+
 step "3. Nur das Tor (gate) starten – noch KEIN Tunnel, noch nichts von außen erreichbar"
 "${COMPOSE[@]}" up -d gate
-for i in $(seq 1 30); do docker exec ing-gate wget -qO- http://127.0.0.1:8080/robots.txt 2>/dev/null | grep -q Disallow && break; sleep 1; [ "$i" = 30 ] && fail "Das Tor antwortet nicht."; done
+READY=0
+for i in $(seq 1 "$GATE_TRIES"); do
+  STATE=$(docker inspect ing-gate --format '{{.State.Status}}' 2>/dev/null || echo fehlt)
+  if [ "$STATE" != running ] && [ "$STATE" != created ] && [ "$STATE" != restarting ]; then gate_diag; fail "Das Tor ist nicht gestartet bzw. sofort wieder beendet (Zustand: $STATE)."; fi
+  if docker exec ing-gate wget -qO- http://127.0.0.1:8080/robots.txt 2>/dev/null | grep -q Disallow; then READY=1; break; fi
+  sleep "$GATE_SLEEP"
+done
+[ "$READY" = 1 ] || { gate_diag; fail "Das Tor läuft, antwortet aber nicht auf Port 8080 (nach $GATE_TRIES Versuchen)."; }
+echo "Das Tor antwortet (nach $i Versuch(en))."
 echo "-- Prüfung A: Zugangssperre vor allen Routen"; probe gate http://gate:8080
 echo "-- Prüfung B: Tunnel-Netz erreicht weder ING-Web noch PostgreSQL noch SeaweedFS"; probe isolate
+
+if [ "$CHECK_ONLY" = 1 ]; then
+  step "PRÜFMODUS BESTANDEN – es wurde kein Tunnel gestartet und keine Adresse erzeugt. Das Tor wird jetzt wieder abgebaut."
+  exit 0   # cleanup() baut Tor, Netz und Zugangsdaten ab
+fi
 
 step "4. Automatische Abschaltung planen und überprüfen (VOR dem Tunnelstart)"
 systemd-run --unit=ing-tunnel-expire --on-active="${TTL_SECONDS}s" --description="ING Test-Tunnel: automatische Abschaltung" /bin/bash "$TUN/tunnel-down.sh" --expired >/dev/null
