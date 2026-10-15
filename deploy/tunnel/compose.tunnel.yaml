@@ -1,0 +1,46 @@
+# Temporärer Test-Zugang zu ING Studio Staging über einen Cloudflare Quick Tunnel.
+# Eigenes Compose-Projekt "ing-tunnel": ändert weder den ING-Stack noch GoKlinik. KEIN einziges "ports:" – der Tunnel baut nur ausgehend auf.
+#   gate (Caddy)    : Basic Auth + noindex vor ALLEN Routen; erreicht nur web:3000 im ING-Netz
+#   cloudflared     : nur im Netz "edge"; kennt web/PostgreSQL/SeaweedFS nicht (andere Netze), erreicht nur gate:8080
+name: ing-tunnel
+
+services:
+  gate:
+    image: caddy:2.10.2-alpine
+    container_name: ing-gate
+    restart: "no"
+    user: "${GATE_UID:-1001}:${GATE_GID:-1001}"
+    read_only: true
+    tmpfs: [/data, /config, /tmp]
+    environment:
+      XDG_DATA_HOME: /tmp/xdg-data
+      XDG_CONFIG_HOME: /tmp/xdg-config
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./secrets/gate-auth.caddy:/etc/gate/auth.caddy:ro
+    networks: [edge, ing_private]
+    mem_limit: 128m
+    cpus: "0.25"
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.1
+    container_name: ing-cloudflared
+    restart: "no"
+    command: ["tunnel", "--no-autoupdate", "--url", "http://gate:8080"]
+    networks: [edge]
+    mem_limit: 128m
+    cpus: "0.25"
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    depends_on: [gate]
+
+networks:
+  edge:
+    name: ing-tunnel_edge          # ausgehendes Internet erlaubt, enthält NUR gate und cloudflared
+  ing_private:
+    name: ing-staging_private      # bestehendes, internes ING-Netz (PostgreSQL, SeaweedFS, web) – nur gate tritt bei
+    external: true

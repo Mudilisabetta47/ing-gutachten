@@ -1,0 +1,33 @@
+{
+	admin off
+	auto_https off
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+:8080 {
+	# Gilt für ALLE Antworten, auch für die 401 des Zugangsschutzes
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
+		Referrer-Policy "no-referrer"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	# Einzige Ausnahme ohne Anmeldung: robots.txt (sagt Suchmaschinen: nichts indexieren)
+	handle /robots.txt {
+		header Content-Type "text/plain; charset=utf-8"
+		respond <<TXT
+			User-agent: *
+			Disallow: /
+			TXT 200
+	}
+
+	# Alles andere – jede Route, jede Methode – erst nach Basic Auth (Benutzer und Hash aus secrets/gate-auth.caddy)
+	handle {
+		import /etc/gate/auth.caddy
+		reverse_proxy web:3000
+	}
+}
