@@ -59,3 +59,11 @@ Der Arbeitsstand der Vorbearbeitung lag als Kopie unter `/tmp/ing-premium-202610
 Wichtig für die Vorschau: `ING_PRESENTATION_PREVIEW` wird beim **Bauen** ausgewertet (statische Seiten). Beim Deployment deshalb als Build-Variable setzen (`--build-env ING_PRESENTATION_PREVIEW=true`) und zusätzlich als Laufzeitvariable; Datenbank- und Speicher-Variablen für die Vorschau leer überschreiben.
 
 Nachgebessert: Der Testlauf `tests/e2e/premium.e2e.mjs` hatte falsch maskierte Selektoren und eine unrealistische Enter-Taste; beides korrigiert.
+
+## Vorschau-Deployment (2026-10-15)
+
+- Vercel-Projekt `ingstudionew92`, **Preview** (nicht Production), Commit-Stand Branch `codex/premium-presentation`: `https://ingstudionew92-5ahy0xc4z-fahrschulemetropolhb-8267s-projects.vercel.app` (Status „Ready“, Funktionsregion `fra1`).
+- Geschützt durch Vercel Authentication (anonyme Aufrufe werden zu Vercel-Login weitergeleitet, HTTP 302; auch `/studio/` und `/api/anfrage/`). Zugriff nur für angemeldete Mitglieder des Teams.
+- Gebaut mit `ING_PRESENTATION_PREVIEW=true` (Build- und Laufzeitvariable) und **leeren Überschreibungen** für `DATABASE_URL`, `PRISMA_DATABASE_URL`, `POSTGRES_URL`, `S3_BUCKET_NAME`, `AWS_RESOURCE_ARN`, `AWS_ACCOUNT_ID`, `AWS_ROLE_ARN`; zusätzlich ignoriert der Code in diesem Modus jeden Datenbankzugriff. Die Projekt-Variablen selbst (gelten für Preview **und** Production) wurden nicht verändert.
+- Kein Production-Deployment, keine Domain-Zuordnung, keine Migration.
+- Befehl (zur Wiederholung): `vercel deploy --target=preview -b ING_PRESENTATION_PREVIEW=true -e ING_PRESENTATION_PREVIEW=true -b DATABASE_URL= -e DATABASE_URL= …` (vollständige Liste oben).
