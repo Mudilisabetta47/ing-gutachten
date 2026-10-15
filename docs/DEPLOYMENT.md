@@ -73,6 +73,10 @@ Schlüsselwechsel (Rotation): neuen Wert setzen, alten als `…_PREVIOUS` behalt
 - **E-Mail-Überwachung (Entscheidung der Geschäftsführung):** `ALERT_EMAIL_TO` (bis 3 Adressen) erhält Mails bei Serverfehlern; `GET /api/monitor/check` (Bearer `MONITOR_SECRET`) prüft Datenbank, Migrationen, Speicher, Mail, 2FA-Schlüssel und schickt eine Mail bei Störung, nach 6 h eine Erinnerung und bei Erholung eine Entwarnung. Aufgerufen von einem externen Prüfdienst (alle 5 Minuten; bei geschütztem Staging mit Bypass-Header). **Vercel-Cron wird bewusst nicht genutzt:** er ruft nur die Produktions-Bereitstellung auf und kann Vercel-Ausfälle nicht melden. Zusätzlich Vercel-Logs/Ausgabenlimit und Supabase-Berichte aktivieren.
 - Alarmtest nach der Einrichtung: in Staging `ALERT_WEBHOOK_URL` setzen und eine absichtlich fehlerhafte Anfrage auslösen; im Ziel muss genau eine Meldung ankommen.
 
+## 7a. Nicht unterstützt: Cloudflare Workers / Pages (Stand 2026-10-15)
+
+Ein Build-Versuch über Cloudflare Workers Builds (`npx wrangler deploy` mit automatischer OpenNext-Einrichtung) scheiterte: Der Next.js-Build selbst läuft durch, aber das Bündeln für Workers bricht an `@node-rs/argon2` ab („No loader is configured for .node files“) – Workers laden keine nativen Node-Module. Die Anwendung ist für **Node.js auf Vercel** gebaut (Entscheidung der Geschäftsführung: Supabase + Vercel). Für Workers wären mindestens nötig: Passwort-Hashing ohne native Bibliothek (z. B. WASM-Argon2, kompatibel zu den vorhandenen Argon2id-Hashes), Datenbankzugriff über Hyperdrive/Workers-kompatible Treiber, Prüfung aller `node:`-Module und Laufzeitgrenzen (CPU-Zeit je Anfrage für Argon2). Weitere Hindernisse sind zu erwarten, weil der Bündler beim ersten Fehler abbricht. **Bis dahin: Git-Integration von Cloudflare für dieses Repository trennen**, damit nicht bei jedem Push ein Bau- und Deploy-Versuch läuft (Deployments passieren nur nach ausdrücklicher Freigabe).
+
 ## 7. Was bewusst nicht automatisiert ist
 
 - Kein automatisches Deployment aus diesem Branch; kein Merge nach `main` ohne Freigabe.
