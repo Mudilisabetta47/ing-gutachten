@@ -457,3 +457,9 @@
   address a, [href^="tel:"]:not(.btn), [href^="mailto:"]:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
   .film-skip { min-height: 44px; }
 }
+
+/* Hero-Video: Poster zuerst, Video blendet ein, sobald es läuft */
+.hero-video { opacity: 0; transition: opacity 1.2s cubic-bezier(.16, 1, .3, 1); }
+.hero-video.is-ready { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .hero-video { transition: none; } }
+

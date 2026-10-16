@@ -7,6 +7,8 @@ import { BIZ } from '@/lib/content';
 import { SplitLines } from '@/components/ui/SplitLines';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { Arrow } from '@/components/ui/Icon';
+import { HeroMedia } from '@/components/sections/HeroMedia';
+import { HERO_SCENES } from '@/lib/showcase';
 
 const META = [
   { dt: 'Erfahrung', dd: 'über 15 Jahre' },
@@ -22,8 +24,6 @@ export function Hero() {
   /* Drei Ebenen, drei Geschwindigkeiten – der Tiefeneindruck entsteht
      aus der Differenz, nicht aus der Menge an Bewegung. */
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '22%']);
-  const carY = useTransform(scrollYProgress, [0, 1], ['0%', '-6%']);
-  const carScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
   const contentY = useTransform(scrollYProgress, [0, 0.85], [0, 60]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.05]);
   const contentBlur = useTransform(scrollYProgress, [0, 0.85], ['blur(0px)', 'blur(7px)']);
@@ -42,22 +42,7 @@ export function Hero() {
       />
       <div className="hero-sweep pointer-events-none absolute inset-0 -z-10 animate-sweep" aria-hidden="true" />
 
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-[16%] top-[13%] -z-10 w-[152%] opacity-[.42] lg:bottom-[12%] lg:right-[-3%] lg:top-auto lg:w-[min(78%,980px)] lg:opacity-100"
-      >
-        <motion.img
-          src="/assets/img/car-hero.svg"
-          alt=""
-          width={1240}
-          height={620}
-          fetchPriority="high"
-          style={{ y: reduced ? 0 : carY, scale: reduced ? 1 : carScale }}
-          initial={reduced ? false : { opacity: 0, x: '9%' }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1.9, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-        />
-      </div>
+      <HeroMedia scenes={HERO_SCENES} />
 
       <motion.div
         className="shell relative z-[2] w-full"
