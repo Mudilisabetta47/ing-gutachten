@@ -38,9 +38,6 @@ export const NAV: NavItem[] = [
       { label: 'Unfallrekonstruktion', href: '/unfallrekonstruktion' },
     ],
   },
-  { label: 'Leistungen', href: '/leistungen' },
-  { label: 'Ablauf', href: '/ablauf' },
-  { label: 'Über uns', href: '/ueber-uns' },
   { label: 'Kontakt', href: '/kontakt' },
 ];
 
