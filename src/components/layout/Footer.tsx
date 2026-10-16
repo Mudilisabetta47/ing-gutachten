@@ -46,6 +46,8 @@ export function Footer() {
               </FooterLink>
             ))}
             <FooterLink href="/wertgutachten">Wertgutachten</FooterLink>
+            <FooterLink href="/schadensgutachten">Schadensgutachten</FooterLink>
+            <FooterLink href="/unfallgutachten">Unfallgutachten</FooterLink>
           </FooterCol>
 
           <FooterCol title="Region">

@@ -94,7 +94,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section scroll-mt-20" id="kollisionsanalyse">
         <div className="shell grid gap-[clamp(2rem,5vw,4rem)] lg:grid-cols-[1.05fr_.95fr] lg:items-center">
           <StructureScene />
           <div className="grid content-start gap-5">

@@ -27,22 +27,20 @@ export type NavItem = { label: string; href: string; children?: NavItem[] };
 
 export const NAV: NavItem[] = [
   {
-    label: 'Schadensgutachten',
-    href: '/schadensgutachten',
+    label: 'Unfallanalyse',
+    href: '/unfallanalyse',
     children: [
-      { label: 'Gutachter', href: '/schadensgutachten' },
-      { label: 'Unfallanalyse', href: '/unfallanalyse' },
       { label: 'PKW-Gutachten', href: '/pkw-gutachten' },
-      { label: 'Unfallgutachten', href: '/unfallgutachten' },
+      { label: 'EDR-Datenanalyse', href: '/edr-systeme' },
+      /* VORLÄUFIG: Eine eigene Seite „Kollisionsanalyse“ gibt es noch nicht. Bis dahin führt der Eintrag
+         zum Abschnitt über die Kollisionsintensität auf der Seite Unfallanalyse. Siehe Abstimmung mit ING. */
+      { label: 'Kollisionsanalyse', href: '/unfallanalyse#kollisionsanalyse' },
       { label: 'Unfallrekonstruktion', href: '/unfallrekonstruktion' },
-      { label: 'EDR-Systeme', href: '/edr-systeme' },
     ],
   },
   { label: 'Leistungen', href: '/leistungen' },
   { label: 'Ablauf', href: '/ablauf' },
   { label: 'Über uns', href: '/ueber-uns' },
-  { label: 'Einsatzgebiet', href: '/einsatzgebiet' },
-  { label: 'FAQ', href: '/faq' },
   { label: 'Kontakt', href: '/kontakt' },
 ];
 
