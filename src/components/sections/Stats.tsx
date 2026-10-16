@@ -1,4 +1,4 @@
-import { BIZ, REGIONS } from '@/lib/content';
+import { BIZ } from '@/lib/content';
 import { Reveal } from '@/components/ui/Reveal';
 
 /**
@@ -8,7 +8,7 @@ import { Reveal } from '@/components/ui/Reveal';
  */
 const CELLS = [
   { label: 'Büro', value: <span className="text-[clamp(1.5rem,3.4vw,2.4rem)] leading-tight">Hannover</span>, text: `${BIZ.street}, ${BIZ.zip} ${BIZ.city}` },
-  { label: 'Einsatzgebiet', value: <span className="text-[clamp(1.5rem,3.4vw,2.4rem)] leading-tight">Hannover<br />+ Region</span>, text: `Vor-Ort-Besichtigung, z. B. in ${REGIONS.slice(0, 3).map((r) => r.name).join(', ')} und weiteren Orten.` },
+  { label: 'Einsatzgebiet', value: <span className="text-[clamp(1.5rem,3.4vw,2.4rem)] leading-tight">Region<br />Hannover</span>, text: 'Vor-Ort-Besichtigung in Hannover, Hildesheim, Braunschweig und Hameln.' },
   { label: 'Unabhängig', value: <span className="text-[clamp(1.5rem,3.4vw,2.4rem)] leading-tight">Ohne<br />Bindung</span>, text: 'Keine Beteiligung von Versicherern, Werkstätten oder Autohäusern.' },
 ];
 

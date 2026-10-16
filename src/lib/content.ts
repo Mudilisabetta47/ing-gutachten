@@ -135,6 +135,19 @@ export const REGIONS: Region[] = [
   { name: 'Pattensen', x: 44, y: 86, note: 'Pattensen, Koldingen und Schulenburg.', slug: 'pattensen' },
 ];
 
+/**
+ * Orte auf der Einsatzgebiet-Karte (schematisch, nicht maßstabsgetreu). Lage aus den Koordinaten der Städte,
+ * Kartenausschnitt ca. 110 × 82 km um Hannover; x/y in Prozent der Kartenfläche.
+ * OFFEN: Bestätigung des Einsatzbereichs (Hildesheim, Braunschweig, Hameln) durch ING.
+ */
+export type AreaCity = { name: string; x: number; y: number; note: string; home?: boolean };
+export const AREA_CITIES: AreaCity[] = [
+  { name: 'Hannover', x: 34.5, y: 26.7, home: true, note: 'Hauptstandort mit Büro in der Hildesheimer Straße. Besichtigungen in der Stadt und im Umland, zum Beispiel in Laatzen, Langenhagen, Garbsen, Seelze, Wunstorf und Pattensen.' },
+  { name: 'Hildesheim', x: 48.3, y: 56.4, note: 'Vor-Ort-Besichtigungen in Hildesheim und der Umgebung. Wir kommen dorthin, wo sich das Fahrzeug befindet.' },
+  { name: 'Braunschweig', x: 83.8, y: 40.1, note: 'Vor-Ort-Besichtigungen in Braunschweig und der Umgebung. Wir kommen dorthin, wo sich das Fahrzeug befindet.' },
+  { name: 'Hameln', x: 11.5, y: 63.0, note: 'Vor-Ort-Besichtigungen in Hameln und der Umgebung. Wir kommen dorthin, wo sich das Fahrzeug befindet.' },
+];
+
 export const REGION_PAGES = REGIONS.filter((r): r is Region & { slug: string } => Boolean(r.slug));
 
 export type Faq = { q: string; a: string };
@@ -230,7 +243,7 @@ export const FLOW_STEPS: FlowStep[] = [
 
 export const WHY_ITEMS: { icon: IconName; title: string; text: string }[] = [
   { icon: 'shield', title: 'Unabhängig', text: 'Keine Beteiligung von Versicherern, Werkstätten oder Autohäusern. Ihr Auftraggeber sind Sie.' },
-  { icon: 'pin', title: 'Vor Ort', text: 'In Hannover und Umgebung – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort. Termin nach Absprache.' },
+  { icon: 'pin', title: 'Vor Ort', text: 'In Hannover, Hildesheim, Braunschweig und Hameln – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort. Termin nach Absprache.' },
   { icon: 'ruler', title: 'Messtechnik statt Sichtprüfung', text: 'Achs- und Karosserievermessung: Verzug wird mit Werten belegt, nicht mit Vermutungen.' },
   { icon: 'scale', title: 'Beratung bis zum Schluss', text: 'Wir erklären Positionen und nehmen bei Rückfragen fachlich Stellung – auch nach der Gutachtenübergabe.' },
 ];

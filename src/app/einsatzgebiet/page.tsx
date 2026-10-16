@@ -19,9 +19,9 @@ export default function Page() {
   return (
     <Landing
       eyebrow="Vor-Ort-Service"
-      title="Hannover und Umgebung."
-      lead="Wir begutachten dort, wo das Fahrzeug steht – zu Hause, in der Werkstatt, auf dem Betriebsgelände oder am Unfallort. Die Anfahrt im Einsatzgebiet berechnen wir nicht extra."
-      chips={['Hannover', 'Region Hannover', 'Vor-Ort-Termine', 'ohne Anfahrtskosten']}
+      title="Hannover, Hildesheim, Braunschweig, Hameln."
+      lead="Wir begutachten dort, wo das Fahrzeug steht – zu Hause, in der Werkstatt, auf dem Betriebsgelände oder am Unfallort. Unser Einsatzbereich umfasst Hannover, Hildesheim, Braunschweig und Hameln."
+      chips={['Hannover', 'Hildesheim', 'Braunschweig', 'Hameln']}
       trail={[{ name: 'Einsatzgebiet', href: '/einsatzgebiet' }]}
       related={[
         { title: 'Kontakt & Termin', text: 'Termin vor Ort vereinbaren.', href: '/kontakt' },

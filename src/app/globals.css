@@ -454,7 +454,7 @@
 @media (pointer: coarse) {
   .tlink { min-height: 44px; }
   nav[aria-label="Brotkrumen-Navigation"] a { display: inline-flex; align-items: center; min-height: 44px; }
-  address a, [href^="tel:"]:not(.btn), [href^="mailto:"]:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
+  address a, main a[href^="tel:"]:not(.btn), main a[href^="mailto:"]:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
   .film-skip { min-height: 44px; }
 }
 

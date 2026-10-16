@@ -13,7 +13,7 @@ import { HERO_SCENES } from '@/lib/showcase';
 const META = [
   { dt: 'Erfahrung', dd: 'über 15 Jahre' },
   { dt: 'Termin', dd: 'meist in 24–48 Stunden' },
-  { dt: 'Vor Ort', dd: 'Hannover & Umgebung' },
+  { dt: 'Vor Ort', dd: 'Hannover, Hildesheim, Braunschweig, Hameln' },
 ];
 
 export function Hero() {
