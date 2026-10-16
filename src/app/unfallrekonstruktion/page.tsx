@@ -4,6 +4,7 @@ import { TwoCol } from '@/components/sections/TwoCol';
 import { ReconstructionScene } from '@/components/sections/AnalysisScenes';
 import { Reveal } from '@/components/ui/Reveal';
 import { Slug } from '@/components/ui/Slug';
+import { ReviewNote } from '@/components/ui/ReviewNote';
 import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
@@ -35,6 +36,7 @@ export default function Page() {
         { title: 'Kontakt & Termin', text: 'Fall schildern und Vorgehen abstimmen.', href: '/kontakt' },
       ]}
     >
+      <ReviewNote topic="Aussagen zur Unfallrekonstruktion (Detailtexte folgen vom Kunden)" />
       <section className="section">
         <div className="shell">
           <Slug left="Rekonstruktion" right="Schematische Darstellung" />

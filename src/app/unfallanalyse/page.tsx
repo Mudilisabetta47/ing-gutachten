@@ -5,6 +5,7 @@ import { DataPanel } from '@/components/sections/AnalysisScenes';
 import { StructureScene } from '@/components/sections/TechScenes';
 import { Reveal } from '@/components/ui/Reveal';
 import { Slug } from '@/components/ui/Slug';
+import { ReviewNote } from '@/components/ui/ReviewNote';
 import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
@@ -36,6 +37,7 @@ export default function Page() {
         { title: 'Unfallgutachten', text: 'Die beweissichere Dokumentation nach dem Unfall.', href: '/unfallgutachten' },
       ]}
     >
+      <ReviewNote topic="Technische Aussagen zur Unfallanalyse" />
       <TwoCol
         eyebrow="Grundlage"
         heading="Technik statt Erinnerung."

@@ -229,12 +229,10 @@ export const FLOW_STEPS: FlowStep[] = [
 ];
 
 export const WHY_ITEMS: { icon: IconName; title: string; text: string }[] = [
-  { icon: 'shield', title: '100 % unabhängig', text: 'Keine Beteiligung von Versicherern, Werkstätten oder Autohäusern. Unser Auftraggeber sind Sie – niemand sonst.' },
-  { icon: 'clock', title: 'Termin in 24–48 Stunden', text: 'Kurzfristige Terminvergabe, auch abends und am Wochenende nach Absprache. Bei nicht fahrbereiten Fahrzeugen kommen wir zum Standort.' },
-  { icon: 'pin', title: 'Vor-Ort-Service inklusive', text: 'Hannover und Umland – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort. Ohne Aufpreis für die Anfahrt.' },
-  { icon: 'ruler', title: 'Achs- & Karosserievermessung', text: 'Messtechnik statt Sichtprüfung: Wir belegen Verzug an Achse und Karosserie mit Werten – nicht mit Vermutungen.' },
-  { icon: 'scale', title: 'Abwicklung mit der Gegenseite', text: 'Wir kommunizieren direkt mit der gegnerischen Versicherung und Ihrem Anwalt und begründen jede Position, die gekürzt werden soll.' },
-  { icon: 'doc', title: 'Über 15 Jahre Erfahrung', text: 'Tausende begutachtete Fahrzeuge vom Kleinwagen bis zum Nutzfahrzeug – und die Routine, Vorschäden von Neuschäden zu trennen.' },
+  { icon: 'shield', title: 'Unabhängig', text: 'Keine Beteiligung von Versicherern, Werkstätten oder Autohäusern. Ihr Auftraggeber sind Sie.' },
+  { icon: 'pin', title: 'Vor Ort', text: 'In Hannover und Umgebung – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort. Termin nach Absprache.' },
+  { icon: 'ruler', title: 'Messtechnik statt Sichtprüfung', text: 'Achs- und Karosserievermessung: Verzug wird mit Werten belegt, nicht mit Vermutungen.' },
+  { icon: 'scale', title: 'Beratung bis zum Schluss', text: 'Wir erklären Positionen und nehmen bei Rückfragen fachlich Stellung – auch nach der Gutachtenübergabe.' },
 ];
 
 export type DamageZone = {

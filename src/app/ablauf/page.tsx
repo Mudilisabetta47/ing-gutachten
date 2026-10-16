@@ -5,6 +5,7 @@ import { FlowTimeline } from '@/components/sections/FlowTimeline';
 import { SettlementFlow, WeeksTimeline, VideoSection } from '@/components/sections/ServiceScenes';
 import { Reveal } from '@/components/ui/Reveal';
 import { Slug } from '@/components/ui/Slug';
+import { ReviewNote } from '@/components/ui/ReviewNote';
 import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
@@ -30,6 +31,7 @@ export default function Page() {
         { title: 'Kontakt & Termin', text: 'Anfrage in vier Schritten stellen.', href: '/kontakt' },
       ]}
     >
+      <ReviewNote topic="Aussagen zu Schadenabwicklung, Regulierung und Zeitangaben" />
       <FlowTimeline withHeading={false} />
 
       <TwoCol

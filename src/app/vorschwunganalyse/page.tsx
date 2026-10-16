@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Landing } from '@/components/layout/Landing';
+import { ReviewNote } from '@/components/ui/ReviewNote';
 import { TwoCol } from '@/components/sections/TwoCol';
 import { buildMetadata } from '@/lib/seo';
 
@@ -36,6 +37,7 @@ export default function Page() {
         { title: 'Unfallrekonstruktion', text: 'Rekonstruktion des Ablaufs aus Positionen und Vektoren.', href: '/unfallrekonstruktion' },
       ]}
     >
+      <ReviewNote topic="Leistung „Vorschwunganalyse“ (Begriff noch ungeklärt, Seite bleibt noindex)" />
       <TwoCol
         eyebrow="In Vorbereitung"
         heading="Ausführliche Informationen folgen."

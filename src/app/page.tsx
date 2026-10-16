@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { Hero } from '@/components/sections/Hero';
-import { Ticker } from '@/components/sections/Ticker';
 import { Stats } from '@/components/sections/Stats';
 import { Position } from '@/components/sections/Position';
 import { CrashSequence } from '@/components/sections/CrashSequence';
@@ -34,7 +33,6 @@ export default function HomePage() {
     <>
       <JsonLd data={[websiteSchema(), faqSchema(FAQS.slice(0, 6))]} />
       <Hero />
-      <Ticker />
       <Stats />
       <Position />
       <CrashSequence />

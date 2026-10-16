@@ -96,3 +96,32 @@ Bitte Auswahl mitteilen, dann entferne/kürze ich gezielt.
 - `/vorschwunganalyse` hat `noindex, follow` und steht nicht in der Sitemap.
 - Mobil (375 px): kein horizontaler Überlauf auf 22 geprüften Seiten; keine Konsolenfehler.
 - Desktop-Dropdowns und Mobil-Akkordeon funktionieren; Fahrzeugmodell: alle vier Ansichten bedienbar.
+
+
+---
+
+## 8. Phase 2 – Entscheidungen des Auftraggebers und Umsetzung
+
+| Entscheidung | Umsetzung |
+|---|---|
+| Fahrzeugschein-Upload ausblenden | `SHOW_DOC_UPLOAD = false` in `RequestForm.tsx`; Feld, E-Mail-Hinweis und Sendelogik sind aus. Sobald ein sicherer Endpunkt steht, genügt das Umlegen des Schalters. **Auch der Foto-Schritt** wird nur per E-Mail-Anhang abgewickelt: ehrlicher Hinweis ergänzt. |
+| 3×3-Raster, Video, Fahrzeugmodell beibehalten | unverändert |
+| Ticker entfernen | Einbindung entfernt (Komponentendatei bleibt, falls er wiederkommen soll). |
+| Kennzahlen prüfen | Entfernt: „15+ Jahre“, „100 %“, „24–48 h“, „ohne Zusatzkosten für die Anfahrt“ (keine Belege im Projekt). Geblieben sind drei belegbare Eckdaten: Büro (Adresse), Einsatzgebiet (Orte aus den Stammdaten), „ohne Bindung“ (Aussage ohne Zahl). **Die Zahlen stehen noch an anderen Stellen** (Hero „über 15 Jahre“, Über-uns, FAQ, Ablauf, Meta-Beschreibungen „Termin in 24–48 h“, „Gutachten in 1–2 Werktagen“, „ohne Anfahrtskosten“) – dort nicht angefasst; Beleg bzw. Streichung durch ING nötig. |
+| „Sechs Gründe“ vereinfachen | Auf vier Gründe gekürzt (Unabhängig · Vor Ort · Messtechnik · Beratung bis zum Schluss), ohne Hover-Glanz und Mindesthöhen. Entfallen: „Termin in 24–48 h“, „Ohne Aufpreis“, „Über 15 Jahre / Tausende Fahrzeuge“ (unbelegt), „Abwicklung mit der Gegenseite“ umformuliert zu beratender Unterstützung. |
+| Unfall-Animation erhalten, prüfen | Siehe 8.1. |
+| Vorschwunganalyse = nicht indexierbarer Platzhalter | unverändert (`noindex, follow`, nicht in Sitemap). |
+| EDR, Schadenregulierung, technische Leistungen als „nicht freigegeben“ kennzeichnen | Sichtbarer Hinweis „Entwurf · Vorschau … fachlich noch nicht freigegeben“ auf EDR-Systeme, Unfallanalyse, Unfallrekonstruktion, Vorschwunganalyse, Ablauf und am Fahrzeugmodell. **Nur in der Kunden-Vorschau** (Build-Variable `NEXT_PUBLIC_REVIEW_MODE=1`); ohne die Variable bleibt die Seite unmarkiert. **Freigabe-Checkliste vor Produktion:** Inhalte freigeben lassen und Variable *nicht* setzen. |
+
+### 8.1 Prüfung Unfall-Animation (nicht entfernt)
+
+| Gerät | Länge der Szene | Anteil an der Seite | Scrollstrecke |
+|---|---|---|---|
+| Desktop 1440×900 | 4.140 px | 24 % | ≈ 4,6 Bildschirmhöhen |
+| Tablet 768×1024 | 4.710 px | 24 % | ≈ 4,6 Bildschirmhöhen |
+| Smartphone 375×812 | 2.761 px | 14 % | ≈ 3,4 Bildschirmhöhen |
+
+- Sie ist ein ruhiges Scroll-Scrubbing (kein Scroll-Hijacking), mit „Film überspringen“, Rückwärtslauf und statischem Zustand bei reduzierter Bewegung.
+- Länge: Auf Desktop/Tablet ein knappes Viertel der Startseite – spürbar, aber nicht blockierend. Empfehlung bei Kürzungswunsch: Desktop auf ≈ 320 vh statt 460 vh (CSS `.film-track`), das spart ≈ 1.260 px, ohne Inhalte zu verlieren.
+- Bedienbarkeit: Der „Überspringen“-Link sprang bislang zum Abschnitt „Fahrzeugklassen“ und **übersprang dadurch das Fahrzeugmodell** – korrigiert (springt nun zum Fahrzeugmodell).
+- Offen: Fußnote/Messwerte im Film sind „Beispielwerte“ (im Film ausgewiesen) – bitte bei der fachlichen Freigabe mitprüfen.

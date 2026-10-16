@@ -29,6 +29,9 @@ const EMPTY: Values = {
   datenschutz: false,
 };
 
+/** Fahrzeugschein-Upload: bleibt ausgeblendet, bis ein sicherer Backend-Endpunkt existiert (Entscheidung Auftraggeber). */
+const SHOW_DOC_UPLOAD = false;
+
 const STEP_COUNT = 4;
 const MAX_FILES = 8;
 const MAX_SIZE = 12 * 1024 * 1024;
@@ -141,7 +144,6 @@ export function RequestForm() {
         values.standort ? `Standort: ${values.standort}` : '',
         values.nachricht ? `Nachricht: ${values.nachricht}` : '',
         files.length ? `(${files.length} Foto(s) bitte als Anhang beifügen)` : '',
-        doc ? '(Fahrzeugschein bitte als Anhang beifügen)' : '',
       ]
         .filter(Boolean)
         .join('\n');
@@ -158,7 +160,7 @@ export function RequestForm() {
       const data = new FormData();
       Object.entries(values).forEach(([k, v]) => data.append(k, String(v)));
       files.forEach((f, i) => data.append(`foto_${i + 1}`, f));
-      if (doc) data.append('fahrzeugschein', doc);
+      if (SHOW_DOC_UPLOAD && doc) data.append('fahrzeugschein', doc);
       const res = await fetch(FORM_ENDPOINT, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
       if (!res.ok) throw new Error('request failed');
       setDone(true);
@@ -278,6 +280,12 @@ export function RequestForm() {
                   title="Schaden fotografieren & hochladen"
                   sub="Optional, hilft aber bei der Ersteinschätzung: Gesamtansicht, Schadenstelle nah, Kennzeichen."
                 />
+                {!FORM_ENDPOINT && (
+                  <p className="text-[.8rem] text-fg-mute">
+                    Hinweis: Fotos werden derzeit nicht automatisch mitgesendet. Bitte fügen Sie sie im sich öffnenden
+                    E-Mail-Programm als Anhang hinzu.
+                  </p>
+                )}
                 <label
                   htmlFor="photos"
                   onDragEnter={(e) => {
@@ -317,7 +325,8 @@ export function RequestForm() {
                 </label>
 
                 {/* Fahrzeugschein — Bild oder PDF, eine Datei */}
-                <div className="grid gap-2">
+                {SHOW_DOC_UPLOAD && (
+                  <div className="grid gap-2">
                   <span className="field-label">Fahrzeugschein (optional)</span>
                   {!FORM_ENDPOINT && (
                     <small className="block text-[.78rem] text-fg-mute">
@@ -403,6 +412,7 @@ export function RequestForm() {
                     </span>
                   )}
                 </div>
+                )}
 
                 {previews.length > 0 && (
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(78px,1fr))] gap-2" aria-live="polite">

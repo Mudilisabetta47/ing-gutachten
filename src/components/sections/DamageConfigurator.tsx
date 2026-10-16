@@ -7,6 +7,7 @@ import { DAMAGE_ZONES } from '@/lib/content';
 import { BATTERY_ITEMS, LAYERS, SENSOR_ITEMS, STRUCTURE_ITEMS, type LayerItem, type LayerKey } from '@/lib/vehicle-model';
 import { Reveal } from '@/components/ui/Reveal';
 import { Slug } from '@/components/ui/Slug';
+import { ReviewNote } from '@/components/ui/ReviewNote';
 import { Arrow } from '@/components/ui/Icon';
 
 const VB_W = 400;
@@ -50,6 +51,7 @@ export function DamageConfigurator() {
 
   return (
     <section className="section border-y border-line bg-ink-850" id="schadenfall" aria-labelledby="dmg-h">
+      <ReviewNote topic="Fahrzeugmodell (Sensorik, Hochvolt-Batterie, Heckstruktur; typische, schematische Lagen)" />
       <div className="shell">
         <Slug left="Schadenfall" right="Interaktives Fahrzeugmodell" />
 
