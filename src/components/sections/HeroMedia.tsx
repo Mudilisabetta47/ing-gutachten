@@ -80,12 +80,12 @@ export function HeroMedia({ scenes }: { scenes: HeroScene[] }) {
             onError={() => setFailed(true)}
           />
         )}
-        <div className="absolute inset-0 bg-[rgba(6,9,15,.55)] lg:hidden" />
+        <div className="absolute inset-0 bg-[rgba(6,9,15,.28)] lg:hidden" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,9,15,.94)_0%,rgba(6,9,15,.78)_38%,rgba(6,9,15,.38)_72%,rgba(6,9,15,.2)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#06090f] to-transparent" />
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#06090f]/80 to-transparent" />
       </div>
-      <div className="absolute bottom-5 right-5 z-[3] flex items-center gap-3 sm:bottom-8 sm:right-8">
+      <div className="absolute right-5 top-[4.6rem] z-[3] flex items-center gap-3 sm:bottom-8 sm:right-8 sm:top-auto">
         {multi && (
           <div className="flex gap-2" role="group" aria-label="Szene wählen">
             {scenes.map((s, i) => (
