@@ -64,15 +64,19 @@ export function HeroMedia({ scenes }: { scenes: HeroScene[] }) {
   return (
     <>
       <div ref={root} className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img key={scene.poster} src={scene.poster} alt="" fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover object-[68%_center]" />
+        {/* Poster: WebP in zwei Größen (Smartphone ≈ 12 KB statt 115 KB), JPG als Rückfall. Nicht der LCP-Kandidat (das ist der Text), daher ohne Hochpriorität. */}
+        <picture key={scene.poster}>
+          {scene.posterSet && <source type="image/webp" srcSet={scene.posterSet.map((s) => `${s.src} ${s.w}w`).join(', ')} sizes="100vw" />}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={scene.poster} alt="" decoding="async" className="absolute inset-0 h-full w-full object-cover object-[68%_center]" />
+        </picture>
         {motionAllowed && (armed || userStarted) && (
           <video
             key={scene.id}
             ref={video}
             className={`hero-video absolute inset-0 h-full w-full object-cover object-[68%_center]${ready ? ' is-ready' : ''}`}
             src={scene.src}
-            poster={scene.poster}
+            poster={scene.posterSet?.[scene.posterSet.length - 1]?.src ?? scene.poster}
             muted
             playsInline
             loop={!multi}

@@ -14,7 +14,8 @@ import { SITE_URL } from '@/lib/content';
 
 const archivo = Archivo({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-archivo', display: 'swap' });
 const manrope = Manrope({ subsets: ['latin'], weight: ['300', '400', '500', '600'], variable: '--font-manrope', display: 'swap' });
-const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-mono', display: 'swap' });
+// Mono-Schrift nur für kleine Beschriftungen: nicht vorab laden (spart ~24 KB auf dem kritischen Pfad), Fallback bis zum Laden
+const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-mono', display: 'swap', preload: false });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

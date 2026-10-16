@@ -35,6 +35,8 @@ export async function newPage(port) {
   };
   const send = (method, params = {}) => new Promise((res, rej) => { const i = ++id; pending.set(i, { res, rej }); ws.send(JSON.stringify({ id: i, method, params })); });
   await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
+  // Optional: Zusatz-Header (z. B. Vercel-Schutzumgehung für Tests gegen die geschützte Vorschau); Wert nur über die Umgebung, nie im Code
+  if (process.env.EXTRA_HEADERS) await send('Network.setExtraHTTPHeaders', { headers: JSON.parse(process.env.EXTRA_HEADERS) });
   const evalJs = async (expr) => {
     const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true });
     if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || 'eval error');

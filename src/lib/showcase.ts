@@ -12,7 +12,7 @@ export const SHOWCASE_SCENES: ShowcaseScene[] = [
 ];
 
 /** Clips für den Hintergrund der Startseite (Slider, sobald mehr als einer eingetragen ist). Nur echte, geprüfte Dateien aus public/assets/video. */
-export type HeroScene = { id: string; src: string; poster: string };
+export type HeroScene = { id: string; src: string; poster: string; /** Responsive WebP-Fassungen des Posters (kleine Datei für Smartphones). */ posterSet?: { src: string; w: number }[] };
 export const HERO_SCENES: HeroScene[] = [
-  { id: 'begutachtung', src: '/assets/video/begutachtung.mp4', poster: '/assets/img/showcase-begutachtung.jpg' },
+  { id: 'begutachtung', src: '/assets/video/begutachtung.mp4', poster: '/assets/img/showcase-begutachtung.jpg', posterSet: [{ src: '/assets/img/showcase-begutachtung-640.webp', w: 640 }, { src: '/assets/img/showcase-begutachtung-1280.webp', w: 1280 }] },
 ];
