@@ -49,7 +49,7 @@ export default function Page() {
                 der Stadtbahn. Parkmöglichkeiten sind vorhanden.
               </p>
               <p className="text-fg-mute">
-                Für die Begutachtung selbst müssen Sie nicht zu uns kommen: In Hannover und Umgebung sind
+                Für die Begutachtung selbst müssen Sie nicht zu uns kommen: In Hannover, Hildesheim, Braunschweig und Hameln sind
                 Vor-Ort-Termine der Normalfall.
               </p>
             </div>

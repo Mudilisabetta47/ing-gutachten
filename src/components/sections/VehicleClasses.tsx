@@ -8,15 +8,15 @@ import { Slug } from '@/components/ui/Slug';
 import { Arrow } from '@/components/ui/Icon';
 
 const classes = [
-  { title: 'Pkw', href: '/pkw-gutachten', text: 'Karosserie, Fahrwerk und Assistenzsysteme im Zusammenhang.', shape: 'car' },
+  { title: 'PKW', href: '/pkw-gutachten', text: 'Karosserie, Fahrwerk und Assistenzsysteme.', shape: 'car' },
   { title: 'Elektrofahrzeuge', href: '/e-auto-hybrid-gutachten', text: 'Hochvoltsystem, Batteriegehäuse und Fahrzeugstruktur.', shape: 'electric' },
-  { title: 'Hybridfahrzeuge', href: '/e-auto-hybrid-gutachten', text: 'Zwei Antriebssysteme, Hochvoltkomponenten und Karosserie.', shape: 'hybrid' },
+  { title: 'Hybridfahrzeuge', href: '/e-auto-hybrid-gutachten', text: 'Zwei Antriebssysteme und Hochvoltkomponenten.', shape: 'hybrid' },
   { title: 'Motorräder', href: '/motorrad-gutachten', text: 'Rahmen, Gabel, Räder und Anbauteile.', shape: 'bike' },
-  { title: 'Transporter', href: '/pkw-gutachten', text: 'Leichte Nutzfahrzeuge: Aufbau, Zustand und Ausfallzeit.', shape: 'van' },
+  { title: 'Transporter', href: '/pkw-gutachten', text: 'Leichte Nutzfahrzeuge mit Aufbau und Ausfallzeit.', shape: 'van' },
   { title: 'Oldtimer & Youngtimer', href: '/oldtimer-gutachten', text: 'Originalzustand, Substanz und Wertermittlung.', shape: 'classic' },
-  { title: 'Nutzfahrzeuge', href: '/lkw-gutachten', text: 'Lkw und Spezialfahrzeuge: Aufbauten, Technik, Ausfall.', shape: 'truck' },
-  { title: 'Anhänger', href: '/lkw-gutachten', text: 'Achsen, Aufbau und Verbindungseinrichtung.', shape: 'trailer' },
-  { title: 'Gewerbliche Flotten', href: '/lkw-gutachten', text: 'Mehrere Fahrzeuge, einheitlich dokumentiert.', shape: 'fleet' },
+  { title: 'LKW & Nutzfahrzeuge', href: '/lkw-gutachten', text: 'Aufbauten, Technik und Ausfallzeit.', shape: 'truck' },
+  { title: 'Anhänger & Auflieger', href: '/lkw-gutachten', text: 'Achsen, Aufbau und Verbindungseinrichtung.', shape: 'trailer' },
+  { title: 'Firmen- & Fuhrparkfahrzeuge', href: '/lkw-gutachten', text: 'Mehrere Fahrzeuge, einheitlich dokumentiert.', shape: 'fleet' },
 ];
 
 function Silhouette({ kind }: { kind: string }) {

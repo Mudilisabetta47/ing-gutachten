@@ -79,7 +79,7 @@ export function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
             >
-              Unabhängige Kfz-Gutachten in Hannover – schnell, präzise und auf Ihrer Seite. Wir dokumentieren
+              Unabhängige Kfz-Gutachten in Hannover, Hildesheim, Braunschweig und Hameln – schnell, präzise und auf Ihrer Seite. Wir dokumentieren
               beweissicher, beziffern jede Schadenposition und begleiten Sie bis zur Regulierung.
             </motion.p>
 

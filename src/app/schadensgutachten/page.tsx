@@ -33,7 +33,7 @@ export default function Page() {
       faqs={[FAQS[0], FAQS[1], FAQS[5], FAQS[2]]}
       related={[
         { title: 'Ablauf', text: 'Von der Anfrage bis zur Regulierung in fünf Schritten.', href: '/ablauf' },
-        { title: 'Einsatzgebiet', text: 'Vor-Ort-Service in Hannover und Umgebung.', href: '/einsatzgebiet' },
+        { title: 'Einsatzgebiet', text: 'Vor-Ort-Service in Hannover, Hildesheim, Braunschweig und Hameln.', href: '/einsatzgebiet' },
         { title: 'Kontakt & Termin', text: 'Unfall melden oder Gutachten anfordern.', href: '/kontakt' },
       ]}
     >

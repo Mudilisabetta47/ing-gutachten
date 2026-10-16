@@ -65,7 +65,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         <p>
           Als unabhängiges Kfz-Sachverständigenbüro aus Hannover sind wir regelmäßig in {region.name} im Einsatz.{' '}
           {region.note} Wir kommen zum Fahrzeug: nach Hause, in die Werkstatt, auf den Betriebshof oder an den
-          Unfallort – die Anfahrt innerhalb des Einsatzgebiets berechnen wir nicht extra.
+          Unfallort. Unser Einsatzbereich umfasst Hannover, Hildesheim, Braunschweig und Hameln.
         </p>
         <p>
           Nach einem unverschuldeten Unfall wählen Sie den Sachverständigen selbst. Die Kosten des Gutachtens

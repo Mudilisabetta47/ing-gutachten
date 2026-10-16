@@ -31,7 +31,7 @@ export default function Page() {
       related={[
         { title: 'Unfallanalyse', text: 'Technische Auswertung von Schadenbild und Fahrzeugzustand.', href: '/unfallanalyse' },
         { title: 'Wertgutachten', text: 'Wenn es um den Fahrzeugwert statt um einen Schaden geht.', href: '/wertgutachten' },
-        { title: 'Kontakt & Termin', text: 'Kurzfristige Terminvergabe, Vor-Ort-Service in Hannover.', href: '/kontakt' },
+        { title: 'Kontakt & Termin', text: 'Kurzfristige Terminvergabe, Vor-Ort-Service in Hannover, Hildesheim, Braunschweig und Hameln.', href: '/kontakt' },
       ]}
     >
       <TwoCol

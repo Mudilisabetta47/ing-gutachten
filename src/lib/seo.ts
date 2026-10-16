@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BIZ, FAQS, REGIONS, SERVICES, SITE_URL, type Faq } from './content';
+import { AREA_CITIES, BIZ, FAQS, REGION_PAGES, SERVICES, SITE_URL, type Faq } from './content';
 
 /** Baut die Standard-Metadaten einer Seite inkl. Canonical und Open Graph. */
 export function buildMetadata(opts: {
@@ -42,7 +42,7 @@ export function localBusinessSchema() {
     name: BIZ.name,
     alternateName: 'ING Gutachten',
     description:
-      'Unabhängiges Kfz-Sachverständigenbüro in Hannover: Unfallgutachten, Schadengutachten, Wertgutachten und Kostenvoranschläge für PKW, LKW, Elektro- und Hybridfahrzeuge, Motorräder und Oldtimer. Vor-Ort-Service in Hannover und Umgebung.',
+      'Unabhängiges Kfz-Sachverständigenbüro in Hannover: Unfallgutachten, Schadengutachten, Wertgutachten und Kostenvoranschläge für PKW, LKW, Elektro- und Hybridfahrzeuge, Motorräder und Oldtimer. Vor-Ort-Service in Hannover, Hildesheim, Braunschweig und Hameln.',
     url: `${SITE_URL}/`,
     telephone: '+49 511 54300976',
     email: BIZ.email,
@@ -65,7 +65,7 @@ export function localBusinessSchema() {
         closes: '18:00',
       },
     ],
-    areaServed: REGIONS.map((r) => ({ '@type': 'City', name: r.name.split(' /')[0] })),
+    areaServed: [...AREA_CITIES.map((c) => c.name), ...REGION_PAGES.map((r) => r.name)].map((name) => ({ '@type': 'City', name })),
     knowsAbout: [
       'Unfallgutachten', 'Schadengutachten', 'Wertgutachten', 'Achsvermessung',
       'Karosserievermessung', 'Restwertermittlung', 'Wertminderung', 'Nutzungsausfall',

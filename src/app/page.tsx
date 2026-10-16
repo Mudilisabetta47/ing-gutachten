@@ -24,7 +24,7 @@ import { buildMetadata, faqSchema, websiteSchema } from '@/lib/seo';
 export const metadata: Metadata = buildMetadata({
   title: 'Kfz-Gutachter Hannover | ING Gutachten – Unfallgutachten & Kfz-Sachverständiger',
   description:
-    'Unabhängiger Kfz-Gutachter in Hannover: Unfallgutachten, Schadengutachten, Wertgutachten für PKW, LKW, E-Fahrzeuge, Motorrad und Oldtimer. Vor-Ort-Service, Termin in 24–48 h. ☎ 0511 543 00 976',
+    'Unabhängiger Kfz-Gutachter für Hannover, Hildesheim, Braunschweig und Hameln: Unfallgutachten, Schadengutachten, Wertgutachten für PKW, LKW, E-Fahrzeuge, Motorrad und Oldtimer. Vor-Ort-Service, Termin in 24–48 h. ☎ 0511 543 00 976',
   path: '/',
 });
 

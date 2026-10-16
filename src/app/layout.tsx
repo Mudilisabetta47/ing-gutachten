@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: '%s | ING Gutachten',
   },
   description:
-    'Unabhängiger Kfz-Gutachter in Hannover: Unfallgutachten, Schadengutachten und Wertgutachten mit Vor-Ort-Service.',
+    'Unabhängiger Kfz-Gutachter für Hannover, Hildesheim, Braunschweig und Hameln: Unfallgutachten, Schadengutachten und Wertgutachten mit Vor-Ort-Service.',
   authors: [{ name: 'ING Gutachten – Kfz-Sachverständigenbüro Hannover' }],
   icons: { icon: '/assets/img/favicon.svg', apple: '/assets/img/favicon.svg' },
   other: { 'geo.region': 'DE-NI', 'geo.placename': 'Hannover' },

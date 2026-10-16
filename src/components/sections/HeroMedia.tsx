@@ -86,6 +86,7 @@ export function HeroMedia({ scenes }: { scenes: HeroScene[] }) {
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#06090f]/80 to-transparent" />
       </div>
       <div className="absolute right-5 top-[4.6rem] z-[3] flex items-center gap-3 sm:bottom-8 sm:right-8 sm:top-auto">
+        <span className="order-first max-w-[8.5rem] text-right font-mono text-[.6rem] uppercase leading-snug tracking-[.12em] text-white/75 sm:max-w-none sm:text-[.62rem]">Illustrative KI-Filmszene</span>
         {multi && (
           <div className="flex gap-2" role="group" aria-label="Szene wählen">
             {scenes.map((s, i) => (

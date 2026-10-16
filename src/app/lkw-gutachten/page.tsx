@@ -28,7 +28,7 @@ export default function Page() {
       faqs={[FAQS[2], FAQS[3], FAQS[6]]}
       related={[
         { title: 'Unfallgutachten', text: 'Grundlagen und Rechte nach dem Unfall.', href: '/unfallgutachten' },
-        { title: 'Einsatzgebiet', text: 'Vor-Ort-Service in Hannover und Umgebung.', href: '/einsatzgebiet' },
+        { title: 'Einsatzgebiet', text: 'Vor-Ort-Service in Hannover, Hildesheim, Braunschweig und Hameln.', href: '/einsatzgebiet' },
         { title: 'Kontakt & Termin', text: 'Kurzfristigen Termin abstimmen.', href: '/kontakt' },
       ]}
     >

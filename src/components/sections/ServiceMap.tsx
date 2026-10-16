@@ -72,7 +72,7 @@ export function ServiceMap() {
                         aria-hidden="true"
                       />
                       <span
-                        className={`pointer-events-none absolute top-full mt-2 whitespace-nowrap ${r.x > 75 ? 'right-[-4px]' : r.x < 16 ? 'left-[-4px]' : 'left-1/2 -translate-x-1/2'} font-mono text-[.64rem] uppercase tracking-[.12em] transition-colors sm:text-[.7rem] ${
+                        className={`pointer-events-none absolute top-full mt-2 whitespace-nowrap ${r.x > 75 ? 'right-[-4px]' : r.x < 16 ? 'left-[-4px]' : 'left-1/2 -translate-x-1/2'} font-mono text-[.8rem] uppercase tracking-[.1em] transition-colors ${
                           on ? 'text-fg' : 'text-fg-dim group-hover:text-fg'
                         }`}
                       >

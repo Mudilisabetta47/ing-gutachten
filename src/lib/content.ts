@@ -179,7 +179,7 @@ export const FAQS: Faq[] = [
   },
   {
     q: 'Kommen Sie zu mir vor Ort?',
-    a: 'Ja. Der Vor-Ort-Service ist Standard, nicht Aufpreis. Wir begutachten in Hannover und der Region – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort.',
+    a: 'Ja. Der Vor-Ort-Service ist Standard, nicht Aufpreis. Wir begutachten in Hannover, Hildesheim, Braunschweig und Hameln – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort.',
   },
   {
     q: 'Begutachten Sie auch Elektro- und Hybridfahrzeuge?',
