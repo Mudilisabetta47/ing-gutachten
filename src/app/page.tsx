@@ -6,7 +6,8 @@ import { Stats } from '@/components/sections/Stats';
 import { Position } from '@/components/sections/Position';
 import { CrashSequence } from '@/components/sections/CrashSequence';
 import { DamageConfigurator } from '@/components/sections/DamageConfigurator';
-import { Services } from '@/components/sections/Services';
+import { VehicleClasses } from '@/components/sections/VehicleClasses';
+import { VideoShowcase } from '@/components/sections/VideoShowcase';
 import { FlowTimeline } from '@/components/sections/FlowTimeline';
 import { WhyGrid } from '@/components/sections/WhyGrid';
 import { ServiceMap } from '@/components/sections/ServiceMap';
@@ -38,8 +39,9 @@ export default function HomePage() {
       <Position />
       <CrashSequence />
       <DamageConfigurator />
-      <Services />
+      <VehicleClasses />
       <FlowTimeline />
+      <VideoShowcase />
       <WhyGrid />
 
       <PhotoBand
