@@ -26,7 +26,7 @@ export function CallButton({
 
   const styles: Record<string, string> = {
     /* In der Kopfzeile: dezent, tritt hinter den Haupt-CTA zurück. */
-    nav: 'hidden 2xl:inline-flex px-[1.15rem] py-[.66rem] text-[.82rem] text-fg-dim hover:text-fg focus-visible:text-fg',
+    nav: 'max-sm:hidden px-[1.15rem] py-[.66rem] text-[.82rem] text-fg-dim hover:text-fg focus-visible:text-fg',
     /* Im Vollbildmenü und auf Mobilseiten: volle Breite, klare Fläche. */
     block: 'w-full justify-center px-[1.7rem] py-[1rem] text-[.95rem] text-fg',
     /* Auf Kontaktflächen: gefüllt. */

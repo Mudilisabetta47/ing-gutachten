@@ -6,7 +6,7 @@
 export type LayerKey = 'zones' | 'sensors' | 'battery' | 'structure';
 
 export const LAYERS: { key: LayerKey; label: string; hint: string }[] = [
-  { key: 'zones', label: 'Schadenzonen', hint: 'Sechs Prüfbereiche am Fahrzeug' },
+  { key: 'zones', label: 'Schadenzonen', hint: 'Sieben Prüfbereiche am Fahrzeug' },
   { key: 'sensors', label: 'Assistenzsysteme', hint: 'Typische Sensorpositionen' },
   { key: 'battery', label: 'Hochvolt-Batterie', hint: 'Elektro- und Plug-in-Hybridfahrzeuge' },
   { key: 'structure', label: 'Struktur Heck', hint: 'Heck- und Kofferraumbereich' },

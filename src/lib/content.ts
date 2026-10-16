@@ -276,6 +276,11 @@ export const DAMAGE_ZONES: DamageZone[] = [
     text: 'Die entscheidende Frage bei größeren Schäden: Ist die tragende Struktur betroffen? Davon hängen Reparaturweg, Restwert und Wertminderung ab.',
     points: ['Karosserievermessung gegen Herstellersollwerte', 'Bewertung von Rahmen, Längsträgern und Bodengruppe', 'Klare Aussage zu Reparaturwürdigkeit und Totalschaden'],
   },
+  {
+    key: 'assist', index: 'ZONE 07', title: 'Assistenzsysteme', x: 50, y: 26,
+    text: 'Kamera und weitere Sensoren sitzen typischerweise hinter der Windschutzscheibe. Nach einem Scheibentausch oder Frontschaden ist je nach Hersteller eine Kalibrierung der Assistenzsysteme vorgesehen.',
+    points: ['Prüfung von Frontkamera und Sensorik im Scheibenbereich', 'Kalibrierungsaufwand wird gesondert beziffert', 'Weitere Sensoren (Radar, Ultraschall) in der Ansicht „Assistenzsysteme“'],
+  },
 ];
 
 export const TICKER_ITEMS = [

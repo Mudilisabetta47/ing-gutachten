@@ -59,7 +59,7 @@ export function DamageConfigurator() {
           <p className="eyebrow">Was wir uns ansehen</p>
           <Reveal>
             <h2 id="dmg-h" className="display text-h2">
-              Sechs Zonen.
+              Sieben Zonen.
               <br />
               Ein vollständiges Bild.
             </h2>
