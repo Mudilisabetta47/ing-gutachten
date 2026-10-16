@@ -22,7 +22,7 @@ export function start(port = 4311) {
     const photos = form.getAll('foto').filter((v) => typeof v !== 'string' && v.size > 0);
     if (photos.length > LIMITS.maxPhotos) return send(400, { ok: false, error: 'too_many_files' });
     let total = 0; const files = [];
-    for (const p of photos) { if (p.size > LIMITS.maxPhotoBytes) return send(400, { ok: false, error: 'invalid_file', message: 'zu groß' }); const bytes = new Uint8Array(await p.arrayBuffer()); const k = detectType(bytes); if (!k || !PHOTO_MIME.includes(k.mime)) return send(400, { ok: false, error: 'invalid_file' }); total += bytes.length; files.push({ mime: k.mime, size: bytes.length, sha: createHash('sha256').update(bytes).digest('hex').slice(0, 12) }); }
+    for (const p of photos) { if (p.size > LIMITS.maxPhotoBytes) return send(400, { ok: false, error: 'invalid_file', message: 'zu groß' }); const bytes = new Uint8Array(await p.arrayBuffer()); const k = detectType(bytes); if (!k || !PHOTO_MIME.includes(k.mime)) return send(400, { ok: false, error: 'invalid_file' }); total += bytes.length; files.push({ exif: Buffer.from(bytes).includes(Buffer.from('Exif\0\0')), mime: k.mime, size: bytes.length, sha: createHash('sha256').update(bytes).digest('hex').slice(0, 12) }); }
     if (total > LIMITS.maxTotalBytes) return send(413, { ok: false, error: 'too_large' });
     received.push({ fields: { ...f, name: '***', telefon: '***', email: '***' }, files, fieldNames: [...new Set([...form.keys()])] });
     send(200, { ok: true });

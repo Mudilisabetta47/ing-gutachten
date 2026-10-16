@@ -18,7 +18,7 @@ try {
   // Schritt 3: Fotos (3 synthetische, 6,4 MB je Foto -> müssen verkleinert werden)
   const { root } = await p.send('DOM.getDocument'); const { nodeId } = await p.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#photos' });
   ok('Foto-Schritt zeigt den Hinweis zum Versand ohne Endpunkt NICHT (Endpunkt gesetzt)', !/nicht automatisch mitgesendet/.test(await ev(`document.getElementById('anfrage').innerText`)));
-  await p.send('DOM.setFileInputFiles', { nodeId, files: [(process.env.SYNTH_PHOTO || '/tmp/synth-photo.jpg'), (process.env.SYNTH_PHOTO || '/tmp/synth-photo.jpg')] }); await sleep(800);
+  await p.send('DOM.setFileInputFiles', { nodeId, files: [(process.env.SYNTH_PHOTO || '/tmp/synth-photo.jpg'), (process.env.SYNTH_EXIF_PHOTO || '/tmp/synth-exif.jpg')] }); await sleep(1200);
   ok('Fahrzeugschein-Feld ist ausgeblendet', !(await ev(`!!document.getElementById('fahrzeugschein')`)));
   await ev(`[...document.querySelectorAll('#anfrage button')].find(b=>/Weiter/.test(b.innerText))?.click()`); await sleep(900);
   // Schritt 4: Absenden mit ungültiger E-Mail -> Fehler, nichts gesendet
@@ -35,6 +35,7 @@ try {
   if (r) {
     ok('Feldnamen entsprechen dem API-Vertrag (foto, website, t …)', ['anlass', 'fahrzeug', 'name', 'telefon', 'email', 'standort', 'nachricht', 'datenschutz', 'website', 't', 'foto'].every((k) => r.fieldNames.includes(k)), r.fieldNames.join(','));
     ok('Fotos wurden vor dem Senden auf ≤ 1,6 MB verkleinert (Original 6,4 MB)', r.files.length === 2 && r.files.every((f) => f.size <= 1_600_000 && f.mime === 'image/jpeg'), r.files.map((f) => `${(f.size / 1024).toFixed(0)} KiB`).join(', '));
+    ok('EXIF-/GPS-Metadaten sind aus den gesendeten Fotos entfernt', r.files.every((f) => f.exif === false), r.files.map((f) => `exif=${f.exif}`).join(', '));
   }
   ok('Erfolgsmeldung im Formular', /Anfrage ist raus/.test(await ev(`document.getElementById('anfrage').innerText`)));
 } finally { proc.kill(); srv.close(); }

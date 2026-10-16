@@ -78,13 +78,13 @@ export function checkInquiryFiles(photos: File[], document?: File | null): strin
 }
 
 /**
- * Verkleinert ein Foto im Browser (längste Kante 1600 px, JPEG) so, dass es unter das Server-Limit passt.
- * Kein Zugriff auf Pixel außerhalb des Browsers; scheitert die Umwandlung, wird die Originaldatei unverändert zurückgegeben
- * und die Größenprüfung meldet das Problem verständlich.
+ * Bereitet ein Foto im Browser auf: längste Kante höchstens 1600 px, als JPEG neu kodiert.
+ * Die Neukodierung entfernt zugleich Metadaten (EXIF, z. B. GPS-Position und Gerätedaten) – bewusst auch bei kleinen Fotos.
+ * Gelingt die Umwandlung nicht (z. B. HEIC in Chrome), wird die Originaldatei zurückgegeben; die Größen- und Typprüfung
+ * meldet dann verständlich, was zu tun ist. Der Server prüft ohnehin alles erneut.
  */
 export async function downscaleImage(file: File, maxBytes: number = SERVER_LIMITS.maxPhotoBytes, maxEdge = 1600): Promise<File> {
   if (typeof document === 'undefined' || typeof createImageBitmap !== 'function') return file;
-  if (file.size <= maxBytes && (SERVER_PHOTO_TYPES as readonly string[]).includes(file.type)) return file;
   try {
     const bmp = await createImageBitmap(file);
     const scale = Math.min(1, maxEdge / Math.max(bmp.width, bmp.height));
@@ -93,6 +93,8 @@ export async function downscaleImage(file: File, maxBytes: number = SERVER_LIMIT
     canvas.height = Math.max(1, Math.round(bmp.height * scale));
     const ctx = canvas.getContext('2d');
     if (!ctx) return file;
+    ctx.fillStyle = '#ffffff'; // Transparenz (PNG/WebP) wird zu Weiß statt Schwarz
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
     bmp.close?.();
     for (const q of [0.86, 0.78, 0.7, 0.6, 0.5]) {
@@ -100,7 +102,7 @@ export async function downscaleImage(file: File, maxBytes: number = SERVER_LIMIT
       if (blob && blob.size <= maxBytes) return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
     }
   } catch {
-    /* nicht dekodierbar (z. B. HEIC in Chrome) → Original zurück */
+    /* nicht dekodierbar → Original zurück */
   }
   return file;
 }
