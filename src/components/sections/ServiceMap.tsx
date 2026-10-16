@@ -58,7 +58,7 @@ export function ServiceMap() {
                       onClick={() => setActive(r)}
                       aria-pressed={on}
                       aria-label={`${r.name} anzeigen`}
-                      className="group relative grid h-4 w-4 cursor-pointer place-items-center border-0 bg-transparent p-0 before:absolute before:-inset-3 before:content-['']"
+                      className="group relative grid h-6 w-6 cursor-pointer place-items-center border-0 bg-transparent p-0 before:absolute before:-inset-2.5 before:content-['']"
                     >
                       <i
                         className={`block rounded-full transition-all duration-300 ease-out ${r.home ? 'h-[13px] w-[13px]' : 'h-[10px] w-[10px]'} ${

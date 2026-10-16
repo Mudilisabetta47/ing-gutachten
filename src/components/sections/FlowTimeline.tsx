@@ -70,7 +70,7 @@ export function FlowTimeline({ withHeading = true }: { withHeading?: boolean }) 
 function Step({ step, flip }: { step: (typeof FLOW_STEPS)[number]; flip: boolean }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start 75%', 'end 40%'] });
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.55, 1, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.85, 1, 1]);
 
   return (
     <motion.article

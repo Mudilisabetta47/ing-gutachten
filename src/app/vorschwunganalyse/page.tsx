@@ -24,8 +24,8 @@ export const metadata: Metadata = buildMetadata({
 export default function Page() {
   return (
     <Landing
-      eyebrow="Unfallanalyse"
-      title="Vorschwunganalyse."
+      eyebrow="Unfallanalyse · Vorschwunganalyse"
+      title="In Vorbereitung."
       lead="Zu dieser Leistung stellen wir derzeit eine ausführliche Beschreibung zusammen. Wenn Sie Fragen zu Ihrem Fall haben, sprechen Sie uns gern direkt an."
       trail={[
         { name: 'Unfallanalyse', href: '/unfallanalyse' },

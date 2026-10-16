@@ -20,6 +20,7 @@ export function HeroMedia({ scenes }: { scenes: HeroScene[] }) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [armed, setArmed] = useState(false); // Video erst nach dem Laden der Seite einhängen: Poster und Text bleiben die schnelle erste Darstellung
   const [userStarted, setUserStarted] = useState(false); // Besucher startet bei „Bewegung reduzieren“ / Datensparmodus selbst
   const root = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -30,10 +31,14 @@ export function HeroMedia({ scenes }: { scenes: HeroScene[] }) {
     const pref = matchMedia('(prefers-reduced-motion: reduce)');
     const sync = () => setReduced(pref.matches);
     sync(); pref.addEventListener('change', sync);
-    setSaveData(Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData));
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    setSaveData(Boolean(conn?.saveData) || conn?.effectiveType === 'slow-2g' || conn?.effectiveType === '2g');
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arm = () => { timer = setTimeout(() => setArmed(true), 800); };
+    if (document.readyState === 'complete') arm(); else window.addEventListener('load', arm, { once: true });
     const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting), { threshold: 0.05 });
     if (root.current) io.observe(root.current);
-    return () => { pref.removeEventListener('change', sync); io.disconnect(); };
+    return () => { pref.removeEventListener('change', sync); io.disconnect(); window.removeEventListener('load', arm); if (timer) clearTimeout(timer); };
   }, []);
 
   const motionAllowed = !failed && ((!reduced && !saveData) || userStarted);
@@ -46,7 +51,7 @@ export function HeroMedia({ scenes }: { scenes: HeroScene[] }) {
     document.addEventListener('visibilitychange', onHide);
     if (wantPlay && !document.hidden) void el.play().catch(() => undefined); else el.pause();
     return () => document.removeEventListener('visibilitychange', onHide);
-  }, [wantPlay, index, motionAllowed]);
+  }, [wantPlay, index, motionAllowed, armed, userStarted]);
 
   const select = useCallback((next: number) => { setReady(false); setPlaying(false); setIndex((next + scenes.length) % scenes.length); }, [scenes.length]);
   const toggle = () => {
@@ -61,7 +66,7 @@ export function HeroMedia({ scenes }: { scenes: HeroScene[] }) {
       <div ref={root} className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img key={scene.poster} src={scene.poster} alt="" fetchPriority="high" decoding="async" className="absolute inset-0 h-full w-full object-cover object-[68%_center]" />
-        {motionAllowed && (
+        {motionAllowed && (armed || userStarted) && (
           <video
             key={scene.id}
             ref={video}

@@ -11,6 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/schadensgutachten', priority: 0.95, changeFrequency: 'monthly' },
     { path: '/leistungen', priority: 0.9, changeFrequency: 'monthly' },
     { path: '/pkw-gutachten', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/unfallgutachten', priority: 0.9, changeFrequency: 'monthly' },
     { path: '/unfallanalyse', priority: 0.85, changeFrequency: 'monthly' },
     { path: '/unfallrekonstruktion', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/edr-systeme', priority: 0.8, changeFrequency: 'monthly' },

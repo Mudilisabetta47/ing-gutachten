@@ -87,7 +87,7 @@ export const SERVICES: Service[] = [
     href: '/e-auto-hybrid-gutachten',
     num: '03',
     title: 'Elektro & Hybrid',
-    teaser: 'Spezialisierte Begutachtung moderner Elektro- und Hybridfahrzeuge inklusive Hochvoltsystem.',
+    teaser: 'Begutachtung von Elektro- und Hybridfahrzeugen; Hochvoltsystem und Batterie werden gesondert betrachtet.',
     tags: ['Hochvolt', 'Batterie', 'Assistenzsysteme'],
     gradient: 'linear-gradient(150deg,#14232a,#0a0d11 62%)',
     icon: 'bolt',

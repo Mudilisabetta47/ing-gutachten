@@ -456,6 +456,9 @@
   nav[aria-label="Brotkrumen-Navigation"] a { display: inline-flex; align-items: center; min-height: 44px; }
   address a, main a[href^="tel:"]:not(.btn), main a[href^="mailto:"]:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
   .film-skip { min-height: 44px; }
+  footer li a { display: inline-flex; align-items: center; min-height: 44px; }
+  nav[aria-label="Rechtliches"] a, nav[aria-label="Rechtliches"] button { display: inline-flex; align-items: center; min-height: 44px; }
+  a[aria-label$="Startseite"] { display: inline-flex; align-items: center; min-height: 44px; }
 }
 
 /* Hero-Video: Poster zuerst, Video blendet ein, sobald es läuft */

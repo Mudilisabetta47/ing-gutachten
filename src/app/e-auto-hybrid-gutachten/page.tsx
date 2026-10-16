@@ -5,7 +5,7 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Gutachten für Elektro- und Hybridfahrzeuge in Hannover: Hochvoltsystem, Batteriegehäuse, Ladetechnik und Assistenzsysteme werden gesondert bewertet. Unabhängiger Kfz-Sachverständiger mit Vor-Ort-Service.';
+  'Gutachten für Elektro- und Hybridfahrzeuge in Hannover: Hochvoltsystem, Batteriegehäuse, Ladetechnik und Assistenzsysteme werden gesondert betrachtet. Unabhängiger Kfz-Sachverständiger mit Vor-Ort-Service.';
 
 export const metadata: Metadata = buildMetadata({
   title: 'E-Auto & Hybrid Gutachten Hannover | Kfz-Sachverständiger',
@@ -48,12 +48,12 @@ export default function Page() {
       >
         <p>
           Ein Unterbodenkontakt, der beim Verbrenner ein Kratzer wäre, kann beim Elektrofahrzeug das
-          Batteriegehäuse betreffen – mit erheblichen Folgekosten. Umgekehrt kalkulieren Versicherer gelegentlich
-          einen Batterietausch, wo eine Prüfung genügt hätte.
+          Batteriegehäuse betreffen – mit erheblichen Folgekosten. Umgekehrt kann eine Prüfung genügen, wo
+          zunächst ein Batterietausch im Raum steht.
         </p>
         <p>
           Wir bewerten, ob eine Hochvolt-Diagnose oder Batterieprüfung nach Herstellervorgabe notwendig ist,
-          dokumentieren Freischaltung und Prüfschritte und berücksichtigen die besonderen Vorgaben an Abstellort
+          dokumentieren vorliegende Prüf- und Freischaltungsnachweise und berücksichtigen die besonderen Vorgaben an Abstellort
           und Transport beschädigter Fahrzeuge.
         </p>
       </TwoCol>
