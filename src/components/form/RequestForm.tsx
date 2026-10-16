@@ -319,6 +319,12 @@ export function RequestForm() {
                 {/* Fahrzeugschein — Bild oder PDF, eine Datei */}
                 <div className="grid gap-2">
                   <span className="field-label">Fahrzeugschein (optional)</span>
+                  {!FORM_ENDPOINT && (
+                    <small className="block text-[.78rem] text-fg-mute">
+                      Hinweis: Dateien werden derzeit nicht automatisch mitgesendet. Bitte fügen Sie den Fahrzeugschein im sich
+                      öffnenden E-Mail-Programm als Anhang hinzu.
+                    </small>
+                  )}
                   {!doc ? (
                     <label
                       htmlFor="fahrzeugschein"

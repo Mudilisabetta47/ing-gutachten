@@ -55,7 +55,6 @@
   :focus-visible {
     outline: 2px solid #6ba8ff;
     outline-offset: 3px;
-    border-radius: 4px;
   }
 
   h1, h2, h3, h4, p, figure, ul, ol {
@@ -220,7 +219,8 @@
     transition: transform .5s cubic-bezier(.16, 1, .3, 1);
   }
 
-  .tlink:hover::after {
+  .tlink:hover::after,
+  .tlink:focus-visible::after {
     transform: scaleX(1);
     transform-origin: left;
   }
@@ -229,7 +229,8 @@
     transition: transform .45s cubic-bezier(.16, 1, .3, 1);
   }
 
-  .tlink:hover .arw {
+  .tlink:hover .arw,
+  .tlink:focus-visible .arw {
     transform: translateX(4px);
   }
 
@@ -438,4 +439,21 @@
   .film-stage .film-hint { display: none; }
   .film-static { display: block; }
   .film-blink [data-hazard] { animation: none !important; }
+}
+
+/* Fahrzeugmodell: dezente Animationen für Sensorik, Hochvolt und Struktur */
+@keyframes vm-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@keyframes vm-flow { to { stroke-dashoffset: -44; } }
+@keyframes vm-glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.vm-pulse { animation: vm-pulse 3.6s ease-in-out infinite; }
+.vm-flow { animation: vm-flow 2.2s linear infinite; }
+.vm-glow { animation: vm-glow 2.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .vm-pulse, .vm-flow, .vm-glow { animation: none; } }
+
+/* Touch: Tippflächen mindestens 44 px, ohne das Erscheinungsbild auf dem Desktop zu ändern */
+@media (pointer: coarse) {
+  .tlink { min-height: 44px; }
+  nav[aria-label="Brotkrumen-Navigation"] a { display: inline-flex; align-items: center; min-height: 44px; }
+  address a, [href^="tel:"]:not(.btn), [href^="mailto:"]:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
+  .film-skip { min-height: 44px; }
 }

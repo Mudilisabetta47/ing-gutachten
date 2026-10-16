@@ -82,6 +82,35 @@ export default function Page() {
         </p>
       </TwoCol>
 
+      {/* Datenumfang: bewusst als „kann vorhanden sein“ formuliert. Welche Größen ein Fahrzeug tatsächlich speichert,
+          hängt von Hersteller, Baujahr und System ab. Technische Bestätigung durch ING offen (siehe Abgleichsdokument). */}
+      <TwoCol
+        eyebrow="Datenumfang"
+        heading="Welche Größen gespeichert sein können."
+        asideTitle="Je nach Fahrzeug und System"
+        asideItems={[
+          'Zeitpunkt und Art des auslösenden Ereignisses',
+          'Fahrzeuggeschwindigkeit vor dem Ereignis',
+          'Bremspedal betätigt oder nicht betätigt',
+          'Fahrpedal- bzw. Drosselstellung',
+          'Geschwindigkeitsänderung während des Aufpralls (Delta-V)',
+          'Gurtstatus des Fahrers',
+          'Auslösung von Airbags und Gurtstraffern',
+        ]}
+        icon="doc"
+      >
+        <p>
+          Welche der nebenstehenden Größen vorhanden sind, entscheidet das Fahrzeug – nicht jedes System speichert
+          alle davon, und der Umfang unterscheidet sich je nach Hersteller und Baujahr. Gespeichert wird in der Regel
+          nur ein kurzer Zeitraum rund um das Ereignis.
+        </p>
+        <p>
+          Ausgelesen werden die Daten mit geeigneter Technik und nur, wenn die Berechtigung dazu geklärt ist.
+          Anschließend werden sie mit Schadenbild und Spurenlage abgeglichen, damit aus einzelnen Werten eine
+          nachvollziehbare technische Einordnung wird.
+        </p>
+      </TwoCol>
+
       <section className="section">
         <div className="shell grid gap-[clamp(2rem,5vw,4rem)] lg:grid-cols-[.9fr_1.1fr] lg:items-center">
           <div className="grid content-start gap-5">

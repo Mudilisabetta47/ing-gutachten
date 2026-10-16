@@ -48,7 +48,7 @@ export function ServiceMap() {
                   <button
                     type="button"
                     onClick={() => setActive(r)}
-                    className={`group grid cursor-pointer justify-items-center gap-1 border-0 bg-transparent p-0 font-mono text-[.58rem] uppercase tracking-[.1em] transition-colors ${
+                    className={`group relative grid cursor-pointer justify-items-center gap-1 border-0 bg-transparent p-0 before:absolute before:-inset-x-2 before:-inset-y-3 before:content-[''] font-mono text-[.58rem] uppercase tracking-[.1em] transition-colors ${
                       on ? 'text-fg' : 'text-fg-mute hover:text-fg'
                     }`}
                   >

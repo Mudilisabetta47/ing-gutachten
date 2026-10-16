@@ -8,15 +8,15 @@ import { Slug } from '@/components/ui/Slug';
 import { Arrow } from '@/components/ui/Icon';
 
 const classes = [
-  { title: 'Pkw', href: '/pkw-gutachten', text: 'Alltag, Reise und alles dazwischen.', shape: 'car' },
-  { title: 'Elektrofahrzeuge', href: '/e-auto-hybrid-gutachten', text: 'Antrieb, Batterie und Fahrzeugstruktur.', shape: 'electric' },
-  { title: 'Hybridfahrzeuge', href: '/e-auto-hybrid-gutachten', text: 'Zwei Antriebe. Ein genauer Blick.', shape: 'hybrid' },
-  { title: 'Motorräder', href: '/motorrad-gutachten', text: 'Krafträder, Roller und Anbauteile.', shape: 'bike' },
-  { title: 'Transporter', href: '/pkw-gutachten', text: 'Für Fahrzeuge, die täglich leisten.', shape: 'van' },
-  { title: 'Oldtimer & Youngtimer', href: '/oldtimer-gutachten', text: 'Substanz, Originalität und Geschichte.', shape: 'classic' },
-  { title: 'Nutzfahrzeuge', href: '/lkw-gutachten', text: 'Aufbauten und Technik mitgedacht.', shape: 'truck' },
-  { title: 'Anhänger', href: '/lkw-gutachten', text: 'Auch hinter dem Zugfahrzeug präzise.', shape: 'trailer' },
-  { title: 'Gewerbliche Flotten', href: '/lkw-gutachten', text: 'Mehrere Fahrzeuge im Zusammenhang.', shape: 'fleet' },
+  { title: 'Pkw', href: '/pkw-gutachten', text: 'Karosserie, Fahrwerk und Assistenzsysteme im Zusammenhang.', shape: 'car' },
+  { title: 'Elektrofahrzeuge', href: '/e-auto-hybrid-gutachten', text: 'Hochvoltsystem, Batteriegehäuse und Fahrzeugstruktur.', shape: 'electric' },
+  { title: 'Hybridfahrzeuge', href: '/e-auto-hybrid-gutachten', text: 'Zwei Antriebssysteme, Hochvoltkomponenten und Karosserie.', shape: 'hybrid' },
+  { title: 'Motorräder', href: '/motorrad-gutachten', text: 'Rahmen, Gabel, Räder und Anbauteile.', shape: 'bike' },
+  { title: 'Transporter', href: '/pkw-gutachten', text: 'Leichte Nutzfahrzeuge: Aufbau, Zustand und Ausfallzeit.', shape: 'van' },
+  { title: 'Oldtimer & Youngtimer', href: '/oldtimer-gutachten', text: 'Originalzustand, Substanz und Wertermittlung.', shape: 'classic' },
+  { title: 'Nutzfahrzeuge', href: '/lkw-gutachten', text: 'Lkw und Spezialfahrzeuge: Aufbauten, Technik, Ausfall.', shape: 'truck' },
+  { title: 'Anhänger', href: '/lkw-gutachten', text: 'Achsen, Aufbau und Verbindungseinrichtung.', shape: 'trailer' },
+  { title: 'Gewerbliche Flotten', href: '/lkw-gutachten', text: 'Mehrere Fahrzeuge, einheitlich dokumentiert.', shape: 'fleet' },
 ];
 
 function Silhouette({ kind }: { kind: string }) {
@@ -25,9 +25,9 @@ function Silhouette({ kind }: { kind: string }) {
     {['car', 'electric', 'hybrid'].includes(kind) && car}
     {kind === 'electric' && <path pathLength={1} d="m65 3-7 10h7l-5 9" />}
     {kind === 'hybrid' && <path pathLength={1} d="M44 10h25m-5-4 5 4-5 4M44 6v8" />}
-    {kind === 'bike' && <><circle pathLength={1} cx="27" cy="52" r="13" /><circle pathLength={1} cx="92" cy="52" r="13" /><path pathLength={1} d="m27 52 22-24h21l22 24M49 28l14 24H27M63 52l14-31-9-7h-9M41 26h17M74 30h10" /></>}
+    {kind === 'bike' && <><circle pathLength={1} cx="26" cy="54" r="14"/><circle pathLength={1} cx="94" cy="54" r="14"/><circle pathLength={1} cx="26" cy="54" r="3"/><circle pathLength={1} cx="94" cy="54" r="3"/><path pathLength={1} d="M94 54 L80 24 M73 21 H87"/><path pathLength={1} d="M78 28 H58 q-6 0-10 6 h-24"/><path pathLength={1} d="M48 34 L52 52 H68 L78 36"/><path pathLength={1} d="M26 54 L52 52"/><path pathLength={1} d="M54 40 h14 v12 h-14z"/><path pathLength={1} d="M52 58 H32"/><path pathLength={1} d="M84 32 l6 1"/></>}
     {kind === 'van' && <><path pathLength={1} d="M12 51V20h57l22 18h15v13M70 21v18h20M21 27h18v12H21zM47 27h15v12H47zM39 52h41" /><circle pathLength={1} cx="29" cy="53" r="8" /><circle pathLength={1} cx="89" cy="53" r="8" /></>}
-    {kind === 'classic' && <><path pathLength={1} d="M12 50V40h16l10-18h32l13 18h23v10M37 40h36M53 23v17M38 52h43" /><circle pathLength={1} cx="28" cy="52" r="9" /><circle pathLength={1} cx="91" cy="52" r="9" /></>}
+    {kind === 'classic' && <><path pathLength={1} d="M8 56 h6 M104 56 h8"/><path pathLength={1} d="M14 54 V44 q0-3 4-4 l14-3 q8-16 22-16 h14 q12 0 18 14 l6 8 h8 q8 1 10 6 v9"/><path pathLength={1} d="M36 36 h50 M60 21 v15"/><path pathLength={1} d="M14 54 a15 15 0 0 1 30 0 M76 54 a15 15 0 0 1 30 0"/><circle pathLength={1} cx="29" cy="56" r="9"/><circle pathLength={1} cx="91" cy="56" r="9"/><circle pathLength={1} cx="29" cy="56" r="3"/><circle pathLength={1} cx="91" cy="56" r="3"/><path pathLength={1} d="M44 58 h32"/><circle pathLength={1} cx="110" cy="41" r="3.5"/><path pathLength={1} d="M112 47 v8"/></>}
     {kind === 'truck' && <><path pathLength={1} d="M8 50V15h62v35M70 28h21l18 16v6H8M80 32v12h23" /><circle pathLength={1} cx="27" cy="53" r="8" /><circle pathLength={1} cx="90" cy="53" r="8" /></>}
     {kind === 'trailer' && <><path pathLength={1} d="M13 48V22h72v26H13m72 0h20l7-8M20 28h58" /><circle pathLength={1} cx="39" cy="53" r="8" /><circle pathLength={1} cx="63" cy="53" r="8" /></>}
     {kind === 'fleet' && <><g transform="translate(17 -9) scale(.78)">{car}</g><g transform="translate(-5 20) scale(.78)">{car}</g></>}

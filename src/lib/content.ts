@@ -27,14 +27,21 @@ export type NavItem = { label: string; href: string; children?: NavItem[] };
 
 export const NAV: NavItem[] = [
   {
+    label: 'Schadensgutachten',
+    href: '/schadensgutachten',
+    children: [
+      { label: 'PKW-Gutachten', href: '/pkw-gutachten' },
+      { label: 'Unfallgutachten', href: '/unfallgutachten' },
+    ],
+  },
+  {
     label: 'Unfallanalyse',
     href: '/unfallanalyse',
     children: [
-      { label: 'PKW-Gutachten', href: '/pkw-gutachten' },
-      { label: 'EDR-Datenanalyse', href: '/edr-systeme' },
-      /* VORLÄUFIG: Eine eigene Seite „Kollisionsanalyse“ gibt es noch nicht. Bis dahin führt der Eintrag
-         zum Abschnitt über die Kollisionsintensität auf der Seite Unfallanalyse. Siehe Abstimmung mit ING. */
-      { label: 'Kollisionsanalyse', href: '/unfallanalyse#kollisionsanalyse' },
+      { label: 'EDR-Systeme', href: '/edr-systeme' },
+      /* OFFEN: Die fachliche Bedeutung von „Vorschwunganalyse“ ist noch nicht bestätigt (Rückfrage an Ekrem).
+         Die Seite ist bis dahin eine neutrale Platzhalterseite (noindex, nicht in der Sitemap). */
+      { label: 'Vorschwunganalyse', href: '/vorschwunganalyse' },
       { label: 'Unfallrekonstruktion', href: '/unfallrekonstruktion' },
     ],
   },
@@ -243,7 +250,7 @@ export type DamageZone = {
 export const DAMAGE_ZONES: DamageZone[] = [
   {
     key: 'front', index: 'ZONE 01', title: 'Frontschaden', x: 50, y: 7,
-    text: 'Stoßfänger, Kühlerpaket, Scheinwerfer und Assistenz-Sensorik: Frontschäden sind heute selten nur Blech. Wir dokumentieren jede betroffene Baugruppe einzeln.',
+    text: 'Stoßfänger, Kühlerpaket, Scheinwerfer und Assistenz-Sensorik: Bei Frontschäden können mehrere Baugruppen betroffen sein. Wir dokumentieren jede einzeln.',
     points: ['Prüfung von Radar-, Kamera- und Ultraschall-Sensorik', 'Kalibrierungsaufwand der Assistenzsysteme wird beziffert', 'Beurteilung von Längsträger und Schlossträger'],
   },
   {
@@ -253,8 +260,8 @@ export const DAMAGE_ZONES: DamageZone[] = [
   },
   {
     key: 'rear', index: 'ZONE 03', title: 'Heckschaden', x: 50, y: 93,
-    text: 'Der klassische Auffahrunfall. Auch bei scheinbar kleinem Schadenbild sind Heckabschlussblech und Ladeboden häufig verzogen.',
-    points: ['Prüfung von Heckklappe, Schlossträger und Ladeboden', 'Anhängerkupplung und Verkabelung inklusive', 'Dokumentation für die gegnerische Haftpflicht'],
+    text: 'Der klassische Auffahrunfall. Auch ein unauffälliges Schadenbild kann die Heckstruktur betreffen – deshalb werden Heckabschlussblech, Längsträger und Ladeboden vermessen und beurteilt.',
+    points: ['Prüfung von Heckklappe, Heckabschlussblech und Ladeboden', 'Beurteilung der hinteren Längsträger und des Radhausbereichs', 'Anhängerkupplung und Verkabelung, soweit vorhanden'],
   },
   {
     key: 'paint', index: 'ZONE 04', title: 'Lackschaden', x: 80, y: 63,
@@ -263,7 +270,7 @@ export const DAMAGE_ZONES: DamageZone[] = [
   },
   {
     key: 'chassis', index: 'ZONE 05', title: 'Fahrwerk & Achsen', x: 20, y: 78,
-    text: 'Nach jeder Kollision mit Bordstein oder Fahrzeug gehört die Achsvermessung dazu. Verzogene Achsgeometrie ist von außen nicht sichtbar.',
+    text: 'Nach jeder Kollision mit Bordstein oder Fahrzeug gehört die Achsvermessung dazu. Eine veränderte Achsgeometrie ist von außen nicht immer sichtbar.',
     points: ['Achsvermessung mit Protokoll', 'Prüfung von Lenkung, Federbeinen und Radträgern', 'Bewertung von Reifen- und Felgenschäden'],
   },
   {
