@@ -9,7 +9,7 @@ CHECK_ONLY=0; [ "${1:-}" = "--check" ] && CHECK_ONLY=1   # Prüfmodus: nur Tor +
 TUN=${TUN:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}
 TTL_SECONDS=${TTL_SECONDS:-14400}          # 4 Stunden
 WATCHDOG_EXTRA=${WATCHDOG_EXTRA:-120}      # zweite, unabhängige Abschaltung etwas später
-URL_TRIES=${URL_TRIES:-45}; URL_SLEEP=${URL_SLEEP:-2}; PUBLIC_SLEEP=${PUBLIC_SLEEP:-8}; GATE_TRIES=${GATE_TRIES:-30}; GATE_SLEEP=${GATE_SLEEP:-1}
+URL_TRIES=${URL_TRIES:-45}; URL_SLEEP=${URL_SLEEP:-2}; PUBLIC_SLEEP=${PUBLIC_SLEEP:-10}; PUBLIC_TRIES=${PUBLIC_TRIES:-12}; GATE_TRIES=${GATE_TRIES:-30}; GATE_SLEEP=${GATE_SLEEP:-1}
 PROJECT=ing-tunnel
 WEB_NAME=ing-staging-web-1
 ING_NET=ing-staging_private
@@ -101,6 +101,7 @@ done
 echo "Das Tor antwortet (nach $i Versuch(en))."
 echo "-- Prüfung A: Zugangssperre vor allen Routen"; probe gate http://gate:8080
 echo "-- Prüfung B: Tunnel-Netz erreicht weder ING-Web noch PostgreSQL noch SeaweedFS"; probe isolate
+echo "-- Prüfung B2: Tunnel-Netz erreicht das Internet (Voraussetzung für cloudflared; DNS, TCP 443, TLS)"; probe egress || fail "Das Tunnel-Netz erreicht das Internet nicht – Ursache steht oben (Phase und Fehlercode)."
 
 if [ "$CHECK_ONLY" = 1 ]; then
   step "PRÜFMODUS BESTANDEN – es wurde kein Tunnel gestartet und keine Adresse erzeugt. Das Tor wird jetzt wieder abgebaut."
@@ -125,8 +126,16 @@ done
 echo "Tunnel steht (Adresse wird am Ende angezeigt)."
 
 step "6. Prüfung C: öffentliche Adresse (mit Wiederholungen, bis die Namensauflösung steht)"
-ok=0; for i in 1 2 3 4 5 6; do if probe public "$URL"; then ok=1; break; fi; echo "Versuch $i nicht bestanden – warte ${PUBLIC_SLEEP} s"; sleep "$PUBLIC_SLEEP"; done
-[ "$ok" = 1 ] || fail "Prüfung der öffentlichen Adresse nicht bestanden."
+tunnel_diag() {  # Zustand und Protokoll des Tunnels (Quick Tunnel hat kein Token; Zugangsdaten des Tors kommen hier nicht vor)
+  echo "--- Zustand ing-cloudflared: $(docker inspect ing-cloudflared --format 'Status={{.State.Status}} Exit={{.State.ExitCode}} OOM={{.State.OOMKilled}} Neustarts={{.RestartCount}}' 2>&1 | cut -c1-200)" >&2
+  echo "--- Registrierte Verbindungen zu Cloudflare: $(docker logs ing-cloudflared 2>&1 | grep -ci 'registered tunnel connection')" >&2
+  echo "--- Letzte Protokollzeilen von cloudflared:" >&2; docker logs --tail 20 ing-cloudflared 2>&1 | cut -c1-220 | sed 's/^/    /' >&2 || true
+}
+ok=0; for i in $(seq 1 "$PUBLIC_TRIES"); do
+  if probe public "$URL"; then ok=1; break; fi
+  echo "Versuch $i von $PUBLIC_TRIES nicht bestanden – warte ${PUBLIC_SLEEP} s"; sleep "$PUBLIC_SLEEP"
+done
+[ "$ok" = 1 ] || { tunnel_diag; fail "Prüfung der öffentlichen Adresse nicht bestanden (Phase und Fehlercode stehen in der letzten Prüfausgabe oben)."; }
 
 step "7. Nichts anderes darf sich geändert haben"
 AFTER_CONT=$(snapshot_containers); AFTER_PORTS=$(snapshot_ports)
