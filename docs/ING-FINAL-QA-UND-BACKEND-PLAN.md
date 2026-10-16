@@ -86,6 +86,8 @@ Frühere Commits dieser Phase (bereits in der Vorschau): Hero-Video als Hintergr
 
 ## 6. Geplante Backend-Integration
 
+> Ausführlicher Plan mit Simulation der Reverse-Proxy-Lösung: `docs/INTEGRATIONSPLAN-ANFRAGE-API.md`.
+
 ### 6.1 Ist-Zustand ING Studio (Code gelesen, nichts verändert)
 
 `POST /api/anfrage` (Next.js-Route, Node-Laufzeit) kann bereits:
@@ -161,6 +163,8 @@ Frühere Commits dieser Phase (bereits in der Vorschau): Hero-Video als Hintergr
 **Nicht geprüft/offen:** Texte der Regionalseiten außer den ersten Absätzen; die gesamte juristische Würdigung; Aussagen in `docs/` oder älteren Entwürfen.
 
 ## 8. Performance-Ergebnisse (Lighthouse 12.3, lokaler Build, Chrome headless)
+
+> **Korrektur (später am 16.10.):** Diese Werte stammen von einem einfachen lokalen Server ohne Kompression/CDN und sind **nicht repräsentativ**. Gegen die echte Vercel-Vorschau liegt die Startseite mobil bei Performance 92–95 (Desktop 100). Maßgeblich: `docs/PERFORMANCE-MESSUNGEN.md`.
 
 | Seite | Gerät | Performance | Barrierefreiheit | Best Practices | SEO | FCP | LCP | TBT | CLS | Gewicht |
 |---|---|---|---|---|---|---|---|---|---|---|
