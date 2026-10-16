@@ -96,7 +96,7 @@ export default function Page() {
         </p>
         <p>
           Sie erhalten das Gutachten digital als PDF, auf Wunsch zusätzlich gedruckt. Versicherung und Anwalt
-          bekommen es direkt von uns, damit die Regulierung ohne Zwischenschritte startet.
+          bekommen es auf Wunsch direkt von uns.
         </p>
       </TwoCol>
 

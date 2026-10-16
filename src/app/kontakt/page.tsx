@@ -21,7 +21,7 @@ export default function Page() {
     <Landing
       eyebrow="Kontakt & Termin"
       title="Ein Anruf reicht."
-      lead="Rufen Sie an oder stellen Sie die Anfrage in vier Schritten – inklusive Fotoupload. Wir melden uns in der Regel innerhalb weniger Stunden mit einem Terminvorschlag."
+      lead="Rufen Sie an oder stellen Sie die Anfrage in vier Schritten. Wir melden uns nach Ihrer Anfrage mit einem Terminvorschlag."
       chips={[BIZ.phoneDisplay, BIZ.mobileDisplay, 'Vor-Ort-Service']}
       trail={[{ name: 'Kontakt', href: '/kontakt' }]}
       related={[

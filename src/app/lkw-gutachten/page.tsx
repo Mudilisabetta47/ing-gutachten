@@ -18,7 +18,7 @@ export default function Page() {
     <Landing
       eyebrow="LKW & Nutzfahrzeuge"
       title="Stillstand ist der teuerste Teil des Schadens."
-      lead="Bei Nutzfahrzeugen zählt Tempo: Wir begutachten auf dem Betriebsgelände, beziffern den Ausfall und sorgen dafür, dass die Regulierung nicht am Papier hängt."
+      lead="Wir begutachten auf dem Betriebsgelände, beziffern den Ausfall und dokumentieren alles so, dass die Regulierung nachvollziehbar vorbereitet ist."
       chips={['Transporter', 'LKW', 'Anhänger & Auflieger', 'Flotten']}
       trail={[
         { name: 'Leistungen', href: '/leistungen' },

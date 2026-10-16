@@ -99,7 +99,7 @@ function FooterCol({ title, children }: { title: string; children: ReactNode }) 
 function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <li>
-      <Link href={href} className="text-[.93rem] text-fg-dim transition-colors hover:text-signal-bright">
+      <Link href={href} className="inline-block py-[.3rem] text-[.93rem] text-fg-dim transition-colors hover:text-signal-bright focus-visible:text-signal-bright">
         {children}
       </Link>
     </li>

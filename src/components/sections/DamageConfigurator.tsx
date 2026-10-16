@@ -113,7 +113,7 @@ export function DamageConfigurator() {
                     >
                       <span
                         className={`relative grid place-items-center rounded-full transition-all duration-500 ease-out ${
-                          layer === 'zones' ? 'h-[34px] w-[34px]' : 'h-[30px] w-[30px]'
+                          layer === 'zones' ? 'h-10 w-10' : 'h-[34px] w-[34px]'
                         } ${on ? 'scale-110 bg-signal' : 'bg-signal-soft group-hover:scale-110 group-hover:bg-signal group-focus-visible:scale-110 group-focus-visible:bg-signal'}`}
                         style={{ boxShadow: on ? 'none' : 'inset 0 0 0 1px rgba(107,168,255,.38)' }}
                       >

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { BIZ, FORM_ENDPOINT, REQUEST_REASONS, REQUEST_VEHICLES } from '@/lib/content';
 import { Arrow } from '@/components/ui/Icon';
 import { Magnetic } from '@/components/ui/Magnetic';
+import { buildInquiryFormData, checkInquiryFiles, downscaleImage } from '@/lib/inquiry-contract';
 
 type Values = {
   anlass: string;
@@ -52,6 +53,7 @@ export function RequestForm() {
   const [done, setDone] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const touched = useRef(false);
+  const openedAt = useRef(Date.now());
 
   /* Vorschaubilder erzeugen und Object-URLs wieder freigeben. */
   useEffect(() => {
@@ -157,10 +159,14 @@ export function RequestForm() {
     setSending(true);
     setSendError('');
     try {
-      const data = new FormData();
-      Object.entries(values).forEach(([k, v]) => data.append(k, String(v)));
-      files.forEach((f, i) => data.append(`foto_${i + 1}`, f));
-      if (SHOW_DOC_UPLOAD && doc) data.append('fahrzeugschein', doc);
+      // Vertrag mit der ING-Studio-API (siehe lib/inquiry-contract.ts): Fotos vorher verkleinern, Felder exakt benennen.
+      const photos = await Promise.all(files.map((f) => downscaleImage(f)));
+      const problem = checkInquiryFiles(photos, SHOW_DOC_UPLOAD ? doc : null);
+      if (problem) {
+        setSendError(problem);
+        return;
+      }
+      const data = buildInquiryFormData({ values, photos, document: SHOW_DOC_UPLOAD ? doc : null, startedAt: openedAt.current });
       const res = await fetch(FORM_ENDPOINT, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
       if (!res.ok) throw new Error('request failed');
       setDone(true);
@@ -191,7 +197,7 @@ export function RequestForm() {
           </span>
           <h3 className="display text-h3">Anfrage ist raus.</h3>
           <p className="lead max-w-[44ch]">
-            Wir melden uns kurzfristig mit einem Terminvorschlag. Wenn es eilt, erreichen Sie uns sofort telefonisch.
+            Wir melden uns mit einem Terminvorschlag. Wenn es eilt, rufen Sie uns bitte direkt an.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <a href={`tel:${BIZ.phoneLink}`} className="btn">
@@ -277,7 +283,7 @@ export function RequestForm() {
               <>
                 <StepHeading
                   ref={headingRef}
-                  title="Schaden fotografieren & hochladen"
+                  title={FORM_ENDPOINT ? 'Schaden fotografieren & hochladen' : 'Schaden fotografieren'}
                   sub="Optional, hilft aber bei der Ersteinschätzung: Gesamtansicht, Schadenstelle nah, Kennzeichen."
                 />
                 {!FORM_ENDPOINT && (
@@ -443,7 +449,7 @@ export function RequestForm() {
 
             {step === 3 && (
               <>
-                <StepHeading ref={headingRef} title="Wie können wir Sie erreichen?" sub="Wir melden uns in der Regel innerhalb weniger Stunden mit einem Terminvorschlag." />
+                <StepHeading ref={headingRef} title="Wie können wir Sie erreichen?" sub="Wir melden uns nach Ihrer Anfrage mit einem Terminvorschlag." />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Name" id="name" error={errors.name}>
                     <input

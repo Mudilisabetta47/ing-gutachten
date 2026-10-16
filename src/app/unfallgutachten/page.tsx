@@ -49,14 +49,14 @@ export default function Page() {
         icon="shield"
       >
         <p>
-          Bei einem unverschuldeten Unfall haben Sie Anspruch auf ein eigenes, unabhängiges Gutachten. Die Kosten
-          gehören zum Schaden und werden von der Haftpflichtversicherung des Unfallgegners getragen. Sie müssen
-          keinen Prüfer akzeptieren, den die Gegenseite schickt.
+          Bei einem unverschuldeten Unfall können Sie in der Regel einen eigenen, unabhängigen Sachverständigen
+          beauftragen. Die Kosten gehören dann häufig zum erstattungsfähigen Schaden, den die Haftpflichtversicherung
+          der Gegenseite trägt – ob und in welchem Umfang, hängt vom Einzelfall ab. Eine Pflicht, einen von der
+          Gegenseite benannten Prüfer zu akzeptieren, besteht grundsätzlich nicht.
         </p>
         <p>
           Wichtig ist die Reihenfolge: erst begutachten, dann reparieren. Ist das Fahrzeug bereits instandgesetzt,
-          lässt sich der Zustand vor der Reparatur nur noch eingeschränkt belegen – und genau daran scheitern
-          viele Ansprüche.
+          lässt sich der Zustand vor der Reparatur nur noch eingeschränkt belegen.
         </p>
         <p>
           Bei Kaskoschäden beauftragt in der Regel Ihr eigener Versicherer. Auch dann prüfen wir gern zusätzlich,

@@ -5,7 +5,7 @@ import { FAQS } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 const DESCRIPTION =
-  'Gutachten für Elektro- und Hybridfahrzeuge in Hannover: Hochvoltsystem, Batteriegehäuse, Ladetechnik und Assistenzsysteme werden gesondert bewertet. Unabhängiger Kfz-Sachverständiger, Termin in 24–48 h.';
+  'Gutachten für Elektro- und Hybridfahrzeuge in Hannover: Hochvoltsystem, Batteriegehäuse, Ladetechnik und Assistenzsysteme werden gesondert bewertet. Unabhängiger Kfz-Sachverständiger mit Vor-Ort-Service.';
 
 export const metadata: Metadata = buildMetadata({
   title: 'E-Auto & Hybrid Gutachten Hannover | Kfz-Sachverständiger',

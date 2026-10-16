@@ -21,8 +21,8 @@ export default function Page() {
     <Landing
       eyebrow="Ablauf"
       title="Fünf Schritte. Kein Papierkrieg."
-      lead="Von der ersten Nachricht bis zur Auszahlung: Hier steht, was wann passiert, wie lange es dauert und was Sie dafür tun müssen – nämlich sehr wenig."
-      chips={['Termin in 24–48 h', 'Gutachten in 1–2 Werktagen', 'Vor-Ort-Service']}
+      lead="Von der ersten Nachricht bis zur Regulierung: Hier steht, was in welcher Reihenfolge passiert und was Sie dafür tun müssen. Zeiträume hängen vom Einzelfall ab."
+      chips={['Termin nach Absprache', 'Vor-Ort-Service', 'Beratung bis zur Regulierung']}
       trail={[{ name: 'Ablauf', href: '/ablauf' }]}
       faqs={[FAQS[2], FAQS[3], FAQS[9]]}
       related={[

@@ -9,7 +9,7 @@ import { buildMetadata } from '@/lib/seo';
 export const metadata: Metadata = buildMetadata({
   title: 'Über uns | Kfz-Sachverständigenbüro ING Gutachten Hannover',
   description:
-    'ING Gutachten ist ein unabhängiges Kfz-Sachverständigenbüro in Hannover mit über 15 Jahren Erfahrung. Vor-Ort-Service, kurzfristige Termine, klare Gutachten für Geschädigte, Anwälte und Versicherungen.',
+    'ING Gutachten ist ein unabhängiges Kfz-Sachverständigenbüro in Hannover. Vor-Ort-Service, Terminvergabe nach Absprache, klare Gutachten für Geschädigte, Anwälte und Versicherungen.',
   path: '/ueber-uns',
 });
 
@@ -18,8 +18,8 @@ export default function Page() {
     <Landing
       eyebrow="Über das Büro"
       title="Unabhängig. Erreichbar. Genau."
-      lead="Über 15 Jahre Erfahrung in der Schadenbewertung – und die Überzeugung, dass ein Gutachten nur so gut ist wie seine Nachvollziehbarkeit."
-      chips={['seit über 15 Jahren', 'Hildesheimer Straße 229', 'Vor-Ort-Service', 'unabhängig']}
+      lead="Schadenbewertung mit der Überzeugung, dass ein Gutachten nur so gut ist wie seine Nachvollziehbarkeit."
+      chips={['Kfz-Sachverständigenbüro', 'Hildesheimer Straße 229', 'Vor-Ort-Service', 'unabhängig']}
       trail={[{ name: 'Über uns', href: '/ueber-uns' }]}
       related={[
         { title: 'Ablauf', text: 'Wie eine Beauftragung konkret läuft.', href: '/ablauf' },
@@ -48,8 +48,8 @@ export default function Page() {
         </p>
         <p>
           Unsere Arbeitsweise ist unspektakulär und darauf ausgelegt, dass Sie nicht nachfragen müssen: erreichbar
-          bleiben, kurzfristig kommen, sauber messen, verständlich schreiben. Ein Gutachten, das eine
-          Regulierungsstelle ohne Rückfragen bearbeiten kann, ist für alle Beteiligten der schnellste Weg.
+          bleiben, vor Ort kommen, sauber messen, verständlich schreiben. Ein Gutachten, das eine
+          Regulierungsstelle gut nachvollziehen kann, hilft allen Beteiligten.
         </p>
         <p>
           Wenn wir zum Ergebnis kommen, dass ein Kostenvoranschlag genügt, sagen wir das – auch wenn das für uns
@@ -82,7 +82,7 @@ export default function Page() {
             <h2 className="display text-[clamp(1.6rem,3.4vw,2.4rem)]">Jede Position bekommt einen Beleg.</h2>
             <p className="text-fg-dim">
               Fotodokumentation, Messwerte, Kalkulationsgrundlage: Wir arbeiten so, dass eine Regulierungsstelle
-              das Gutachten ohne Rückfrage bearbeiten kann. Das ist der schnellste Weg zu Ihrem Geld.
+              das Gutachten ohne Rückfrage bearbeiten kann. So lassen sich Rückfragen möglichst vermeiden.
             </p>
           </div>
         </div>

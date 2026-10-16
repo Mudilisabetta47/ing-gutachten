@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!region) return {};
   return buildMetadata({
     title: `Kfz-Gutachter ${region.name} | Unfallgutachten & Kfz-Sachverständiger`,
-    description: `Kfz-Gutachter für ${region.name}: unabhängige Unfallgutachten, Schadengutachten und Wertgutachten mit Vor-Ort-Service. Termin in 24–48 Stunden. ☎ 0511 543 00 976`,
+    description: `Kfz-Gutachter für ${region.name}: unabhängige Unfallgutachten, Schadengutachten und Wertgutachten mit Vor-Ort-Service. ☎ 0511 543 00 976`,
     path: `/kfz-gutachter/${region.slug}`,
   });
 }
@@ -35,8 +35,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     <Landing
       eyebrow={`Standort · ${region.name}`}
       title={`Kfz-Gutachter ${region.name}`}
-      lead={`Unabhängige Kfz-Gutachten in ${region.name} und der Region Hannover – mit Vor-Ort-Besichtigung und kurzfristiger Terminvergabe.`}
-      chips={['Unfallgutachten', 'Wertgutachten', 'Vor-Ort-Service', '24–48 h Termin']}
+      lead={`Unabhängige Kfz-Gutachten in ${region.name} und der Region Hannover – mit Vor-Ort-Besichtigung und Terminvergabe nach Absprache.`}
+      chips={['Unfallgutachten', 'Wertgutachten', 'Vor-Ort-Service', 'Termin nach Absprache']}
       trail={[
         { name: 'Einsatzgebiet', href: '/einsatzgebiet' },
         { name: `Kfz-Gutachter ${region.name}`, href: `/kfz-gutachter/${region.slug}` },

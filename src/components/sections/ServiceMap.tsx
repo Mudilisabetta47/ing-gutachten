@@ -148,7 +148,7 @@ export function ServiceMap() {
                     <Link
                       key={r.name}
                       href={`/kfz-gutachter/${r.slug}`}
-                      className="rounded-full px-[.85rem] py-[.45rem] text-[.82rem] text-fg-dim transition-all hover:bg-signal hover:text-white focus-visible:bg-signal focus-visible:text-white"
+                      className="inline-flex min-h-11 items-center rounded-full px-[.95rem] py-[.45rem] text-[.82rem] text-fg-dim transition-all hover:bg-signal hover:text-white focus-visible:bg-signal focus-visible:text-white"
                       style={{ boxShadow: 'inset 0 0 0 1px #232b33' }}
                     >
                       {r.name}

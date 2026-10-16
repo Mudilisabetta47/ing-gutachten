@@ -31,19 +31,18 @@ export default function Page() {
         heading="Die zwei Sätze, die am meisten sparen."
         asideTitle="Kurz gesagt"
         asideItems={[
-          'Sachverständigen wählen Sie selbst',
-          'Kosten trägt bei Haftpflichtschäden die Gegenseite',
-          'Termin meist in 24–48 Stunden',
-          'Gutachten in 1–2 Werktagen',
-          'Bagatellgrenze bei rund 750–1.000 Euro',
-          'Vor-Ort-Service ohne Anfahrtskosten',
+          'Bei unverschuldeten Unfällen: Gutachter in der Regel frei wählbar',
+          'Kosten trägt bei Haftpflichtschäden in der Regel die Gegenseite',
+          'Termin nach Absprache, auch vor Ort',
+          'Dauer des Gutachtens abhängig vom Einzelfall',
+          'Bei kleinen Schäden kann ein Kostenvoranschlag reichen',
         ]}
         icon="doc"
       >
         <p>
-          Erstens: Nach einem unverschuldeten Unfall wählen <em>Sie</em> den Sachverständigen – und die gegnerische
-          Versicherung trägt die Kosten. Zweitens: erst begutachten, dann reparieren. Wer diese Reihenfolge
-          einhält, verliert später keine Ansprüche.
+          Erstens: Nach einem unverschuldeten Unfall können <em>Sie</em> in der Regel den Sachverständigen selbst wählen; die
+          Kosten trägt dann häufig die Versicherung der Gegenseite. Zweitens: erst begutachten, dann reparieren – so lässt
+          sich der Zustand vor der Reparatur belegen. Im Einzelfall kann es Abweichungen geben.
         </p>
         <p>
           Alles Weitere steht unten. Wenn Ihre Frage nicht dabei ist, rufen Sie an – eine kurze Einschätzung am

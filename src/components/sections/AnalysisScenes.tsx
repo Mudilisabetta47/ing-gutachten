@@ -33,8 +33,8 @@ export function DataFlowScene() {
           <motion.circle
             r="4"
             fill="#6ba8ff"
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: [0, 1, 1, 0], cx: [90, 250, 410, 545], cy: 100 } : {}}
+            initial={{ opacity: 0, cx: 90, cy: 100 }}
+            animate={inView ? { opacity: [0, 1, 1, 0], cx: [90, 250, 410, 545], cy: [100, 100, 100, 100] } : {}}
             transition={{ duration: 2.4, delay: 1, ease: 'easeInOut' }}
           />
         )}

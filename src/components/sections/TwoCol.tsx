@@ -31,7 +31,7 @@ export function TwoCol({
                 <span className="text-signal-bright">
                   <Icon name={icon} />
                 </span>
-                <h3 className="font-display text-h3 font-semibold">{asideTitle}</h3>
+                <p className="font-display text-h3 font-semibold">{asideTitle}</p>
                 <ul className="prose-ing">
                   {asideItems.map((item) => (
                     <li key={item}>{item}</li>

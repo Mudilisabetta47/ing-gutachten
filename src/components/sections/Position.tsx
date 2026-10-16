@@ -12,7 +12,7 @@ export function Position() {
           <div className="grid content-start gap-6">
             <p className="eyebrow">Warum unabhängig zählt</p>
             <p className="max-w-[26ch] font-mono text-[.78rem] leading-relaxed tracking-[.1em] text-fg-mute">
-              Die gegnerische Versicherung bezahlt. Aussuchen dürfen Sie.
+              Bei unverschuldeten Unfällen können Sie in der Regel selbst wählen.
             </p>
           </div>
 

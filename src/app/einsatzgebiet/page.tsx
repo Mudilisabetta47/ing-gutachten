@@ -9,9 +9,9 @@ import { REGION_PAGES } from '@/lib/content';
 import { buildMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Einsatzgebiet | Kfz-Gutachter Hannover, Hildesheim, Braunschweig & Hameln',
+  title: 'Einsatzgebiet | Hannover, Hildesheim, Braunschweig, Hameln',
   description:
-    'Vor-Ort-Service als Kfz-Gutachter in Hannover, Hildesheim, Braunschweig und Hameln. Besichtigung dort, wo das Fahrzeug steht – auch in Laatzen, Langenhagen, Garbsen, Seelze, Wunstorf und Pattensen.',
+    'Kfz-Gutachter mit Vor-Ort-Service in Hannover, Hildesheim, Braunschweig und Hameln. Besichtigung dort, wo das Fahrzeug steht.',
   path: '/einsatzgebiet',
 });
 

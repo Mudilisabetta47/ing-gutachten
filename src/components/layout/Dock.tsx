@@ -18,7 +18,8 @@ export function Dock() {
   }, []);
 
   return (
-    <div
+    <aside
+      aria-label="Schnellkontakt"
       className={`fixed inset-x-0 bottom-0 z-[80] grid grid-cols-2 gap-2 border-t border-line-soft transition-transform duration-500 ease-out sm:hidden ${
         shown ? 'translate-y-0' : 'translate-y-[130%]'
       }`}
@@ -40,6 +41,6 @@ export function Dock() {
       >
         Gutachten anfordern
       </Link>
-    </div>
+    </aside>
   );
 }

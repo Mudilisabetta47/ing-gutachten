@@ -11,8 +11,8 @@ import { HeroMedia } from '@/components/sections/HeroMedia';
 import { HERO_SCENES } from '@/lib/showcase';
 
 const META = [
-  { dt: 'Erfahrung', dd: 'über 15 Jahre' },
-  { dt: 'Termin', dd: 'meist in 24–48 Stunden' },
+  { dt: 'Büro', dd: 'Hildesheimer Straße 229, Hannover' },
+  { dt: 'Termin', dd: 'nach Absprache' },
   { dt: 'Vor Ort', dd: 'Hannover, Hildesheim, Braunschweig, Hameln' },
 ];
 

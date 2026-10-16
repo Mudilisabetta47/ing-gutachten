@@ -121,7 +121,7 @@ export type Region = {
 };
 
 export const REGIONS: Region[] = [
-  { name: 'Hannover-Mitte', x: 50, y: 47, note: 'Innenstadt, Calenberger Neustadt und Zooviertel – Vor-Ort-Termine meist am selben Tag.' },
+  { name: 'Hannover-Mitte', x: 50, y: 47, note: 'Innenstadt, Calenberger Neustadt und Zooviertel – Vor-Ort-Termine nach Absprache.' },
   { name: 'List / Oststadt', x: 57, y: 36, note: 'Dichter Straßenverkehr, viele Parkrempler. Besichtigung auch am Straßenrand möglich.' },
   { name: 'Linden', x: 39, y: 50, note: 'Linden-Nord, -Mitte und -Süd inklusive Limmer und Ahlem.' },
   { name: 'Döhren / Wülfel', x: 55, y: 63, note: 'Direkt an unserem Büro in der Hildesheimer Straße – kürzeste Wege.' },
@@ -155,23 +155,23 @@ export type Faq = { q: string; a: string };
 export const FAQS: Faq[] = [
   {
     q: 'Wer darf den Kfz-Sachverständigen aussuchen?',
-    a: 'Bei einem unverschuldeten Unfall wählen Sie den Sachverständigen selbst – nicht die gegnerische Versicherung. Sie sind nicht verpflichtet, einen von der Versicherung geschickten Prüfer zu akzeptieren. Ein unabhängiges Gutachten ist die Grundlage dafür, dass alle Positionen Ihres Schadens erfasst werden.',
+    a: 'Bei einem unverschuldeten Unfall können Sie in der Regel einen Kfz-Sachverständigen Ihrer Wahl beauftragen. Eine Pflicht, einen von der gegnerischen Versicherung benannten Prüfer zu akzeptieren, besteht grundsätzlich nicht. Was im Einzelfall gilt, hängt vom Schadenfall ab – wir besprechen es gern mit Ihnen.',
   },
   {
     q: 'Wer trägt die Kosten für das Gutachten?',
-    a: 'Bei einem Haftpflichtschaden, den die Gegenseite verursacht hat, gehören die Sachverständigenkosten zum erstattungsfähigen Schaden und werden von der gegnerischen Versicherung getragen. Bei einem Kaskoschaden beauftragt in der Regel Ihr eigener Versicherer die Begutachtung. Bei sehr kleinen Schäden empfehlen wir einen Kostenvoranschlag – wir sagen Ihnen vorab, was in Ihrem Fall sinnvoll ist.',
+    a: 'Bei einem unverschuldeten Haftpflichtschaden gehören die Sachverständigenkosten in der Regel zum erstattungsfähigen Schaden, den die Versicherung der Gegenseite trägt. Ob und in welcher Höhe, hängt vom Einzelfall ab, etwa von Haftung und Schadenhöhe. Bei einem Kaskoschaden gelten die Bedingungen Ihrer eigenen Versicherung. Bei sehr kleinen Schäden kann ein Kostenvoranschlag sinnvoller sein – wir besprechen vorab, was in Ihrem Fall passt.',
   },
   {
     q: 'Wie schnell bekomme ich einen Termin?',
-    a: 'Kurzfristig, in der Regel innerhalb von 24 bis 48 Stunden. Rufen Sie uns an oder senden Sie eine Anfrage über das Formular – auf Wunsch kommen wir zu Ihnen nach Hause, in die Werkstatt oder an den Abstellort.',
+    a: 'Den Termin vereinbaren wir nach Absprache. Rufen Sie uns an oder senden Sie eine Anfrage über das Formular – auf Wunsch besichtigen wir das Fahrzeug bei Ihnen zu Hause, in der Werkstatt oder am Abstellort.',
   },
   {
     q: 'Wie lange dauert die Erstellung des Gutachtens?',
-    a: 'Nach der Besichtigung erstellen wir das Gutachten in der Regel innerhalb von ein bis zwei Werktagen. Sie erhalten es digital, die Versicherung und – wenn gewünscht – Ihr Anwalt bekommen es direkt von uns.',
+    a: 'Die Dauer hängt vom Umfang des Schadens und von den vorliegenden Unterlagen ab. Nach der Besichtigung erstellen wir das Gutachten und senden es digital – auf Wunsch auch direkt an Versicherung und Anwalt. Einen konkreten Zeitraum nennen wir Ihnen im Termin.',
   },
   {
     q: 'Ab welcher Schadenhöhe lohnt sich ein Gutachten?',
-    a: 'Als Faustregel gilt eine Bagatellgrenze im Bereich von etwa 750 bis 1.000 Euro. Liegt der Schaden darunter, ist ein Kostenvoranschlag meist der richtige Weg. Darüber ist ein vollständiges Schadengutachten sinnvoll, weil nur so Wertminderung, Nutzungsausfall und Reparaturweg sauber belegt sind.',
+    a: 'Bei sehr kleinen Schäden kann ein Kostenvoranschlag ausreichen. Bei größeren Schäden ist ein vollständiges Schadengutachten sinnvoll, weil damit Wertminderung, Nutzungsausfall und Reparaturweg nachvollziehbar belegt werden. Eine feste Grenze gibt es nicht – ob sich ein Gutachten lohnt, hängt vom Einzelfall ab. Wir beraten Sie gern.',
   },
   {
     q: 'Was steht in einem Schadengutachten?',
@@ -179,15 +179,15 @@ export const FAQS: Faq[] = [
   },
   {
     q: 'Kommen Sie zu mir vor Ort?',
-    a: 'Ja. Der Vor-Ort-Service ist Standard, nicht Aufpreis. Wir begutachten in Hannover, Hildesheim, Braunschweig und Hameln – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort.',
+    a: 'Ja. Wir kommen zum Fahrzeug: in Hannover, Hildesheim, Braunschweig und Hameln – zu Hause, am Arbeitsplatz, in der Werkstatt oder am Unfallort.',
   },
   {
     q: 'Begutachten Sie auch Elektro- und Hybridfahrzeuge?',
-    a: 'Ja. Bei Elektro- und Hybridfahrzeugen kommen Besonderheiten hinzu: Hochvoltsystem, Batteriegehäuse, Ladetechnik und die Frage, ob nach einem Aufprall eine Batterieprüfung notwendig ist. Diese Punkte werden im Gutachten ausdrücklich bewertet.',
+    a: 'Ja. Bei Elektro- und Hybridfahrzeugen kommen Besonderheiten hinzu: Hochvoltsystem, Batteriegehäuse, Ladetechnik und die Frage, ob nach einem Aufprall eine Batterieprüfung notwendig ist. Diese Punkte werden im Gutachten gesondert benannt; Arbeiten am Hochvoltsystem erfolgen nach Herstellervorgabe durch dafür qualifiziertes Fachpersonal.',
   },
   {
     q: 'Was ist eine merkantile Wertminderung?',
-    a: 'Der Betrag, um den Ihr Fahrzeug nach einem fachgerecht reparierten Unfallschaden am Markt weniger wert ist – weil es beim Verkauf als Unfallwagen gilt. Diese Position wird häufig übersehen und gehört ins Gutachten.',
+    a: 'Der Betrag, um den ein Fahrzeug nach einem fachgerecht reparierten Unfallschaden am Markt unter Umständen weniger wert ist. Ob und in welcher Höhe sie anfällt, hängt vom Einzelfall ab, zum Beispiel von Alter, Laufleistung und Schadenumfang.',
   },
   {
     q: 'Was mache ich direkt nach dem Unfall?',
@@ -207,37 +207,37 @@ export const FLOW_STEPS: FlowStep[] = [
   {
     num: '01',
     title: 'Kontakt & Ersteinschätzung',
-    text: 'Sie rufen an oder senden die Anfrage mit ein paar Fotos. Wir klären in wenigen Minuten, ob ein vollständiges Gutachten oder ein Kostenvoranschlag der richtige Weg ist – und wer die Kosten trägt.',
-    when: 'Tag 0',
-    duration: '10 Minuten',
+    text: 'Sie rufen an oder senden die Anfrage mit ein paar Fotos. Wir klären im Gespräch, ob ein vollständiges Gutachten oder ein Kostenvoranschlag der richtige Weg ist – und besprechen, wie es mit den Kosten aussieht.',
+    when: 'Zu Beginn',
+    duration: 'kurzes Gespräch',
   },
   {
     num: '02',
     title: 'Vor-Ort-Besichtigung',
     text: 'Wir kommen zu Ihnen: nach Hause, in die Werkstatt, an den Unfallort. Schadenaufnahme, Fotodokumentation, Messungen an Karosserie und Achse, Prüfung von Vorschäden.',
-    when: 'Tag 0–2',
-    duration: '45–90 Minuten',
+    when: 'Nach Absprache',
+    duration: 'je nach Schadenumfang',
   },
   {
     num: '03',
     title: 'Gutachtenerstellung',
     text: 'Kalkulation der Reparaturkosten, Wiederbeschaffungs- und Restwert, merkantile Wertminderung, Nutzungsausfalldauer. Alles belegt und nachvollziehbar aufgebaut.',
-    when: 'Tag 1–3',
-    duration: '1–2 Werktage',
+    when: 'Nach der Besichtigung',
+    duration: 'je nach Umfang',
   },
   {
     num: '04',
     title: 'Übermittlung an Versicherung & Anwalt',
-    text: 'Sie erhalten das Gutachten digital. Auf Wunsch geht es direkt an die gegnerische Versicherung und Ihren Anwalt – damit die Regulierung ohne Rückfragen startet.',
-    when: 'Tag 2–4',
-    duration: 'sofort nach Freigabe',
+    text: 'Sie erhalten das Gutachten digital. Auf Wunsch geht es direkt an die gegnerische Versicherung und Ihren Anwalt – damit die Regulierung vorbereitet ist.',
+    when: 'Nach Ihrer Freigabe',
+    duration: 'nach Absprache',
   },
   {
     num: '05',
     title: 'Schadensregulierung',
-    text: 'Wir bleiben ansprechbar: bei Rückfragen des Versicherers, bei Kürzungsversuchen und bei der Frage, ob Reparatur, Ersatzbeschaffung oder Abrechnung auf Gutachtenbasis für Sie sinnvoll ist.',
-    when: 'danach',
-    duration: 'so lange es nötig ist',
+    text: 'Wir bleiben ansprechbar: bei Rückfragen des Versicherers, bei Kürzungen und bei der Frage, ob Reparatur, Ersatzbeschaffung oder Abrechnung auf Gutachtenbasis für Sie sinnvoll ist.',
+    when: 'Danach',
+    duration: 'bei Bedarf',
   },
 ];
 
