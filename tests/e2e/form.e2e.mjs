@@ -27,7 +27,9 @@ try {
   await ev(`document.querySelector('#anfrage input[type=checkbox]').click()`); await sleep(300);
   await ev(`[...document.querySelectorAll('#anfrage button')].find(b=>/Anfrage senden/.test(b.innerText))?.click()`); await sleep(800);
   ok('Ungültige E-Mail wird im Browser abgewiesen, nichts gesendet', /gültige E-Mail/.test(await ev(`document.getElementById('anfrage').innerText`)) && reqs.length === 0);
-  await setv('email', 'test@example.invalid'); await sleep(7000 - 0); // Mindest-Ausfüllzeit (2,5 s) sicher überschritten
+  await setv('email', 'ratelimit@example.invalid'); await sleep(4000); // Mindest-Ausfüllzeit (2,5 s) sicher überschritten
+  await ev(`[...document.querySelectorAll('#anfrage button')].find(b=>/Anfrage senden/.test(b.innerText))?.click()`); await sleep(2500);
+  ok('Rate-Limit (429): verständliche Serverbotschaft statt allgemeiner Fehlermeldung, Formular bleibt erhalten', /Zu viele Anfragen/.test(await ev(`document.getElementById('anfrage').innerText`)) && received.length === 0);
   await ev(`[...document.querySelectorAll('#anfrage button')].find(b=>/Anfrage senden/.test(b.innerText))?.click()`); await sleep(2500);
   ok('Anfrage wird per POST an den Endpunkt gesendet', reqs.some((r) => r.method === 'POST'), JSON.stringify(reqs.map((r) => r.method)));
   const r = received[0];
@@ -38,6 +40,12 @@ try {
     ok('EXIF-/GPS-Metadaten sind aus den gesendeten Fotos entfernt', r.files.every((f) => f.exif === false), r.files.map((f) => `exif=${f.exif}`).join(', '));
   }
   ok('Erfolgsmeldung im Formular', /Anfrage ist raus/.test(await ev(`document.getElementById('anfrage').innerText`)));
+  ok('Eingangsbestätigung: Referenz wird angezeigt', r && new RegExp(r.reference).test(await ev(`document.getElementById('anfrage').innerText`)), r?.reference);
+  ok('Idempotenz-Schlüssel wird mitgesendet (UUID)', r && /^[0-9a-f-]{32,36}$/.test(r.idempotencyKey), r?.idempotencyKey?.slice(0, 8) + '…');
+  // Wiederholung mit demselben Schlüssel: der (simulierte) Server legt nichts doppelt an
+  const dup = new FormData(); for (const [k, v] of Object.entries({ anlass: 'Unfall', fahrzeug: 'PKW', name: 'Test Person', telefon: '0511 123456', email: 'test@example.invalid', standort: '', nachricht: '', datenschutz: 'true', website: '', t: String(Date.now() - 10000), idempotencyKey: r.idempotencyKey })) dup.append(k, v);
+  const again = await (await fetch('http://127.0.0.1:4311/api/anfrage', { method: 'POST', body: dup })).json();
+  ok('Wiederholte Anfrage mit gleichem Schlüssel: gleiche Referenz, keine zweite Speicherung', again.duplicate === true && again.reference === r.reference && received.length === 1, JSON.stringify(again));
 } finally { proc.kill(); srv.close(); }
 console.log(res.every(Boolean) ? 'ERGEBNIS: bestanden' : `ERGEBNIS: ${res.filter((r) => !r).length} fehlgeschlagen`);
 process.exit(0);

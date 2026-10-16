@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { BIZ, FORM_ENDPOINT, REQUEST_REASONS, REQUEST_VEHICLES } from '@/lib/content';
 import { Arrow } from '@/components/ui/Icon';
 import { Magnetic } from '@/components/ui/Magnetic';
-import { buildInquiryFormData, checkInquiryFiles, downscaleImage } from '@/lib/inquiry-contract';
+import { buildInquiryFormData, checkInquiryFiles, downscaleImage, newIdempotencyKey, type InquiryResponse } from '@/lib/inquiry-contract';
 
 type Values = {
   anlass: string;
@@ -54,6 +54,8 @@ export function RequestForm() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const touched = useRef(false);
   const openedAt = useRef(Date.now());
+  const idempotencyKey = useRef('');
+  const [reference, setReference] = useState('');
 
   /* Vorschaubilder erzeugen und Object-URLs wieder freigeben. */
   useEffect(() => {
@@ -166,9 +168,16 @@ export function RequestForm() {
         setSendError(problem);
         return;
       }
-      const data = buildInquiryFormData({ values, photos, document: SHOW_DOC_UPLOAD ? doc : null, startedAt: openedAt.current });
+      if (!idempotencyKey.current) idempotencyKey.current = newIdempotencyKey(); // gleicher Schlüssel bei jeder Wiederholung derselben Anfrage
+      const data = buildInquiryFormData({ values, photos, document: SHOW_DOC_UPLOAD ? doc : null, startedAt: openedAt.current, idempotencyKey: idempotencyKey.current });
       const res = await fetch(FORM_ENDPOINT, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error('request failed');
+      const body: InquiryResponse | null = await res.json().catch(() => null);
+      if (!res.ok || !body?.ok) {
+        // Verständliche Meldung des Servers (zu groß, ungültig, zu viele Anfragen …) statt einer allgemeinen Fehlermeldung
+        setSendError(body?.message || `Die Anfrage konnte nicht gesendet werden. Bitte rufen Sie uns an: ${BIZ.phoneDisplay}.`);
+        return;
+      }
+      if (body.reference) setReference(body.reference);
       setDone(true);
     } catch {
       setSendError(`Die Anfrage konnte nicht gesendet werden. Bitte rufen Sie uns an: ${BIZ.phoneDisplay}.`);
@@ -196,6 +205,11 @@ export function RequestForm() {
             </svg>
           </span>
           <h3 className="display text-h3">Anfrage ist raus.</h3>
+          {reference && (
+            <p className="font-mono text-[.8rem] uppercase tracking-[.14em] text-fg-mute">
+              Ihre Referenz: <b className="text-fg">{reference}</b>
+            </p>
+          )}
           <p className="lead max-w-[44ch]">
             Wir melden uns mit einem Terminvorschlag. Wenn es eilt, rufen Sie uns bitte direkt an.
           </p>

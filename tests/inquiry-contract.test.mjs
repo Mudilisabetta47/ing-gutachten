@@ -2,7 +2,7 @@
 // Optional: ING_STUDIO_SRC=/pfad/zum/ING-Studio-Repository setzen, um die Grenzen gegen den echten Servercode zu vergleichen.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildInquiryFormData, checkInquiryFiles, SERVER_LIMITS } from '../src/lib/inquiry-contract.ts';
+import { buildInquiryFormData, checkInquiryFiles, newIdempotencyKey, SERVER_LIMITS } from '../src/lib/inquiry-contract.ts';
 
 const values = { anlass: 'Unfall', fahrzeug: 'PKW', name: 'Test Person', telefon: '0511 000000', email: 'test@example.invalid', standort: 'Hannover', nachricht: 'Synthetischer Test', datenschutz: true };
 const jpeg = (bytes = 100) => new File([new Uint8Array(bytes)], 'x.jpg', { type: 'image/jpeg' });
@@ -14,6 +14,14 @@ test('Formularfelder entsprechen dem API-Vertrag', () => {
   assert.equal(fd.get('website'), '', 'Honeypot muss leer sein');
   assert.equal(fd.getAll('foto').length, 2, 'Fotos heißen "foto" (mehrfach), nicht foto_1 …');
   assert.equal(fd.has('fahrzeugschein'), false, 'Fahrzeugschein ist ausgeblendet');
+});
+
+test('Idempotenz-Schlüssel: zufällig, pro Aufruf stabil im Formular', () => {
+  const a = newIdempotencyKey(), b = newIdempotencyKey();
+  assert.match(a, /^[0-9a-f-]{32,36}$/); assert.notEqual(a, b);
+  const fd = buildInquiryFormData({ values, photos: [], startedAt: 1, idempotencyKey: a });
+  assert.equal(fd.get('idempotencyKey'), a);
+  assert.equal(buildInquiryFormData({ values, photos: [], startedAt: 1 }).has('idempotencyKey'), false);
 });
 
 test('Fahrzeugschein wird nur gesendet, wenn übergeben', () => {

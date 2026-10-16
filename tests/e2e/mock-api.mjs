@@ -4,6 +4,9 @@ import { createHash } from 'node:crypto';
 const SRC = process.env.ING_STUDIO_SRC;
 const { LIMITS, validateFields, detectType, clean, PHOTO_MIME, DOC_MIME } = await import(`${SRC}/src/lib/request-schema.ts`);
 export const received = [];
+const keys = new Map(); // Idempotenz: Schlüssel → Referenz (Simulation der geplanten Serverfunktion)
+let rateHits = 0;
+let counter = 0;
 const ALLOW = 'http://127.0.0.1:4312';
 export function start(port = 4311) {
   const srv = http.createServer(async (req, res) => {
@@ -24,8 +27,12 @@ export function start(port = 4311) {
     let total = 0; const files = [];
     for (const p of photos) { if (p.size > LIMITS.maxPhotoBytes) return send(400, { ok: false, error: 'invalid_file', message: 'zu groß' }); const bytes = new Uint8Array(await p.arrayBuffer()); const k = detectType(bytes); if (!k || !PHOTO_MIME.includes(k.mime)) return send(400, { ok: false, error: 'invalid_file' }); total += bytes.length; files.push({ exif: Buffer.from(bytes).includes(Buffer.from('Exif\0\0')), mime: k.mime, size: bytes.length, sha: createHash('sha256').update(bytes).digest('hex').slice(0, 12) }); }
     if (total > LIMITS.maxTotalBytes) return send(413, { ok: false, error: 'too_large' });
-    received.push({ fields: { ...f, name: '***', telefon: '***', email: '***' }, files, fieldNames: [...new Set([...form.keys()])] });
-    send(200, { ok: true });
+    const key = String(form.get('idempotencyKey') || '');
+    if (f.email === 'ratelimit@example.invalid' && rateHits++ === 0) return send(429, { ok: false, error: 'rate_limited', message: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut oder rufen Sie uns an: 0511 – 543 00 976.' });
+    if (key && keys.has(key)) return send(200, { ok: true, reference: keys.get(key), duplicate: true });
+    const reference = `ING-TEST-${String(++counter).padStart(4, '0')}`; if (key) keys.set(key, reference);
+    received.push({ idempotencyKey: key, reference, fields: { ...f, name: '***', telefon: '***', email: '***' }, files, fieldNames: [...new Set([...form.keys()])] });
+    send(200, { ok: true, reference });
   });
   return new Promise((r) => srv.listen(port, '127.0.0.1', () => r(srv)));
 }

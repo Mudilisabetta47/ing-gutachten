@@ -40,10 +40,12 @@ export type InquiryParts = {
   document?: File | null;
   /** Zeitpunkt (ms), an dem das Formular geöffnet wurde – Server verwirft Absendungen unter 2,5 s als Bot. */
   startedAt: number;
+  /** Pro Formularaufruf einmal erzeugter Schlüssel; erneutes Absenden (Doppelklick, Wiederholung nach Fehler) trägt denselben Schlüssel. */
+  idempotencyKey?: string;
 };
 
 /** Baut genau die Felder, die die API liest: Textfelder, `foto` (mehrfach), `fahrzeugschein`, Honeypot `website` (leer), `t`. */
-export function buildInquiryFormData({ values, photos, document, startedAt }: InquiryParts): FormData {
+export function buildInquiryFormData({ values, photos, document, startedAt, idempotencyKey }: InquiryParts): FormData {
   const data = new FormData();
   data.append('anlass', values.anlass);
   data.append('fahrzeug', values.fahrzeug);
@@ -55,10 +57,22 @@ export function buildInquiryFormData({ values, photos, document, startedAt }: In
   data.append('datenschutz', values.datenschutz ? 'true' : 'false');
   data.append('website', ''); // Honeypot: echte Besucher lassen das Feld leer
   data.append('t', String(startedAt));
+  if (idempotencyKey) data.append('idempotencyKey', idempotencyKey); // VORBEREITET: der Server liest das Feld heute noch nicht (unbekannte Felder werden ignoriert)
   photos.forEach((f) => data.append('foto', f));
   if (document) data.append('fahrzeugschein', document);
   return data;
 }
+
+/** Zufälliger, nicht erratbarer Schlüssel (UUID v4). */
+export function newIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const b = new Uint8Array(16);
+  crypto.getRandomValues(b);
+  return Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+}
+
+/** Erwartete Antwort der API (nur die Felder, die das Formular nutzt). */
+export type InquiryResponse = { ok: boolean; reference?: string; message?: string; error?: string };
 
 /** Prüft die Dateigrenzen vor dem Senden. Gibt eine verständliche Meldung zurück oder null. */
 export function checkInquiryFiles(photos: File[], document?: File | null): string | null {
